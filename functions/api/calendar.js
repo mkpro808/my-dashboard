@@ -12,8 +12,8 @@ export async function onRequestGet({ env }) {
     .filter((k) => k.startsWith("ICS_") && typeof env[k] === "string" && env[k].startsWith("http"))
     .sort();
   const today = ymdInZone(Date.now(), tz);
-  const winStart = addDaysYmd(today, -7);
-  const winEnd = addDaysYmd(today, 120);
+  const winStart = addDaysYmd(today, -45);
+  const winEnd = addDaysYmd(today, 190);
   const events = [];
   const errors = [];
   await Promise.all(

@@ -19,8 +19,8 @@ nav{width:84px;flex:none;background:var(--side);display:flex;flex-direction:colu
 main{flex:1;min-width:0;height:100%;overflow-y:auto;box-sizing:border-box}
 header{display:flex;align-items:center;padding:12px 18px;position:sticky;top:0;background:var(--bg);z-index:5;border-bottom:1px solid var(--line)}
 #ttl{font-size:26px;font-weight:600}
-#clk{font-size:20px;margin-left:14px}
-#wx{font-size:20px;margin-left:14px}
+#clk{font-size:38px;font-weight:600;margin-left:18px;letter-spacing:-.5px;font-variant-numeric:tabular-nums}#clk small{font-size:18px;font-weight:500;margin-left:4px;color:var(--mute)}
+#wx{font-size:22px;margin-left:18px}#sun{font-size:18px;margin-left:16px;color:var(--mute);display:flex;align-items:center;white-space:nowrap}#sun svg{margin-right:6px}#sun b{color:var(--ink);font-weight:600;margin-left:5px}
 .av{margin-left:auto;display:flex}
 .av i{width:34px;height:34px;line-height:34px;border-radius:50%;text-align:center;color:#fff;font-style:normal;font-weight:700;margin-left:8px}
 #app{padding:12px 18px 90px}
@@ -40,12 +40,26 @@ input.n{flex:none;width:70px}
 .sch{display:flex}
 .tl{width:54px;flex:none}
 .tl div{height:50px;font-size:12px;color:var(--mute);text-align:right;padding-right:8px;box-sizing:border-box;position:relative;top:-7px}
-.tl .sp{height:67px;top:130px;position:sticky;background:var(--bg);z-index:3}
+.tl .sp{height:67px;top:147px;position:sticky;background:var(--bg);z-index:3}
 .dc{flex:1;min-width:0;border-left:1px solid var(--line)}
-.dh{height:66px;text-align:center;font-size:20px;padding-top:6px;box-sizing:border-box;position:sticky;top:130px;background:var(--bg);z-index:3;border-bottom:1px solid var(--line)}
-.ctop{position:sticky;top:59px;height:71px;margin:-12px -18px 0;padding:12px 18px;box-sizing:border-box;background:var(--bg);z-index:4;display:flex;align-items:center;justify-content:space-between}
+.dh{height:66px;text-align:center;font-size:20px;padding-top:6px;box-sizing:border-box;position:sticky;top:147px;background:var(--bg);z-index:3;border-bottom:1px solid var(--line)}
+.ctop{position:sticky;top:76px;height:71px;margin:-12px -18px 0;padding:12px 18px;box-sizing:border-box;background:var(--bg);z-index:4;display:flex;align-items:center;justify-content:space-between}
 .ctop button{margin-right:6px}
-header{height:59px;box-sizing:border-box}
+.vs{display:flex;overflow-x:auto;flex:1;min-width:0;margin:0 12px;scrollbar-width:none}
+.vs button{min-height:40px;padding:6px 12px;white-space:nowrap;font-size:15px;flex:none}
+.vs button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.clab{font-size:17px;white-space:nowrap;flex:none}
+.mg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-left:1px solid var(--line);border-top:1px solid var(--line);margin-top:4px}
+.mh{text-align:center;color:var(--mute);font-size:13px;padding:6px 0;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.mc{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:4px;cursor:pointer;overflow:hidden;min-width:0}
+.mc.o{opacity:.4}
+.mc .dn{font-size:14px;font-weight:600;display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;border-radius:12px}
+.mc.t .dn{background:#e5654b;color:#fff}
+.chip{display:block;font-size:12px;border-radius:5px;padding:1px 5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:3px solid}
+.ar{display:flex;align-items:center;background:var(--card);border:1px solid var(--line);border-left:5px solid;border-radius:10px;padding:12px 14px;margin:6px 0;cursor:pointer}
+@media (max-width:700px){header{height:auto;flex-wrap:wrap;position:static}#ttl{width:100%;font-size:22px}#clk{margin-left:0;font-size:30px}#sun{display:none}.ctop{position:static;height:auto;flex-wrap:wrap;margin:0 -18px;padding:8px 18px}.vs{order:3;flex-basis:100%;margin:8px 0 0}.dh,.tl .sp{position:static}.ar .tm{width:110px}}
+.ar .tm{width:170px;color:var(--mute);font-size:15px;flex:none}.ar .tt{font-size:18px}
+header{height:76px;box-sizing:border-box}
 .dh b{display:inline-block;min-width:34px;height:34px;line-height:34px;border-radius:17px;font-weight:600}
 .dh.t b{background:#e5654b;color:#fff}
 .db{position:relative;background-image:linear-gradient(var(--line) 1px,transparent 1px);background-size:100% 50px}
@@ -79,7 +93,7 @@ header{height:59px;box-sizing:border-box}
 </head>
 <body>
 <nav id="nav"></nav>
-<main id="mn"><header><div id="ttl"></div><div id="clk"></div><div id="wx"></div><div class="av" id="av"></div></header><div id="app"></div></main>
+<main id="mn"><header><div id="ttl"></div><div id="clk"></div><div id="wx"></div><div id="sun"></div><div class="av" id="av"></div></header><div id="app"></div></main>
 <div id="ovl"></div><div id="toast" data-a="toast"></div>
 <script>
 var KEY='chorestars.v2', COLORS=['#f59e0b','#3b82f6','#ec4899','#10b981','#8b5cf6','#ef4444'];
@@ -145,22 +159,70 @@ function val(id){var el=document.getElementById(id);return el?el.value.replace(/
 function not(a,id){return a.filter(function(x){return x.id!==id;});}
 function pc(id){var p=find(S.people,id);return p?p.color:'#8b5cf6';}
 
-function clock(){var d=new Date(),h=d.getHours()%12||12;document.getElementById('clk').textContent=h+':'+p2(d.getMinutes())+' '+(d.getHours()<12?'AM':'PM');}
-function wx(){try{fetch('https://api.open-meteo.com/v1/forecast?latitude=21.3&longitude=-157.8&current=temperature_2m,weather_code&temperature_unit=fahrenheit')
+var SUN=null;
+function sunIco(up){return '<svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><path d="M8.5 22.5a9.5 9.5 0 0 1 19 0z" fill="var(--ic)"/><path d="M6.5 21a9.5 9.5 0 0 1 19 0M3 25h26M16 3.5v6'+(up?'M12.5 6.5l3.5-3.5 3.5 3.5':'M12.5 6.5l3.5 3.5 3.5-3.5')+'" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';}
+function sunText(){
+  if(!SUN||!SUN.rise||!SUN.set)return '';
+  var d=new Date(),now=iso(d)+'T'+p2(d.getHours())+':'+p2(d.getMinutes()),k,up;
+  if(now<SUN.rise[0]){k=SUN.rise[0];up=1;}else if(now<SUN.set[0]){k=SUN.set[0];up=0;}else{k=SUN.rise[1];up=1;}
+  if(!k)return '';
+  return sunIco(up)+(up?'Sunrise':'Sunset')+'<b>'+tf(k.slice(11,16))+'</b>';}
+function clock(){var d=new Date(),h=d.getHours()%12||12;document.getElementById('clk').innerHTML=h+':'+p2(d.getMinutes())+'<small>'+(d.getHours()<12?'AM':'PM')+'</small>';document.getElementById('sun').innerHTML=sunText();}
+function wx(){try{fetch('https://api.open-meteo.com/v1/forecast?latitude=21.3&longitude=-157.8&current=temperature_2m,weather_code&daily=sunrise,sunset&timezone=auto&forecast_days=2&temperature_unit=fahrenheit')
   .then(function(r){return r.json();}).then(function(j){var c=j.current.weather_code,e=c===0?'☀️':c<4?'⛅':c<50?'🌫️':c<70?'🌧️':c<80?'❄️':c<90?'🌦️':'⛈️';
-  document.getElementById('wx').textContent=e+' '+Math.round(j.current.temperature_2m)+'°';}).catch(function(){});}catch(e){}}
+  document.getElementById('wx').textContent=e+' '+Math.round(j.current.temperature_2m)+'°';if(j.daily&&j.daily.sunrise&&j.daily.sunset){SUN={rise:j.daily.sunrise,set:j.daily.sunset};clock();}}).catch(function(){});}catch(e){}}
 
 function dayEvents(k){
   var a=S.events.filter(function(e){return e.date===k;});
   GE.forEach(function(g){if(g.date===k)a.push({id:'g:'+g.id,title:g.title,date:g.date,time:g.time,end:g.end,who:pid(g.cal),col:CALCOL[String(g.cal).toLowerCase()],g:1});});
   return a;}
+var VIEWS=[['1','Day'],['3','3 Days'],['4','4 Days'],['7','Week'],['14','2 Weeks'],['m','Month'],['a','Schedule']];
+var calView=(function(){try{var v=localStorage.getItem('calView');for(var i=0;i<VIEWS.length;i++)if(VIEWS[i][0]===v)return v;}catch(e){}return window.innerWidth<700?'1':'4';})();
+function sunday(k){var d=new Date(k+'T12:00:00');return addDays(k,-d.getDay());}
+function firstOfMonth(k){return k.slice(0,8)+'01';}
+function sortEv(a){return a.slice().sort(function(x,y){if(!x.time!==!y.time)return x.time?1:-1;return (x.time||'').localeCompare(y.time||'');});}
+function calRange(){
+  if(calView==='7')return {start:sunday(wkStart),n:7};
+  if(calView==='14')return {start:sunday(wkStart),n:14};
+  if(calView==='m'){var f=firstOfMonth(wkStart),st=sunday(f),dim=new Date(+f.slice(0,4),+f.slice(5,7),0).getDate(),off=new Date(f+'T12:00:00').getDay();return {start:st,n:Math.ceil((off+dim)/7)*7,month:+f.slice(5,7)-1};}
+  if(calView==='a')return {start:wkStart,n:14};
+  return {start:wkStart,n:+calView};}
+function calLabel(r){
+  if(calView==='m'){var f=new Date(firstOfMonth(wkStart)+'T12:00:00');return MN[f.getMonth()]+' '+f.getFullYear();}
+  var a=new Date(r.start+'T12:00:00'),b=new Date(addDays(r.start,r.n-1)+'T12:00:00');
+  if(r.n===1)return DN[a.getDay()]+', '+MN[a.getMonth()]+' '+a.getDate();
+  if(a.getMonth()===b.getMonth())return MN[a.getMonth()]+' '+a.getFullYear();
+  return MN[a.getMonth()].slice(0,3)+' – '+MN[b.getMonth()].slice(0,3)+' '+b.getFullYear();}
+function chip(e){var c=e.col||pc(e.who);return '<span class="chip" data-a="evt" data-i="'+esc(e.id)+'" style="background:'+c+'26;border-color:'+c+'">'+(e.time?'<b>'+tf(e.time).replace(':00','').replace(' ','').toLowerCase()+'</b> ':'')+esc(e.title)+'</span>';}
+function vGrid(r,max){
+  var T=iso(new Date()),h='<div class="mg">';
+  DN.forEach(function(w){h+='<div class="mh">'+w+'</div>';});
+  for(var i=0;i<r.n;i++){var k=addDays(r.start,i),d=new Date(k+'T12:00:00'),ev=sortEv(dayEvents(k));
+    var out=r.month!==undefined&&d.getMonth()!==r.month;
+    h+='<div class="mc'+(k===T?' t':'')+(out?' o':'')+'" data-a="gday" data-d="'+k+'" style="min-height:'+(calView==='14'?220:104)+'px"><span class="dn">'+d.getDate()+'</span>';
+    ev.slice(0,max).forEach(function(e){h+=chip(e);});
+    if(ev.length>max)h+='<span class="sub">+'+(ev.length-max)+' more</span>';
+    h+='</div>';}
+  return h+'</div>';}
+function vAgenda(r){
+  var T=iso(new Date()),h='',any=false;
+  for(var i=0;i<r.n;i++){var k=addDays(r.start,i),ev=sortEv(dayEvents(k));if(!ev.length)continue;any=true;
+    var d=new Date(k+'T12:00:00');
+    h+='<h3 style="margin-top:18px">'+(k===T?'Today · ':'')+DN[d.getDay()]+', '+MN[d.getMonth()]+' '+d.getDate()+'</h3>';
+    ev.forEach(function(e){var c=e.col||pc(e.who);h+='<div class="ar" data-a="evt" data-i="'+esc(e.id)+'" style="border-left-color:'+c+'"><span class="tm">'+(e.time?tf(e.time)+(e.end?' – '+tf(e.end):''):'All day')+'</span><span class="tt">'+esc(e.title)+'</span></div>';});}
+  return any?h:'<p class="hint" style="margin-top:18px">Nothing scheduled for these two weeks.</p>';}
 function vCal(){
-  var days=[0,1,2,3].map(function(i){return addDays(wkStart,i);}), T=iso(new Date()), nd=new Date(), nm=nd.getHours()*60+nd.getMinutes(), h, hr;
-  var d0=new Date(days[0]+'T12:00:00');
+  var r=calRange(), T=iso(new Date()), nd=new Date(), nm=nd.getHours()*60+nd.getMinutes(), h, hr, grid=(calView==='m'||calView==='14');
+  var gs=!api?'':gN===0?'Google Calendar not connected yet':gErr.length?'Couldn’t load: '+gErr.join(', '):'';
+  h='<div class="ctop"><div style="flex:none"><button data-a="wk" data-n="-1">◀</button><button data-a="wk" data-n="0">Today</button><button data-a="wk" data-n="1">▶</button></div><div class="vs">';
+  VIEWS.forEach(function(v){h+='<button data-a="cv" data-i="'+v[0]+'"'+(v[0]===calView?' class="on"':'')+'>'+v[1]+'</button>';});
+  h+='</div><b class="clab">'+calLabel(r)+(gs?'<span class="gst">'+esc(gs)+'</span>':'')+'</b></div>';
+  if(calView==='a')return h+vAgenda(r)+'<button class="fab" data-a="new">+</button>';
+  if(grid)return h+vGrid(r,calView==='14'?7:3)+'<button class="fab" data-a="new">+</button>';
+  var days=[];for(var i=0;i<r.n;i++)days.push(addDays(r.start,i));
   H0=7;H1=22;days.forEach(function(k){dayEvents(k).forEach(function(e){if(!e.time)return;var s=mins(e.time),en=e.end?mins(e.end):s+60;H0=Math.min(H0,Math.floor(s/60));H1=Math.max(H1,Math.min(24,Math.ceil(en/60)));});});
   var nAD=0;days.forEach(function(k){nAD=Math.max(nAD,dayEvents(k).filter(function(e){return !e.time;}).length);});var dhH=Math.max(66,46+nAD*19);
-  var gs=!api?'':gN===0?'Google Calendar not connected yet':gErr.length?'Couldn\u2019t load: '+gErr.join(', '):'';
-  h='<div class="ctop"><div><button data-a="wk" data-n="-4">◀</button><button data-a="wk" data-n="0">Today</button><button data-a="wk" data-n="4">▶</button></div><b style="font-size:18px">'+MN[d0.getMonth()]+' '+d0.getFullYear()+(gs?'<span class="gst">'+esc(gs)+'</span>':'')+'</b></div><div class="sch"><div class="tl"><div class="sp" style="height:'+(dhH+1)+'px"></div>';
+  h+='<div class="sch"><div class="tl"><div class="sp" style="height:'+(dhH+1)+'px"></div>';
   for(hr=H0;hr<H1;hr++)h+='<div>'+(hr%12||12)+' '+(hr<12?'AM':'PM')+'</div>';
   h+='</div>';
   days.forEach(function(k){
@@ -310,7 +372,7 @@ function render(){
   document.getElementById('av').innerHTML=a;
   document.getElementById('app').innerHTML=tab==='cal'?vCal():tab==='tasks'?vTasks():tab==='rem'?vRem():vChores();
   document.getElementById('ovl').innerHTML=vModal();
-  if(tab==='cal'&&toNow){toNow=false;var m=document.getElementById('mn'),n=new Date();m.scrollTop=Math.max(0,((n.getHours()-H0-1)*PX)+12);}
+  if(tab==='cal'&&toNow){toNow=false;var m=document.getElementById('mn'),n=new Date();m.scrollTop=/^[1347]$/.test(calView)?Math.max(0,((n.getHours()-H0-1)*PX)+12):0;}
 }
 
 function openMo(e,d){mo=e?{id:e.id,title:e.title,date:e.date,time:e.time||'',end:e.end||'',who:e.who||''}:{id:'',title:'',date:d,time:'',end:'',who:''};}
@@ -320,8 +382,12 @@ function act(a,t){
   if(a!=='delp')armed='';
   if(a==='tab'){tab=id;edit=false;pick='';toNow=(id==='cal');if(id==='tasks'||id==='chores')tasksLoad();}
   else if(a==='sleep'){var s=document.createElement('div');s.className='slp';s.textContent='Tap to wake';s.onclick=function(){document.body.removeChild(s);};document.body.appendChild(s);return;}
-  else if(a==='wk'){var n=parseInt(t.getAttribute('data-n'),10);wkStart=n?addDays(wkStart,n):iso(new Date());}
-  else if(a==='new'){openMo(null,iso(new Date())>wkStart?iso(new Date()):wkStart);}
+  else if(a==='wk'){var n=parseInt(t.getAttribute('data-n'),10);if(!n){wkStart=iso(new Date());toNow=true;}
+    else if(calView==='m'){var fm=new Date(firstOfMonth(wkStart)+'T12:00:00');fm.setMonth(fm.getMonth()+n);wkStart=iso(fm);}
+    else wkStart=addDays(wkStart,n*(calView==='a'?14:+calView));}
+  else if(a==='cv'){calView=id;toNow=true;try{localStorage.setItem('calView',id);}catch(e){}}
+  else if(a==='gday'){wkStart=t.getAttribute('data-d');calView='1';toNow=true;try{localStorage.setItem('calView','1');}catch(e){}}
+  else if(a==='new'){var rg=calRange(),td=iso(new Date());openMo(null,(td>=rg.start&&td<=addDays(rg.start,rg.n-1))?td:(calView==='m'?firstOfMonth(wkStart):rg.start));}
   else if(a==='newat'){return;}
   else if(a==='evt'){if(id.indexOf('g:')===0){var gg=find(GE,id.slice(2));if(gg)mo={ro:true,g:gg};}else openMo(find(S.events,id));}
   else if(a==='toast'){document.getElementById('toast').style.display='none';if(/sign-in/.test(t.textContent))location.reload();return;}
