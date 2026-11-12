@@ -217,8 +217,8 @@ function vCal(){
   h='<div class="ctop"><div style="flex:none"><button data-a="wk" data-n="-1">◀</button><button data-a="wk" data-n="0">Today</button><button data-a="wk" data-n="1">▶</button></div><div class="vs">';
   VIEWS.forEach(function(v){h+='<button data-a="cv" data-i="'+v[0]+'"'+(v[0]===calView?' class="on"':'')+'>'+v[1]+'</button>';});
   h+='</div><b class="clab">'+calLabel(r)+(gs?'<span class="gst">'+esc(gs)+'</span>':'')+'</b></div>';
-  if(calView==='a')return h+vAgenda(r)+'<button class="fab" data-a="new">+</button>';
-  if(grid)return h+vGrid(r,calView==='14'?7:3)+'<button class="fab" data-a="new">+</button>';
+  if(calView==='a')return h+vAgenda(r);
+  if(grid)return h+vGrid(r,calView==='14'?7:3);
   var days=[];for(var i=0;i<r.n;i++)days.push(addDays(r.start,i));
   H0=7;H1=22;days.forEach(function(k){dayEvents(k).forEach(function(e){if(!e.time)return;var s=mins(e.time),en=e.end?mins(e.end):s+60;H0=Math.min(H0,Math.floor(s/60));H1=Math.max(H1,Math.min(24,Math.ceil(en/60)));});});
   var nAD=0;days.forEach(function(k){nAD=Math.max(nAD,dayEvents(k).filter(function(e){return !e.time;}).length);});var dhH=Math.max(66,46+nAD*19);
@@ -238,7 +238,7 @@ function vCal(){
       h+='<div class="ev'+(e.g?' g':'')+'" data-a="evt" data-i="'+esc(e.id)+'" style="top:'+top+'px;height:'+ht+'px;left:calc('+(x.l*100/n)+'% + 2px);width:calc('+(100/n)+'% - 4px);right:auto;background:'+c+'33;border-color:'+c+'"><b>'+esc(e.title)+'</b><br><span class="sub">'+tf(e.time)+(e.end?' - '+tf(e.end):'')+'</span></div>';});
     if(k===T&&nm>=H0*60&&nm<H1*60)h+='<div class="nl" style="top:'+((nm-H0*60)/60*PX)+'px"></div>';
     h+='</div></div>';});
-  return h+'</div><button class="fab" data-a="new">+</button>';}
+  return h+'</div>';}
 
 function vModal(){
   if(!mo)return '';
