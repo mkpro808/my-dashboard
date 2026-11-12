@@ -64,6 +64,13 @@ input.n{flex:none;width:70px}
 .chip{display:block;font-size:12px;border-radius:5px;padding:1px 5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:3px solid}
 .ar{display:flex;align-items:center;background:var(--card);border:1px solid var(--line);border-left:5px solid;border-radius:10px;padding:12px 14px;margin:6px 0;cursor:pointer}
 @media (max-width:700px){header{height:auto;flex-wrap:wrap;position:static}#ttl{width:100%;font-size:22px}#clk{margin-left:0;font-size:30px}#sun{display:none}.ctop{position:static;height:auto;flex-wrap:wrap;margin:0 -18px;padding:8px 18px}.tbar{flex-wrap:wrap}.clab{flex-basis:100%;margin-top:6px}.dh,.tl .sp{position:static}.ar .tm{width:110px}}
+.pm{display:flex;justify-content:center;flex-wrap:wrap;margin:6px 0 4px}.pm button{margin:4px;border-radius:999px;padding:8px 20px}.pm button.on{color:#fff}
+.pw{position:relative;width:min(380px,70vw);margin:12px auto 0}.pring{display:block;width:100%;height:auto}.pring circle{transition:stroke-dashoffset .3s linear}
+.pc{position:absolute;left:0;top:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.pl{font-size:20px;font-weight:600}.ptime{font-size:min(84px,16vw);font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-1px;line-height:1.1}
+.pdots{display:flex;justify-content:center;margin:14px 0}.pdots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);margin:0 5px;box-sizing:border-box}.pdots i.c{border-color:#e5654b}
+.pb{display:flex;justify-content:center;align-items:center}.pb button{margin:0 8px;min-width:110px}.pb .pgo{color:#fff;font-size:22px;font-weight:600;min-width:170px;min-height:64px;border-radius:32px}
+.pf{display:flex;align-items:center;min-height:56px;border-bottom:1px solid var(--line)}.pf:last-of-type{border-bottom:0}.pf b{min-width:48px;text-align:center;font-size:22px}.pf button{min-width:52px}.pf button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .ar .tm{width:170px;color:var(--mute);font-size:15px;flex:none}.ar .tt{font-size:18px}
 header{height:76px;box-sizing:border-box}
 .dh b{display:inline-block;min-width:34px;height:34px;line-height:34px;border-radius:17px;font-weight:600}
@@ -103,8 +110,8 @@ header{height:76px;box-sizing:border-box}
 <div id="ovl"></div><div id="toast" data-a="toast"></div>
 <script>
 var KEY='chorestars.v2', COLORS=['#f59e0b','#3b82f6','#ec4899','#10b981','#8b5cf6','#ef4444'];
-var TABS=[['cal','Calendar'],['chores','Chores'],['tasks','Lists'],['rem','Reminders']];
-var ICON={cal:'<rect x="7.5" y="9.5" width="21" height="19" rx="4" fill="var(--ic)"/><rect x="4.5" y="7" width="21" height="19.5" rx="4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M4.5 13h21M10 4.5v5M20 4.5v5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M10 18.5h.1M15 18.5h.1M20 18.5h.1M10 22.5h.1M15 22.5h.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-width="2.8"/>',chores:'<polygon points="17.5,6.0 20.6,13.8 28.9,14.3 22.4,19.6 24.6,27.7 17.5,23.2 10.4,27.7 12.6,19.6 6.1,14.3 14.4,13.8" fill="var(--ic)"/><polygon points="15.5,4.0 18.6,11.8 26.9,12.3 20.4,17.6 22.6,25.7 15.5,21.2 8.4,25.7 10.6,17.6 4.1,12.3 12.4,11.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',tasks:'<rect x="8.5" y="8.5" width="19" height="21" rx="3.5" fill="var(--ic)"/><rect x="5.5" y="6" width="19" height="21.5" rx="3.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M11 4.5h8v4h-8z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M9.5 14.5l2 2 3.5-3.5M9.5 21.5l2 2 3.5-3.5M18 15.5h3M18 22.5h3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',rem:'<path d="M18 7.5c4.6 0 7.5 3.4 7.5 8v4.5l2.5 4H8l2.5-4V15.5c0-4.6 2.9-8 7.5-8z" fill="var(--ic)"/><path d="M15.5 5.5c4.6 0 7.5 3.4 7.5 8V18l2.5 4H5.5L8 18v-4.5c0-4.6 2.9-8 7.5-8zM12.5 25.5a3 3 0 0 0 6 0M15.5 3v2.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',sleep:'<path d="M23.5 21.5A10 10 0 0 1 13 7.5a10 10 0 1 0 12.5 12.6" fill="var(--ic)" transform="translate(2.5 2)"/><path d="M23.5 21.5A10 10 0 0 1 13 7.5a10 10 0 1 0 12.5 12.6z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M23 5v4M21 7h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-width="1.8"/>'};
+var TABS=[['cal','Calendar'],['chores','Chores'],['tasks','Lists'],['rem','Reminders'],['pomo','Pomodoro']];
+var ICON={pomo:'<ellipse cx="17.5" cy="20" rx="11" ry="9.5" fill="var(--ic)"/><ellipse cx="15.5" cy="18" rx="11" ry="9.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M15.5 8.5c-1.6-2.2-4.2-2.6-6.2-2M15.5 8.5c1.6-2.2 4.2-2.6 6.2-2M15.5 8.5V4.5M15.5 13.5v4.5l3 2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',cal:'<rect x="7.5" y="9.5" width="21" height="19" rx="4" fill="var(--ic)"/><rect x="4.5" y="7" width="21" height="19.5" rx="4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M4.5 13h21M10 4.5v5M20 4.5v5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M10 18.5h.1M15 18.5h.1M20 18.5h.1M10 22.5h.1M15 22.5h.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-width="2.8"/>',chores:'<polygon points="17.5,6.0 20.6,13.8 28.9,14.3 22.4,19.6 24.6,27.7 17.5,23.2 10.4,27.7 12.6,19.6 6.1,14.3 14.4,13.8" fill="var(--ic)"/><polygon points="15.5,4.0 18.6,11.8 26.9,12.3 20.4,17.6 22.6,25.7 15.5,21.2 8.4,25.7 10.6,17.6 4.1,12.3 12.4,11.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',tasks:'<rect x="8.5" y="8.5" width="19" height="21" rx="3.5" fill="var(--ic)"/><rect x="5.5" y="6" width="19" height="21.5" rx="3.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M11 4.5h8v4h-8z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M9.5 14.5l2 2 3.5-3.5M9.5 21.5l2 2 3.5-3.5M18 15.5h3M18 22.5h3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',rem:'<path d="M18 7.5c4.6 0 7.5 3.4 7.5 8v4.5l2.5 4H8l2.5-4V15.5c0-4.6 2.9-8 7.5-8z" fill="var(--ic)"/><path d="M15.5 5.5c4.6 0 7.5 3.4 7.5 8V18l2.5 4H5.5L8 18v-4.5c0-4.6 2.9-8 7.5-8zM12.5 25.5a3 3 0 0 0 6 0M15.5 3v2.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',sleep:'<path d="M23.5 21.5A10 10 0 0 1 13 7.5a10 10 0 1 0 12.5 12.6" fill="var(--ic)" transform="translate(2.5 2)"/><path d="M23.5 21.5A10 10 0 0 1 13 7.5a10 10 0 1 0 12.5 12.6z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M23 5v4M21 7h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-width="1.8"/>'};
 function ico(k,sz){return '<svg viewBox="0 0 32 32" width="'+(sz||30)+'" height="'+(sz||30)+'" aria-hidden="true">'+ICON[k]+'</svg>';}
 var STAR='<svg viewBox="0 0 32 32" width="1em" height="1em" style="vertical-align:-0.12em" aria-hidden="true"><polygon points="16.0,3.5 19.3,12.0 28.4,12.5 21.3,18.2 23.6,27.0 16.0,22.1 8.4,27.0 10.7,18.2 3.6,12.5 12.7,12.0" fill="var(--ic)" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>';
 
@@ -127,7 +134,7 @@ function seed(){
   return {people:[{id:uid(),name:'Jericho',color:COLORS[0],stars:0},{id:uid(),name:'Kahoku',color:COLORS[1],stars:0}],
     chores:c.map(function(x){return {id:uid(),name:x[0],stars:x[1],doneOn:'',doneBy:''};}),
     rewards:[{id:uid(),name:'Pick the movie',cost:8},{id:uid(),name:'Treat of your choice',cost:12},{id:uid(),name:'Skip a chore',cost:15}]};}
-function norm(s){s=s||seed();s.people=s.people||[];s.chores=s.chores||[];s.rewards=s.rewards||[];s.events=s.events||[];s.tasks=s.tasks||[];s.rem=s.rem||[];s.title=s.title||DEFTITLE;s.cdone=s.cdone||{};if(!s.colorsV1){s.colorsV1=1;s.people.forEach(function(p){var c=CALCOL[String(p.name).toLowerCase()];if(c)p.color=c;});}return s;}
+function norm(s){s=s||seed();s.people=s.people||[];s.chores=s.chores||[];s.rewards=s.rewards||[];s.events=s.events||[];s.tasks=s.tasks||[];s.rem=s.rem||[];s.title=s.title||DEFTITLE;s.cdone=s.cdone||{};s.pomo=s.pomo||{focus:25,short:5,long:15,rounds:4,auto:false,sound:true};if(!s.colorsV1){s.colorsV1=1;s.people.forEach(function(p){var c=CALCOL[String(p.name).toLowerCase()];if(c)p.color=c;});}return s;}
 function load(){var s=null;try{s=JSON.parse(localStorage.getItem(KEY));}catch(e){}return norm(s);}
 function cache(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 function save(){cache();if(!api)return;dirty=true;clearTimeout(pushT);pushT=setTimeout(push,300);}
@@ -334,6 +341,48 @@ function vTasks(){
   if(!S.tasks.length)h+='<p class="hint">All clear!</p>';
   return h;}
 
+var PM={focus:['Focus','#e5654b'],short:['Short break','#16a34a'],long:['Long break','#0ea5e9']}, actx=null;
+var P=(function(){try{var x=JSON.parse(localStorage.getItem('pomo'));if(x&&PM[x.mode])return x;}catch(e){}return {mode:'focus',round:1,running:false,endAt:0,left:-1};})();
+function pSave(){try{localStorage.setItem('pomo',JSON.stringify(P));}catch(e){}}
+function pDur(m){var c=S.pomo;return Math.round((m==='focus'?c.focus:m==='short'?c.short:c.long)*60);}
+function pLeft(){if(P.left<0)P.left=pDur(P.mode);return P.running?Math.max(0,Math.ceil((P.endAt-Date.now())/1000)):P.left;}
+function mmss(n){return Math.floor(n/60)+':'+p2(n%60);}
+function chime(){
+  if(!S.pomo.sound)return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    [[784,0],[988,.22],[1175,.44],[988,.9],[1175,1.12],[1568,1.34]].forEach(function(n){var o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime+n[1];
+      o.type='sine';o.frequency.value=n[0];g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.25,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+.6);
+      o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.65);});}catch(e){}}
+function pNext(auto){
+  if(P.mode==='focus'){P.mode=P.round>=S.pomo.rounds?'long':'short';}
+  else{if(P.mode==='long')P.round=1;else P.round++;P.mode='focus';}
+  P.left=pDur(P.mode);P.running=!!auto;if(auto)P.endAt=Date.now()+P.left*1000;pSave();}
+function pTick(){
+  var left=pLeft();
+  if(P.running&&left<=0){var was=P.mode;chime();pNext(S.pomo.auto);
+    toast(was==='focus'?'Focus session done! Time for a '+(P.mode==='long'?'long ':'')+'break.':'Break’s over. Ready to focus?',8000);
+    if(tab==='pomo'&&!busyUI())render();left=pLeft();}
+  var el=document.getElementById('pt');if(el){el.textContent=mmss(left);var ring=document.getElementById('pr');if(ring)ring.setAttribute('stroke-dashoffset',(565.5*(1-left/Math.max(1,pDur(P.mode)))).toFixed(1));}
+  var nv=document.getElementById('pnav');if(nv)nv.textContent=P.running?mmss(left):'Pomodoro';}
+function vPomo(){
+  var c=S.pomo,left=pLeft(),col=PM[P.mode][1],dur=pDur(P.mode);
+  var h='<div class="top"><h1>Pomodoro</h1><button data-a="edit">'+(edit?'Done':'Edit')+'</button></div>';
+  if(edit){
+    var f=function(id,lab,v,unit){return '<div class="pf"><span class="cn">'+lab+'</span><button data-a="pstep" data-i="'+id+'" data-n="-1">−</button><b>'+v+'</b><span class="sub" style="width:54px">'+unit+'</span><button data-a="pstep" data-i="'+id+'" data-n="1">+</button></div>';};
+    h+='<div class="rw">'+f('focus','Focus',c.focus,'min')+f('short','Short break',c.short,'min')+f('long','Long break',c.long,'min')+f('rounds','Focus rounds before a long break',c.rounds,'rounds');
+    h+='<div class="pf"><span class="cn">Start the next session automatically</span><button data-a="ptog" data-i="auto" class="'+(c.auto?'on':'')+'">'+(c.auto?'On':'Off')+'</button></div>';
+    h+='<div class="pf"><span class="cn">Chime when time is up</span><button data-a="ptog" data-i="sound" class="'+(c.sound?'on':'')+'">'+(c.sound?'On':'Off')+'</button><button data-a="ptest" style="margin-left:8px">Test</button></div>';
+    h+='<p class="hint">Changes are saved for every device. A timer that’s already running keeps its current length.</p></div>';
+  }
+  h+='<div class="pm">';
+  ['focus','short','long'].forEach(function(m){h+='<button data-a="pmode" data-i="'+m+'" class="'+(P.mode===m?'on':'')+'" style="'+(P.mode===m?'background:'+PM[m][1]+';border-color:'+PM[m][1]:'')+'">'+PM[m][0]+'</button>';});
+  h+='</div><div class="pw"><svg viewBox="0 0 200 200" class="pring"><circle cx="100" cy="100" r="90" fill="none" stroke="var(--line)" stroke-width="10"/>'+
+     '<circle id="pr" cx="100" cy="100" r="90" fill="none" stroke="'+col+'" stroke-width="10" stroke-linecap="round" stroke-dasharray="565.5" stroke-dashoffset="'+(565.5*(1-left/Math.max(1,dur))).toFixed(1)+'" transform="rotate(-90 100 100)"/></svg>'+
+     '<div class="pc"><div class="pl" style="color:'+col+'">'+PM[P.mode][0]+'</div><div id="pt" class="ptime">'+mmss(left)+'</div><div class="sub">Round '+Math.min(P.round,c.rounds)+' of '+c.rounds+'</div></div></div>';
+  h+='<div class="pdots">';for(var i=1;i<=c.rounds;i++)h+='<i class="'+(i<P.round||(i===P.round&&P.mode!=='focus')?'d':'')+(i===P.round&&P.mode==='focus'?' c':'')+'" style="'+(i<P.round||(i===P.round&&P.mode!=='focus')?'background:'+PM.focus[1]:'')+'"></i>';h+='</div>';
+  h+='<div class="pb"><button data-a="preset">Reset</button><button data-a="pgo" class="pgo" style="background:'+col+';border-color:'+col+'">'+(P.running?'Pause':(left<dur?'Resume':'Start'))+'</button><button data-a="pskip">Skip</button></div>';
+  return h;}
+
 function vRem(){
   var n=new Date(), nowS=iso(n)+'T'+p2(n.getHours())+':'+p2(n.getMinutes());
   var h='<h1>Reminders</h1><div class="row"><input id="rt" placeholder="New reminder"><input id="rw" type="datetime-local" style="flex:none;width:220px"><button data-a="addm">Add</button></div>';
@@ -382,13 +431,13 @@ function vChores(){
 
 function render(){
   var h='',a='';
-  TABS.forEach(function(t){h+='<button class="nb'+(t[0]===tab?' on':'')+'" data-a="tab" data-i="'+t[0]+'"><b>'+ico(t[0])+'</b>'+t[1]+'</button>';});
+  TABS.forEach(function(t){h+='<button class="nb'+(t[0]===tab?' on':'')+'" data-a="tab" data-i="'+t[0]+'"><b>'+ico(t[0])+'</b>'+(t[0]==='pomo'?'<span id="pnav">'+(P.running?mmss(pLeft()):t[1])+'</span>':t[1])+'</button>';});
   h+='<button class="nb" data-a="sleep" style="margin-top:auto"><b>'+ico('sleep')+'</b>Sleep</button>';
   document.getElementById('nav').innerHTML=h;
   document.getElementById('ttl').textContent=S.title||DEFTITLE;
   S.people.forEach(function(p){a+='<i style="background:'+p.color+'">'+esc(p.name.charAt(0).toUpperCase())+'</i>';});
   document.getElementById('av').innerHTML=a;
-  document.getElementById('app').innerHTML=tab==='cal'?vCal():tab==='tasks'?vTasks():tab==='rem'?vRem():vChores();
+  document.getElementById('app').innerHTML=tab==='cal'?vCal():tab==='tasks'?vTasks():tab==='rem'?vRem():tab==='pomo'?vPomo():vChores();
   document.getElementById('ovl').innerHTML=vModal();
   if(tab==='cal'&&toNow){toNow=false;var m=document.getElementById('mn'),n=new Date();m.scrollTop=/^[1347]$/.test(calView)?Math.max(0,((n.getHours()-H0-1)*PX)+12):0;}
 }
@@ -407,6 +456,14 @@ function act(a,t){
   else if(a==='dd'){dd=(dd===id?'':id);render();return;}
   else if(a==='ctog'){if(calHide[id])delete calHide[id];else calHide[id]=1;try{localStorage.setItem('calHide',JSON.stringify(calHide));}catch(e){}rr();return;}
   else if(a==='call'){calHide={};if(id!=='1'){gLabels.forEach(function(c){calHide[c]=1;});if(S.events.length)calHide.Dashboard=1;}try{localStorage.setItem('calHide',JSON.stringify(calHide));}catch(e){}rr();return;}
+  else if(a==='pgo'){if(P.running){P.left=pLeft();P.running=false;}else{try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.resume)actx.resume();}catch(e){}P.left=pLeft();P.endAt=Date.now()+P.left*1000;P.running=true;}pSave();}
+  else if(a==='preset'){P.running=false;P.left=pDur(P.mode);pSave();}
+  else if(a==='pskip'){pNext(false);}
+  else if(a==='pmode'){P.mode=id;P.running=false;P.left=pDur(id);pSave();}
+  else if(a==='pstep'){var lim={focus:[1,180],short:[1,60],long:[1,90],rounds:[1,12]}[id],nv2=S.pomo[id]+parseInt(t.getAttribute('data-n'),10)*(id!=='rounds'&&S.pomo[id]>=10&&!(S.pomo[id]===10&&t.getAttribute('data-n')==='-1')?5:1);
+    S.pomo[id]=Math.max(lim[0],Math.min(lim[1],nv2));if(!P.running){P.left=pDur(P.mode);}if(P.round>S.pomo.rounds)P.round=1;pSave();}
+  else if(a==='ptog'){S.pomo[id]=!S.pomo[id];}
+  else if(a==='ptest'){var was2=S.pomo.sound;S.pomo.sound=true;chime();S.pomo.sound=was2;return;}
   else if(a==='cv'){calView=id;toNow=true;try{localStorage.setItem('calView',id);}catch(e){}}
   else if(a==='gday'){wkStart=t.getAttribute('data-d');calView='1';toNow=true;try{localStorage.setItem('calView','1');}catch(e){}}
   else if(a==='new'){var rg=calRange(),td=iso(new Date());openMo(null,(td>=rg.start&&td<=addDays(rg.start,rg.n-1))?td:(calView==='m'?firstOfMonth(wkStart):rg.start));}
@@ -459,7 +516,7 @@ document.addEventListener('click',function(e){
 S=load();render();clock();wx();pull(true);gcal();tasksLoad();
 (function(){var g=(location.search.match(/[?&]google=(\w+)/)||[])[1];if(!g)return;try{history.replaceState(null,'','/');}catch(e){}
   toast({connected:'Google Tasks connected!',cancelled:'Google sign-in was cancelled.',expired:'That sign-in took too long. Please try again.',failed:'Google sign-in didn\u2019t finish. Please try again.',notsetup:'Google Tasks isn\u2019t set up in Cloudflare yet.'}[g]||'Google sign-in finished.',6000);})();
-setInterval(clock,20000);setInterval(wx,1800000);setInterval(gcal,600000);setInterval(function(){pull(false);},20000);
+setInterval(clock,20000);setInterval(pTick,250);setInterval(wx,1800000);setInterval(gcal,600000);setInterval(function(){pull(false);},20000);
 document.addEventListener('visibilitychange',function(){if(!document.hidden){pull(false);gcal();tasksLoad();}});
 setInterval(function(){if(!document.hidden)tasksLoad();},60000);
 setInterval(function(){if(tab==='cal'&&!busyUI())rr();},300000);
