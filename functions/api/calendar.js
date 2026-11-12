@@ -16,9 +16,10 @@ export async function onRequestGet({ env }) {
   const winEnd = addDaysYmd(today, 190);
   const events = [];
   const errors = [];
+  const labelOf = (key) => key.slice(4).toLowerCase().split("_").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
   await Promise.all(
     feeds.map(async (key) => {
-      const label = key.slice(4).toLowerCase().split("_").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+      const label = labelOf(key);
       try {
         const r = await fetch(env[key], { cf: { cacheTtl: 300, cacheEverything: true } });
         if (!r.ok) throw new Error("HTTP " + r.status);
@@ -33,7 +34,7 @@ export async function onRequestGet({ env }) {
     })
   );
   events.sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")));
-  return new Response(JSON.stringify({ events, errors, calendars: feeds.length, tz }), {
+  return new Response(JSON.stringify({ events, errors, calendars: feeds.length, labels: feeds.map(labelOf), tz }), {
     headers: { "Content-Type": "application/json" },
   });
 }
