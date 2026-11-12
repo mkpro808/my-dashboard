@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chore Stars</title>
+<style>
+:root{--bg:#fdf8ef;--card:#fff;--ink:#2b2418;--mute:#7a6f5c;--line:#eadfc8;--ok:#16a34a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17130c;--card:#241e13;--ink:#f6efe0;--mute:#b3a78f;--line:#3a3120}}
+:root[data-theme="dark"]{--bg:#17130c;--card:#241e13;--ink:#f6efe0;--mute:#b3a78f;--line:#3a3120}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding:12px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+h1{font-size:26px;margin:0}
+h3{font-size:18px;margin:18px 0 8px}
+button{font:inherit;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:12px;padding:10px 16px;min-height:48px;cursor:pointer}
+button[disabled]{opacity:.4}
+.score{display:flex;flex-wrap:wrap;margin:0 -5px}
+.sc{flex:1 1 140px;margin:5px;background:var(--card);border:1px solid var(--line);border-top:6px solid #f59e0b;border-radius:14px;padding:10px 14px;box-sizing:border-box}
+.sn{font-size:20px;font-weight:700}
+.ss{font-size:28px;font-weight:700}
+.chore{background:var(--card);border:2px solid var(--line);border-radius:14px;margin:8px 0;padding:8px 10px}
+.chore.done{background:rgba(22,163,74,.15);border-color:var(--ok)}
+.ct{display:flex;align-items:center;min-height:52px;cursor:pointer}
+.chk{width:30px;height:30px;line-height:30px;text-align:center;border:2px solid var(--mute);border-radius:50%;margin-right:12px;font-weight:700;flex:none}
+.done .chk{background:var(--ok);border-color:var(--ok);color:#fff}
+.cn{flex:1;font-size:19px}
+.done .cn{color:var(--mute)}
+.cs{font-weight:700;margin-left:8px;white-space:nowrap}
+.who{padding:6px 0 4px 42px}
+.who span{display:block;font-size:14px;color:var(--mute);margin-bottom:4px}
+.wb{margin:3px 8px 3px 0;border-width:3px}
+.x{min-height:40px;padding:4px 10px;margin-left:8px}
+.row{display:flex;align-items:center;margin:8px 0}
+.row input{font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:10px;padding:8px;min-width:0;flex:1;margin-right:8px;min-height:44px;box-sizing:border-box}
+.row input.n{flex:none;width:70px}
+.rw{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin:8px 0}
+.rt{font-size:18px;font-weight:600;margin-bottom:6px}
+.msg{min-height:26px;font-weight:600;color:var(--ok);margin:6px 2px}
+.hint{color:var(--mute);font-size:14px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+var KEY='chorestars.v2', COLORS=['#f59e0b','#3b82f6','#ec4899','#10b981','#8b5cf6','#ef4444'];
+var edit=false, armed='', pick='', msg='', S;
+function uid(){return 'i'+Math.random().toString(36).slice(2,8);}
+function today(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function seed(){
+  var c=[['Wash the dishes',2],['Take out the trash',2],['Do a load of laundry',3],['Vacuum the living room',3],['Wipe the counters',1],['Water the plants',1]];
+  return {people:[{id:uid(),name:'Jericho',color:COLORS[0],stars:0},{id:uid(),name:'Kahoku',color:COLORS[1],stars:0}],
+    chores:c.map(function(x){return {id:uid(),name:x[0],stars:x[1],doneOn:'',doneBy:''};}),
+    rewards:[{id:uid(),name:'Pick the movie',cost:8},{id:uid(),name:'Treat of your choice',cost:12},{id:uid(),name:'Skip a chore',cost:15}]};}
+function load(){try{var s=localStorage.getItem(KEY);if(s)return JSON.parse(s);}catch(e){}return seed();}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function find(a,id){for(var i=0;i<a.length;i++){if(a[i].id===id)return a[i];}return null;}
+function val(id){var el=document.getElementById(id);return el?el.value.replace(/^\s+|\s+$/g,''):'';}
+
+function render(){
+  var T=today(), h='<header><h1>\u2B50 Chore Stars</h1><button data-a="edit">'+(edit?'Done':'Edit')+'</button></header>';
+  h+='<div class="score">';
+  S.people.forEach(function(p){
+    h+='<div class="sc" style="border-top-color:'+p.color+'"><div class="sn">'+esc(p.name)+'</div><div class="ss">\u2B50 '+p.stars+'</div>';
+    if(edit)h+='<div class="row"><button data-a="adj" data-p="'+p.id+'" data-n="-1">\u22121</button><button data-a="adj" data-p="'+p.id+'" data-n="1" style="margin-left:8px">+1</button></div><button data-a="delp" data-p="'+p.id+'">'+(armed===p.id?'Tap again to remove':'Remove')+'</button>';
+    h+='</div>';
+  });
+  h+='</div><div class="msg">'+esc(msg)+'</div><h3>\uD83E\uDDF9 Today\u2019s chores \u2014 anyone can take one</h3>';
+  S.chores.forEach(function(c){
+    var d=c.doneOn===T, by=find(S.people,c.doneBy);
+    h+='<div class="chore'+(d?' done':'')+'"><div class="ct" data-a="tog" data-c="'+c.id+'"><span class="chk">'+(d?'\u2713':'')+'</span><span class="cn">'+esc(c.name)+(d&&by?' \u2014 '+esc(by.name):'')+'</span><span class="cs">+'+c.stars+' \u2B50</span>';
+    if(edit)h+='<button class="x" data-a="delc" data-c="'+c.id+'">\u2715</button>';
+    h+='</div>';
+    if(!d&&pick===c.id){
+      h+='<div class="who"><span>Who did it?</span>';
+      S.people.forEach(function(p){h+='<button class="wb" data-a="who" data-c="'+c.id+'" data-p="'+p.id+'" style="border-color:'+p.color+'">'+esc(p.name)+'</button>';});
+      h+='</div>';
+    }
+    h+='</div>';
+  });
+  if(!S.chores.length)h+='<p class="hint">No chores yet. Tap Edit to add some.</p>';
+  if(edit)h+='<div class="row"><input id="cn" placeholder="New chore"><input class="n" id="cs" type="number" min="1" value="1"><button data-a="addc">Add</button></div>';
+  h+='<h3>\uD83C\uDF81 Rewards</h3>';
+  S.rewards.forEach(function(r){
+    h+='<div class="rw"><div class="rt">'+esc(r.name)+' \u2014 '+r.cost+' \u2B50'+(edit?' <button class="x" data-a="delr" data-r="'+r.id+'">\u2715</button>':'')+'</div><div>';
+    S.people.forEach(function(p){
+      h+='<button class="wb" data-a="red" data-p="'+p.id+'" data-r="'+r.id+'" style="border-color:'+p.color+'"'+(p.stars<r.cost?' disabled':'')+'>'+esc(p.name)+'</button>';
+    });
+    h+='</div></div>';
+  });
+  if(edit){
+    h+='<div class="row"><input id="rn" placeholder="New reward"><input class="n" id="rc" type="number" min="1" value="10"><button data-a="addr">Add</button></div>';
+    h+='<h3>\uD83D\uDC64 Add a person</h3><div class="row"><input id="pn" placeholder="Name"><button data-a="addp">Add</button></div>';
+  }
+  h+='<p class="hint">Chores reset every morning. Tap a finished chore to undo it. Saved on this device.</p>';
+  document.getElementById('app').innerHTML=h;
+}
+
+function act(a,t){
+  var p=find(S.people,t.getAttribute('data-p')||''), c=find(S.chores,t.getAttribute('data-c')||''), r=find(S.rewards,t.getAttribute('data-r')||''), T=today(), by;
+  msg='';
+  if(a!=='delp')armed='';
+  if(a==='edit'){edit=!edit;pick='';}
+  else if(a==='tog'&&c){
+    if(c.doneOn===T){by=find(S.people,c.doneBy);if(by)by.stars=Math.max(0,by.stars-c.stars);c.doneOn='';c.doneBy='';pick='';}
+    else pick=(pick===c.id?'':c.id);}
+  else if(a==='who'&&c&&p){c.doneOn=T;c.doneBy=p.id;p.stars+=c.stars;pick='';msg=p.name+' earned '+c.stars+' \u2B50 for '+c.name+'!';}
+  else if(a==='delc'&&c){S.chores=S.chores.filter(function(x){return x.id!==c.id;});}
+  else if(a==='addc'){var n=val('cn');if(n)S.chores.push({id:uid(),name:n,stars:Math.max(1,parseInt(val('cs'),10)||1),doneOn:'',doneBy:''});}
+  else if(a==='adj'&&p){p.stars=Math.max(0,p.stars+parseInt(t.getAttribute('data-n'),10));}
+  else if(a==='delp'&&p){if(armed===p.id){S.people=S.people.filter(function(x){return x.id!==p.id;});armed='';}else armed=p.id;}
+  else if(a==='addp'){var nm=val('pn');if(nm)S.people.push({id:uid(),name:nm,color:COLORS[S.people.length%COLORS.length],stars:0});}
+  else if(a==='addr'){var rn=val('rn');if(rn)S.rewards.push({id:uid(),name:rn,cost:Math.max(1,parseInt(val('rc'),10)||1)});}
+  else if(a==='delr'&&r){S.rewards=S.rewards.filter(function(x){return x.id!==r.id;});}
+  else if(a==='red'&&p&&r){if(p.stars>=r.cost){p.stars-=r.cost;msg=p.name+' redeemed '+r.name+'! \uD83C\uDF89';}}
+  save();render();
+}
+document.addEventListener('click',function(e){
+  var t=e.target;
+  while(t&&t!==document&&!(t.getAttribute&&t.getAttribute('data-a')))t=t.parentNode;
+  if(!t||t===document)return;
+  act(t.getAttribute('data-a'),t);
+});
+S=load();render();
+setInterval(function(){if(!edit&&!pick)render();},600000);
+</script>
+</body>
+</html>
