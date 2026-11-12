@@ -406,6 +406,9 @@ function vPomo(){
   h+='<div class="pb"><button data-a="preset">Reset</button><button data-a="pgo" class="pgo" style="background:'+col+';border-color:'+col+'">'+(P.running?'Pause':(left<dur?'Resume':'Start'))+'</button>'+(P.mode==='manual'?'':'<button data-a="pskip">Skip</button>')+'</div>';
   return h;}
 
+var lastAct=Date.now(), ssIdle=(function(){try{var v=localStorage.getItem('ssIdle');if(v!==null)return +v;}catch(e){}return window.innerWidth<700?0:10;})();
+['pointerdown','touchstart','keydown','wheel'].forEach(function(ev){document.addEventListener(ev,function(){lastAct=Date.now();},true);});
+function idleCheck(){if(!ssIdle||!PH.length||document.getElementById('ss')||document.querySelector('.slp')||mo||impRunning)return;if(Date.now()-lastAct>=ssIdle*60000)ssOpen();}
 var PHS={}, impRunning=false, PH=[], phIdx=0, ssTimer=null, ssLayer=0, ssPaused=false, ssCtlT=null;
 function photosLoad(){if(!api)return;getJSON('/api/photos').then(function(x){if(x.s===200&&x.j.photos){var had=PH.length;PHS=x.j;PH=x.j.photos;if(PH.length!==had)ssList=[];if(document.getElementById('ss')&&!ssTimer)ssShow(0);if(PHS.importing&&!impRunning)impLoop();phStatus();}}).catch(function(){});}
 function phPost(body){return fetch('/api/photos',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json().catch(function(){return {};}).then(function(j){if(!r.ok){var e=new Error(j.error||'Google Photos error');e.code=j.code;throw e;}return j;});});}
@@ -444,6 +447,9 @@ function vPhotos(){
     h+='<button data-a="phpick" style="width:100%;background:var(--acc);color:#fff;border-color:var(--acc);margin:6px 0 10px">'+(PH.length?'Choose new photos from Google Photos':'Choose photos from Google Photos')+'</button>';
   }
   h+='<div class="pf"><span class="cn">Seconds per photo</span><button data-a="sssec" data-n="-5">−</button><b>'+c.secs+'</b><button data-a="sssec" data-n="5">+</button></div>';
+  h+='<div class="pf" style="flex-wrap:wrap"><span class="cn">Start the slideshow when no one has touched the screen for</span>';
+  [[0,'Off'],[5,'5 min'],[10,'10 min'],[15,'15 min'],[30,'30 min']].forEach(function(o){h+='<button data-a="ssidle" data-n="'+o[0]+'" class="'+(ssIdle===o[0]?'on':'')+'" style="margin:3px">'+o[1]+'</button>';});
+  h+='</div>';
   h+='<div class="pf"><span class="cn">Shuffle</span><button data-a="ssshuf" class="'+(c.shuffle?'on':'')+'">'+(c.shuffle?'On':'Off')+'</button></div>';
   h+='<div class="row" style="margin-top:12px"><button data-a="ssplay" style="flex:1;background:var(--acc);color:#fff;border-color:var(--acc)"'+(PH.length?'':' disabled')+'>Play slideshow</button><button data-a="mcl" style="margin-left:8px">Close</button></div></div></div>';
   return h;}
@@ -480,7 +486,7 @@ function ssOpen(){
     else if(w==='pause'){ssPaused=!ssPaused;b.textContent=ssPaused?'▶':'❚❚';if(ssPaused){clearTimeout(ssTimer);ssTimer=null;}else ssShow(1);}
     e.stopPropagation();});
   document.body.appendChild(d);ssClock();ssList=[];ssShow(0);photosLoad();}
-function ssClose(){var d=document.getElementById('ss');if(d)document.body.removeChild(d);clearTimeout(ssTimer);ssTimer=null;}
+function ssClose(){lastAct=Date.now();var d=document.getElementById('ss');if(d)document.body.removeChild(d);clearTimeout(ssTimer);ssTimer=null;}
 
 function vRem(){
   var n=new Date(), nowS=iso(n)+'T'+p2(n.getHours())+':'+p2(n.getMinutes());
@@ -569,6 +575,7 @@ function act(a,t){
   else if(a==='phcancel'){mo.pick=false;}
   else if(a==='sssec'){S.slides.secs=Math.max(5,Math.min(300,S.slides.secs+parseInt(t.getAttribute('data-n'),10)));}
   else if(a==='ssshuf'){S.slides.shuffle=!S.slides.shuffle;ssList=[];}
+  else if(a==='ssidle'){ssIdle=parseInt(t.getAttribute('data-n'),10);try{localStorage.setItem('ssIdle',String(ssIdle));}catch(e){}}
   else if(a==='ssplay'){mo=null;render();ssOpen();return;}
   else if(a==='cv'){calView=id;toNow=true;try{localStorage.setItem('calView',id);}catch(e){}}
   else if(a==='gday'){wkStart=t.getAttribute('data-d');calView='1';toNow=true;try{localStorage.setItem('calView','1');}catch(e){}}
@@ -622,7 +629,7 @@ document.addEventListener('click',function(e){
 S=load();render();clock();wx();pull(true);gcal();tasksLoad();photosLoad();
 (function(){var g=(location.search.match(/[?&]google=(\w+)/)||[])[1];if(!g)return;try{history.replaceState(null,'','/');}catch(e){}
   toast({connected:'Google Tasks connected!',cancelled:'Google sign-in was cancelled.',expired:'That sign-in took too long. Please try again.',failed:'Google sign-in didn\u2019t finish. Please try again.',notsetup:'Google Tasks isn\u2019t set up in Cloudflare yet.'}[g]||'Google sign-in finished.',6000);})();
-setInterval(clock,1000);setInterval(ssClock,15000);setInterval(pTick,250);setInterval(wx,1800000);setInterval(gcal,600000);setInterval(function(){pull(false);},20000);
+setInterval(clock,1000);setInterval(idleCheck,15000);setInterval(ssClock,15000);setInterval(pTick,250);setInterval(wx,1800000);setInterval(gcal,600000);setInterval(function(){pull(false);},20000);
 document.addEventListener('visibilitychange',function(){if(!document.hidden){pull(false);gcal();tasksLoad();}});
 setInterval(function(){if(!document.hidden)tasksLoad();},60000);
 setInterval(function(){if(tab==='cal'&&!busyUI())rr();},300000);
