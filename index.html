@@ -84,7 +84,7 @@ var KEY='chorestars.v2', COLORS=['#f59e0b','#3b82f6','#ec4899','#10b981','#8b5cf
 var TABS=[['cal','📅','Calendar'],['chores','⭐','Chores'],['tasks','✅','Lists'],['rem','🔔','Reminders']];
 var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
 var DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], H0=7, H1=22, PX=50, DEFTITLE='Sombrio Ohana';
-var api=/^https?:$/.test(location.protocol), ver=0, busy=false, dirty=false, failed=false, pushT=null, GE=[], gErr=[], gN=-1, toastT=null;
+var TK=null, tkSel='', api=/^https?:$/.test(location.protocol), ver=0, busy=false, dirty=false, failed=false, pushT=null, GE=[], gErr=[], gN=-1, toastT=null;
 var tab='cal', edit=false, armed='', pick='', msg='', S, mo=null, wkStart=iso(new Date()), toNow=true;
 function p2(n){return n<10?'0'+n:''+n;}
 function iso(d){return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
@@ -100,7 +100,7 @@ function seed(){
   return {people:[{id:uid(),name:'Jericho',color:COLORS[0],stars:0},{id:uid(),name:'Kahoku',color:COLORS[1],stars:0}],
     chores:c.map(function(x){return {id:uid(),name:x[0],stars:x[1],doneOn:'',doneBy:''};}),
     rewards:[{id:uid(),name:'Pick the movie',cost:8},{id:uid(),name:'Treat of your choice',cost:12},{id:uid(),name:'Skip a chore',cost:15}]};}
-function norm(s){s=s||seed();s.people=s.people||[];s.chores=s.chores||[];s.rewards=s.rewards||[];s.events=s.events||[];s.tasks=s.tasks||[];s.rem=s.rem||[];s.title=s.title||DEFTITLE;return s;}
+function norm(s){s=s||seed();s.people=s.people||[];s.chores=s.chores||[];s.rewards=s.rewards||[];s.events=s.events||[];s.tasks=s.tasks||[];s.rem=s.rem||[];s.title=s.title||DEFTITLE;s.cdone=s.cdone||{};return s;}
 function load(){var s=null;try{s=JSON.parse(localStorage.getItem(KEY));}catch(e){}return norm(s);}
 function cache(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 function save(){cache();if(!api)return;dirty=true;clearTimeout(pushT);pushT=setTimeout(push,300);}
@@ -180,8 +180,53 @@ function vModal(){
   if(mo.id)h+='<button data-a="mdl" style="margin-left:8px">Delete</button>';
   return h+'<button data-a="mcl" style="margin-left:8px">Cancel</button></div></div></div>';}
 
+function GT(){return !!(TK&&TK.connected&&TK.chores&&!TK.error);}
+function parseChore(t){var m=String(t||'').match(/^(.*?)\s*\((\d+)\s*(?:\u2B50|stars?)?\)\s*$/i);return m?{name:m[1]||t,n:Math.max(1,parseInt(m[2],10))}:{name:t||'(untitled)',n:1};}
+function tasksLoad(){
+  if(!api)return;
+  getJSON('/api/tasks').then(function(x){
+    var j=x.j; if(x.s===503){TK={connected:false,configured:false};}
+    else if(x.s!==200&&!j.connected){TK=j;}
+    else {TK=j;}
+    if(GT()){
+      var T=today(),ch=false;for(var k in S.cdone){if(S.cdone[k].on!==T){delete S.cdone[k];ch=true;}}
+      if(TK.chores.items.length===0&&S.chores.length&&!S.choresMoved){S.choresMoved=true;ch=true;
+        var q=S.chores.slice();(function next(){var c=q.shift();if(!c){tasksLoad();return;}tkPost({op:'add',list:TK.chores.id,title:c.name+' ('+c.stars+')'},next);})();}
+      if(ch)save();
+      if(!tkSel||!TK.lists.some(function(l){return l.id===tkSel;}))tkSel=TK.lists.length?TK.lists[0].id:'';
+    }
+    if((tab==='tasks'||tab==='chores')&&!busyUI())rr();
+  }).catch(function(e){if(e.message==='auth')toast('Your sign-in expired. Tap here to sign in again.',0);});
+}
+function tkPost(body,done){
+  fetch('/api/tasks',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+  .then(function(r){return r.json().catch(function(){return {};}).then(function(j){if(!r.ok)throw new Error(j.error||'Google Tasks error');return j;});})
+  .then(function(){if(done)done();else tasksLoad();})
+  .catch(function(e){toast('Couldn\u2019t update Google Tasks. '+e.message);tasksLoad();});
+}
+function curList(){if(!GT())return null;for(var i=0;i<TK.lists.length;i++)if(TK.lists[i].id===tkSel)return TK.lists[i];return TK.lists[0]||null;}
+function gNote(){
+  if(!api)return '';
+  if(TK===null)return '<p class="hint">Loading Google Tasks\u2026</p>';
+  if(TK.connected===false&&TK.configured===false)return '<p class="hint">Google Tasks isn\u2019t set up yet, so this is saved on the dashboard only.</p>';
+  if(TK.connected===false)return '<div class="rw"><div class="rt">Connect Google Tasks</div><p class="hint" style="margin-top:0">Sign in once to sync lists and chores with Google Tasks.</p><button data-a="gconnect" style="background:var(--acc);color:#fff;border-color:var(--acc)">Connect Google Tasks</button></div>';
+  if(TK.error)return '<p class="hint">Couldn\u2019t reach Google Tasks right now. Showing what\u2019s saved on the dashboard.</p>';
+  return '';}
+function vGTasks(){
+  var L=curList(), h='<div class="top"><h1>Lists</h1>'+(L?'<button data-a="gcl">Clear done</button>':'')+'</div><div class="row" style="flex-wrap:wrap">';
+  TK.lists.forEach(function(l){var on=L&&l.id===L.id;h+='<button class="wb" data-a="tsel" data-i="'+esc(l.id)+'" style="'+(on?'background:var(--acc);color:#fff;border-color:var(--acc)':'')+'">'+esc(l.title)+'</button>';});
+  h+='</div>';
+  if(L){
+    h+='<div class="row"><input id="tt" placeholder="Add to '+esc(L.title)+'"><button data-a="gad">Add</button></div>';
+    L.items.forEach(function(t){h+='<div class="it'+(t.done?' done':'')+'" data-a="gtg" data-i="'+esc(t.id)+'"><span class="chk">'+(t.done?'\u2713':'')+'</span><span class="cn">'+esc(t.title)+'</span><button class="x" data-a="gdl" data-i="'+esc(t.id)+'">\u2715</button></div>';});
+    if(!L.items.length)h+='<p class="hint">All clear!</p>';
+  }
+  h+='<h3>New list</h3><div class="row"><input id="nl" placeholder="List name, like Groceries"><button data-a="gnl">Create</button></div>';
+  return h+'<p class="hint">Synced with Google Tasks. Changes on your phone show up here within a minute.</p>';}
+
 function vTasks(){
-  var h='<div class="top"><h1>Lists</h1><button data-a="clrt">Clear done</button></div><div class="row"><input id="tt" placeholder="New item"><button data-a="addt">Add</button></div>';
+  if(GT())return vGTasks();
+  var h='<div class="top"><h1>Lists</h1><button data-a="clrt">Clear done</button></div>'+gNote()+'<div class="row"><input id="tt" placeholder="New item"><button data-a="addt">Add</button></div>';
   S.tasks.forEach(function(t){h+='<div class="it'+(t.done?' done':'')+'" data-a="tgt" data-i="'+t.id+'"><span class="chk">'+(t.done?'✓':'')+'</span><span class="cn">'+esc(t.text)+'</span><button class="x" data-a="delt" data-i="'+t.id+'">✕</button></div>';});
   if(!S.tasks.length)h+='<p class="hint">All clear!</p>';
   return h;}
@@ -200,7 +245,19 @@ function vChores(){
     h+='<div class="sc" style="border-top-color:'+p.color+'"><div class="sn">'+esc(p.name)+'</div><div class="ss">⭐ '+p.stars+'</div>';
     if(edit)h+='<div class="row"><button data-a="adj" data-i="'+p.id+'" data-n="-1">−1</button><button data-a="adj" data-i="'+p.id+'" data-n="1" style="margin-left:8px">+1</button></div><button data-a="delp" data-i="'+p.id+'">'+(armed===p.id?'Tap again to remove':'Remove')+'</button>';
     h+='</div>';});
-  h+='</div><div class="msg">'+esc(msg)+'</div><h3>Today’s chores — anyone can take one</h3>';
+  h+='</div><div class="msg">'+esc(msg)+'</div>'+(GT()?'':gNote())+'<h3>Today’s chores — anyone can take one</h3>';
+  if(GT()){
+    TK.chores.items.forEach(function(it){
+      var c=parseChore(it.title), rec=S.cdone[it.id], by=rec&&rec.on===T?find(S.people,rec.by):null, d=it.done;
+      h+='<div class="it'+(d?' done':'')+'" style="display:block"><div style="display:flex;align-items:center;min-height:48px" data-a="gtog" data-i="'+esc(it.id)+'"><span class="chk">'+(d?'✓':'')+'</span><span class="cn">'+esc(c.name)+(d?(by?' — '+esc(by.name):' — checked off in Google Tasks'):'')+'</span><span class="cs">+'+c.n+' ⭐</span>';
+      if(edit)h+='<button class="x" data-a="gdc" data-i="'+esc(it.id)+'">✕</button>';
+      h+='</div>';
+      if(!d&&pick===it.id){h+='<div class="who"><span class="sub">Who did it?</span><br>';
+        S.people.forEach(function(p){h+='<button class="wb" data-a="gwho" data-i="'+esc(it.id)+'" data-p="'+p.id+'" style="border-color:'+p.color+'">'+esc(p.name)+'</button>';});h+='</div>';}
+      h+='</div>';});
+    if(!TK.chores.items.length)h+='<p class="hint">No chores yet. Add some here, or in the “Chores” list in Google Tasks.</p>';
+    if(edit)h+='<div class="row"><input id="cn" placeholder="New chore"><input class="n" id="cs" type="number" min="1" value="1"><button data-a="gac">Add</button></div>';
+  } else
   S.chores.forEach(function(c){
     var d=c.doneOn===T, by=find(S.people,c.doneBy);
     h+='<div class="it'+(d?' done':'')+'" style="display:block"><div style="display:flex;align-items:center;min-height:48px" data-a="tog" data-i="'+c.id+'"><span class="chk">'+(d?'✓':'')+'</span><span class="cn">'+esc(c.name)+(d&&by?' — '+esc(by.name):'')+'</span><span class="cs">+'+c.stars+' ⭐</span>';
@@ -209,14 +266,14 @@ function vChores(){
     if(!d&&pick===c.id){h+='<div class="who"><span class="sub">Who did it?</span><br>';
       S.people.forEach(function(p){h+='<button class="wb" data-a="who" data-i="'+c.id+'" data-p="'+p.id+'" style="border-color:'+p.color+'">'+esc(p.name)+'</button>';});h+='</div>';}
     h+='</div>';});
-  if(edit)h+='<div class="row"><input id="cn" placeholder="New chore"><input class="n" id="cs" type="number" min="1" value="1"><button data-a="addc">Add</button></div>';
+  if(edit&&!GT())h+='<div class="row"><input id="cn" placeholder="New chore"><input class="n" id="cs" type="number" min="1" value="1"><button data-a="addc">Add</button></div>';
   h+='<h3>🎁 Rewards</h3>';
   S.rewards.forEach(function(r){
     h+='<div class="rw"><div class="rt">'+esc(r.name)+' — '+r.cost+' ⭐'+(edit?' <button class="x" data-a="delr" data-i="'+r.id+'">✕</button>':'')+'</div>';
     S.people.forEach(function(p){h+='<button class="wb" data-a="red" data-i="'+r.id+'" data-p="'+p.id+'" style="border-color:'+p.color+'"'+(p.stars<r.cost?' disabled':'')+'>'+esc(p.name)+'</button>';});
     h+='</div>';});
   if(edit){h+='<div class="row"><input id="rn" placeholder="New reward"><input class="n" id="rc" type="number" min="1" value="10"><button data-a="addr">Add</button></div><h3>Add a person</h3><div class="row"><input id="pn" placeholder="Name"><button data-a="addp">Add</button></div>';}
-  return h+'<p class="hint">Chores reset every morning. Tap a finished chore to undo it.</p>';}
+  return h+'<p class="hint">Chores reset every morning. Tap a finished chore to undo it.'+(GT()?' Chores come from the “Chores” list in Google Tasks; put the stars at the end of the name, like “Wash the dishes (2)”.':'')+'</p>';}
 
 function render(){
   var h='',a='';
@@ -236,7 +293,7 @@ function act(a,t){
   var id=t.getAttribute('data-i')||'', T=today(), c, p, r, before=JSON.stringify(S);
   if(a!=='tog'&&a!=='who')msg='';
   if(a!=='delp')armed='';
-  if(a==='tab'){tab=id;edit=false;pick='';toNow=(id==='cal');}
+  if(a==='tab'){tab=id;edit=false;pick='';toNow=(id==='cal');if(id==='tasks'||id==='chores')tasksLoad();}
   else if(a==='sleep'){var s=document.createElement('div');s.className='slp';s.textContent='Tap to wake';s.onclick=function(){document.body.removeChild(s);};document.body.appendChild(s);return;}
   else if(a==='wk'){var n=parseInt(t.getAttribute('data-n'),10);wkStart=n?addDays(wkStart,n):iso(new Date());}
   else if(a==='new'){openMo(null,iso(new Date())>wkStart?iso(new Date()):wkStart);}
@@ -248,6 +305,17 @@ function act(a,t){
   else if(a==='msv'){var ti=val('mt');if(ti){var st=val('ms'),en=val('me');if(st&&!en)en=hhmm(mins(st)+60);if(!st)en='';
     var o={id:mo.id||uid(),title:ti,date:val('md')||mo.date,time:st,end:en,who:document.getElementById('mw').value};
     if(mo.id)S.events=S.events.map(function(x){return x.id===o.id?o:x;});else S.events.push(o);mo=null;}}
+  else if(a==='gconnect'){location.href='/api/google/connect';return;}
+  else if(a==='tsel'){tkSel=id;}
+  else if(a==='gad'){var L1=curList(),gt=val('tt');if(L1&&gt){L1.items.unshift({id:'tmp'+uid(),title:gt,done:false});tkPost({op:'add',list:L1.id,title:gt});}}
+  else if(a==='gtg'){var L2=curList();if(L2){var it2=find(L2.items,id);if(it2&&id.indexOf('tmp')!==0){it2.done=!it2.done;tkPost({op:'toggle',list:L2.id,id:id,done:it2.done});}}}
+  else if(a==='gdl'){var L3=curList();if(L3&&id.indexOf('tmp')!==0){L3.items=not(L3.items,id);tkPost({op:'delete',list:L3.id,id:id});}}
+  else if(a==='gcl'){var L4=curList();if(L4){L4.items=L4.items.filter(function(x){return !x.done;});tkPost({op:'clear',list:L4.id});}}
+  else if(a==='gnl'){var nl=val('nl');if(nl&&GT())tkPost({op:'newlist',title:nl},function(){tkSel='';tasksLoad();});}
+  else if(a==='gtog'&&GT()){var ci=find(TK.chores.items,id);if(ci){if(ci.done){var rc=S.cdone[id];if(rc&&rc.on===T){p=find(S.people,rc.by);if(p)p.stars=Math.max(0,p.stars-rc.n);}delete S.cdone[id];ci.done=false;pick='';msg='';tkPost({op:'toggle',list:TK.chores.id,id:id,done:false});}else pick=(pick===id?'':id);}}
+  else if(a==='gwho'&&GT()){var cw=find(TK.chores.items,id);p=find(S.people,t.getAttribute('data-p'));if(cw&&p){var pc2=parseChore(cw.title);p.stars+=pc2.n;S.cdone[id]={on:T,by:p.id,n:pc2.n};cw.done=true;pick='';msg=p.name+' earned '+pc2.n+' \u2B50 for '+pc2.name+'!';tkPost({op:'toggle',list:TK.chores.id,id:id,done:true});}}
+  else if(a==='gac'&&GT()){var cn2=val('cn');if(cn2){var st2=Math.max(1,parseInt(val('cs'),10)||1);TK.chores.items.push({id:'tmp'+uid(),title:cn2+' ('+st2+')',done:false});tkPost({op:'add',list:TK.chores.id,title:cn2+' ('+st2+')'});}}
+  else if(a==='gdc'&&GT()){if(id.indexOf('tmp')!==0){TK.chores.items=not(TK.chores.items,id);tkPost({op:'delete',list:TK.chores.id,id:id});}}
   else if(a==='addt'){var tx=val('tt');if(tx)S.tasks.push({id:uid(),text:tx,done:false});}
   else if(a==='tgt'){r=find(S.tasks,id);if(r)r.done=!r.done;}
   else if(a==='delt'){S.tasks=not(S.tasks,id);}
@@ -274,9 +342,12 @@ document.addEventListener('click',function(e){
   if(!t||t===document)return;
   act(t.getAttribute('data-a'),t);
 });
-S=load();render();clock();wx();pull(true);gcal();
+S=load();render();clock();wx();pull(true);gcal();tasksLoad();
+(function(){var g=(location.search.match(/[?&]google=(\w+)/)||[])[1];if(!g)return;try{history.replaceState(null,'','/');}catch(e){}
+  toast({connected:'Google Tasks connected!',cancelled:'Google sign-in was cancelled.',expired:'That sign-in took too long. Please try again.',failed:'Google sign-in didn\u2019t finish. Please try again.',notsetup:'Google Tasks isn\u2019t set up in Cloudflare yet.'}[g]||'Google sign-in finished.',6000);})();
 setInterval(clock,20000);setInterval(wx,1800000);setInterval(gcal,600000);setInterval(function(){pull(false);},20000);
-document.addEventListener('visibilitychange',function(){if(!document.hidden){pull(false);gcal();}});
+document.addEventListener('visibilitychange',function(){if(!document.hidden){pull(false);gcal();tasksLoad();}});
+setInterval(function(){if(!document.hidden)tasksLoad();},60000);
 setInterval(function(){if(tab==='cal'&&!busyUI())rr();},300000);
 </script>
 </body>
