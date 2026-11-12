@@ -10,6 +10,6 @@ export async function onRequest(ctx) {
   }
   const res = await ctx.next();
   const out = new Response(res.body, res);
-  out.headers.set("Cache-Control", "no-store");
+  if (!out.headers.has("Cache-Control")) out.headers.set("Cache-Control", "no-store");
   return out;
 }

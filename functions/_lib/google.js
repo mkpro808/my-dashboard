@@ -2,7 +2,7 @@
 // GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are encrypted Cloudflare secrets.
 // The long-lived sign-in (refresh token) is saved in the private D1 database.
 
-export const SCOPE = "https://www.googleapis.com/auth/tasks";
+export const SCOPE = "https://www.googleapis.com/auth/tasks https://www.googleapis.com/auth/photospicker.mediaitems.readonly";
 
 export async function kvGet(db, k) {
   const r = await db.prepare("SELECT v FROM kv WHERE k = ?").bind(k).first();
