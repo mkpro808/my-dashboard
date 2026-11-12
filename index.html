@@ -83,6 +83,7 @@ header{height:59px;box-sizing:border-box}
 var KEY='chorestars.v2', COLORS=['#f59e0b','#3b82f6','#ec4899','#10b981','#8b5cf6','#ef4444'];
 var TABS=[['cal','📅','Calendar'],['chores','⭐','Chores'],['tasks','✅','Lists'],['rem','🔔','Reminders']];
 var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+var CALCOL={jericho:'#3b82f6',kahoku:'#a78bfa',ohana:'#7e22ce'};
 var DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], H0=7, H1=22, PX=50, DEFTITLE='Sombrio Ohana';
 var TK=null, tkSel='', api=/^https?:$/.test(location.protocol), ver=0, busy=false, dirty=false, failed=false, pushT=null, GE=[], gErr=[], gN=-1, toastT=null;
 var tab='cal', edit=false, armed='', pick='', msg='', S, mo=null, wkStart=iso(new Date()), toNow=true;
@@ -100,7 +101,7 @@ function seed(){
   return {people:[{id:uid(),name:'Jericho',color:COLORS[0],stars:0},{id:uid(),name:'Kahoku',color:COLORS[1],stars:0}],
     chores:c.map(function(x){return {id:uid(),name:x[0],stars:x[1],doneOn:'',doneBy:''};}),
     rewards:[{id:uid(),name:'Pick the movie',cost:8},{id:uid(),name:'Treat of your choice',cost:12},{id:uid(),name:'Skip a chore',cost:15}]};}
-function norm(s){s=s||seed();s.people=s.people||[];s.chores=s.chores||[];s.rewards=s.rewards||[];s.events=s.events||[];s.tasks=s.tasks||[];s.rem=s.rem||[];s.title=s.title||DEFTITLE;s.cdone=s.cdone||{};return s;}
+function norm(s){s=s||seed();s.people=s.people||[];s.chores=s.chores||[];s.rewards=s.rewards||[];s.events=s.events||[];s.tasks=s.tasks||[];s.rem=s.rem||[];s.title=s.title||DEFTITLE;s.cdone=s.cdone||{};if(!s.colorsV1){s.colorsV1=1;s.people.forEach(function(p){var c=CALCOL[String(p.name).toLowerCase()];if(c)p.color=c;});}return s;}
 function load(){var s=null;try{s=JSON.parse(localStorage.getItem(KEY));}catch(e){}return norm(s);}
 function cache(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 function save(){cache();if(!api)return;dirty=true;clearTimeout(pushT);pushT=setTimeout(push,300);}
@@ -145,26 +146,27 @@ function wx(){try{fetch('https://api.open-meteo.com/v1/forecast?latitude=21.3&lo
 
 function dayEvents(k){
   var a=S.events.filter(function(e){return e.date===k;});
-  GE.forEach(function(g){if(g.date===k)a.push({id:'g:'+g.id,title:g.title,date:g.date,time:g.time,end:g.end,who:pid(g.cal),g:1});});
+  GE.forEach(function(g){if(g.date===k)a.push({id:'g:'+g.id,title:g.title,date:g.date,time:g.time,end:g.end,who:pid(g.cal),col:CALCOL[String(g.cal).toLowerCase()],g:1});});
   return a;}
 function vCal(){
   var days=[0,1,2,3].map(function(i){return addDays(wkStart,i);}), T=iso(new Date()), nd=new Date(), nm=nd.getHours()*60+nd.getMinutes(), h, hr;
   var d0=new Date(days[0]+'T12:00:00');
   H0=7;H1=22;days.forEach(function(k){dayEvents(k).forEach(function(e){if(!e.time)return;var s=mins(e.time),en=e.end?mins(e.end):s+60;H0=Math.min(H0,Math.floor(s/60));H1=Math.max(H1,Math.min(24,Math.ceil(en/60)));});});
+  var nAD=0;days.forEach(function(k){nAD=Math.max(nAD,dayEvents(k).filter(function(e){return !e.time;}).length);});var dhH=Math.max(66,46+nAD*19);
   var gs=!api?'':gN===0?'Google Calendar not connected yet':gErr.length?'Couldn\u2019t load: '+gErr.join(', '):'';
-  h='<div class="ctop"><div><button data-a="wk" data-n="-4">◀</button><button data-a="wk" data-n="0">Today</button><button data-a="wk" data-n="4">▶</button></div><b style="font-size:18px">'+MN[d0.getMonth()]+' '+d0.getFullYear()+(gs?'<span class="gst">'+esc(gs)+'</span>':'')+'</b></div><div class="sch"><div class="tl"><div class="sp"></div>';
+  h='<div class="ctop"><div><button data-a="wk" data-n="-4">◀</button><button data-a="wk" data-n="0">Today</button><button data-a="wk" data-n="4">▶</button></div><b style="font-size:18px">'+MN[d0.getMonth()]+' '+d0.getFullYear()+(gs?'<span class="gst">'+esc(gs)+'</span>':'')+'</b></div><div class="sch"><div class="tl"><div class="sp" style="height:'+(dhH+1)+'px"></div>';
   for(hr=H0;hr<H1;hr++)h+='<div>'+(hr%12||12)+' '+(hr<12?'AM':'PM')+'</div>';
   h+='</div>';
   days.forEach(function(k){
     var dd=new Date(k+'T12:00:00'), ev=dayEvents(k);
-    h+='<div class="dc"><div class="dh'+(k===T?' t':'')+'">'+DN[dd.getDay()]+' <b>'+dd.getDate()+'</b>';
-    ev.filter(function(e){return !e.time;}).forEach(function(e){h+='<span class="ad" data-a="evt" data-i="'+esc(e.id)+'" style="background:'+pc(e.who)+'33">'+esc(e.title)+'</span>';});
+    h+='<div class="dc"><div class="dh'+(k===T?' t':'')+'" style="height:'+dhH+'px">'+DN[dd.getDay()]+' <b>'+dd.getDate()+'</b>';
+    ev.filter(function(e){return !e.time;}).forEach(function(e){h+='<span class="ad" data-a="evt" data-i="'+esc(e.id)+'" style="background:'+(e.col||pc(e.who))+'33">'+esc(e.title)+'</span>';});
     h+='</div><div class="db" data-a="newat" data-d="'+k+'" style="height:'+((H1-H0)*PX)+'px">';
     var tl=ev.filter(function(e){return e.time;}).map(function(e){var s=mins(e.time),en=e.end?mins(e.end):s+60;if(en<=s)en=s+30;return {e:e,s:s,en:en};}).sort(function(a,b){return a.s-b.s||b.en-a.en;});
     var grp=null,gEnd=-1;
     tl.forEach(function(x){if(x.s>=gEnd){grp={lanes:[],items:[]};gEnd=x.en;}else gEnd=Math.max(gEnd,x.en);var l=0;while(grp.lanes[l]>x.s)l++;grp.lanes[l]=x.en;x.l=l;x.g=grp;grp.items.push(x);});
     tl.forEach(function(x){
-      var e=x.e, n=x.g.lanes.length, top=(x.s-H0*60)/60*PX, ht=Math.max(30,(x.en-x.s)/60*PX), c=pc(e.who);
+      var e=x.e, n=x.g.lanes.length, top=(x.s-H0*60)/60*PX, ht=Math.max(30,(x.en-x.s)/60*PX), c=e.col||pc(e.who);
       h+='<div class="ev'+(e.g?' g':'')+'" data-a="evt" data-i="'+esc(e.id)+'" style="top:'+top+'px;height:'+ht+'px;left:calc('+(x.l*100/n)+'% + 2px);width:calc('+(100/n)+'% - 4px);right:auto;background:'+c+'33;border-color:'+c+'"><b>'+esc(e.title)+'</b><br><span class="sub">'+tf(e.time)+(e.end?' - '+tf(e.end):'')+'</span></div>';});
     if(k===T&&nm>=H0*60&&nm<H1*60)h+='<div class="nl" style="top:'+((nm-H0*60)/60*PX)+'px"></div>';
     h+='</div></div>';});
