@@ -46,7 +46,7 @@ input.n{flex:none;width:70px}
 header{height:59px;box-sizing:border-box}
 .dh b{display:inline-block;min-width:34px;height:34px;line-height:34px;border-radius:17px;font-weight:600}
 .dh.t b{background:#e5654b;color:#fff}
-.db{position:relative;height:750px;background-image:linear-gradient(var(--line) 1px,transparent 1px);background-size:100% 50px}
+.db{position:relative;background-image:linear-gradient(var(--line) 1px,transparent 1px);background-size:100% 50px}
 .ev{position:absolute;left:3px;right:3px;border-radius:8px;padding:3px 7px;font-size:14px;overflow:hidden;cursor:pointer;box-sizing:border-box;border-left:4px solid}
 .ad{display:block;border-radius:6px;font-size:12px;padding:0 4px;margin:2px 4px 0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer}
 .nl{position:absolute;left:0;right:0;height:2px;background:#e5654b;pointer-events:none}
@@ -70,17 +70,21 @@ header{height:59px;box-sizing:border-box}
 .sn{font-size:20px;font-weight:700}.ss{font-size:28px;font-weight:700}
 .rw{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin:8px 0}
 .rt{font-size:18px;font-weight:600;margin-bottom:6px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;font-size:16px;z-index:40;max-width:80%;text-align:center;display:none;cursor:pointer}
+.gst{font-size:13px;color:var(--mute);margin-left:12px;font-weight:400}
+.ev.g{border-left-style:solid}
 </style>
 </head>
 <body>
 <nav id="nav"></nav>
 <main id="mn"><header><div id="ttl"></div><div id="clk"></div><div id="wx"></div><div class="av" id="av"></div></header><div id="app"></div></main>
-<div id="ovl"></div>
+<div id="ovl"></div><div id="toast" data-a="toast"></div>
 <script>
 var KEY='chorestars.v2', COLORS=['#f59e0b','#3b82f6','#ec4899','#10b981','#8b5cf6','#ef4444'];
 var TABS=[['cal','📅','Calendar'],['chores','⭐','Chores'],['tasks','✅','Lists'],['rem','🔔','Reminders']];
 var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
-var DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], H0=7, H1=22, PX=50;
+var DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], H0=7, H1=22, PX=50, DEFTITLE='Sombrio Ohana';
+var api=/^https?:$/.test(location.protocol), ver=0, busy=false, dirty=false, failed=false, pushT=null, GE=[], gErr=[], gN=-1, toastT=null;
 var tab='cal', edit=false, armed='', pick='', msg='', S, mo=null, wkStart=iso(new Date()), toNow=true;
 function p2(n){return n<10?'0'+n:''+n;}
 function iso(d){return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
@@ -96,8 +100,39 @@ function seed(){
   return {people:[{id:uid(),name:'Jericho',color:COLORS[0],stars:0},{id:uid(),name:'Kahoku',color:COLORS[1],stars:0}],
     chores:c.map(function(x){return {id:uid(),name:x[0],stars:x[1],doneOn:'',doneBy:''};}),
     rewards:[{id:uid(),name:'Pick the movie',cost:8},{id:uid(),name:'Treat of your choice',cost:12},{id:uid(),name:'Skip a chore',cost:15}]};}
-function load(){var s=null;try{s=JSON.parse(localStorage.getItem(KEY));}catch(e){}if(!s)s=seed();s.events=s.events||[];s.tasks=s.tasks||[];s.rem=s.rem||[];return s;}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function norm(s){s=s||seed();s.people=s.people||[];s.chores=s.chores||[];s.rewards=s.rewards||[];s.events=s.events||[];s.tasks=s.tasks||[];s.rem=s.rem||[];s.title=s.title||DEFTITLE;return s;}
+function load(){var s=null;try{s=JSON.parse(localStorage.getItem(KEY));}catch(e){}return norm(s);}
+function cache(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function save(){cache();if(!api)return;dirty=true;clearTimeout(pushT);pushT=setTimeout(push,300);}
+function toast(t,ms){var el=document.getElementById('toast');el.textContent=t;el.style.display='block';clearTimeout(toastT);if(ms!==0)toastT=setTimeout(function(){el.style.display='none';},ms||4000);}
+function getJSON(u){return fetch(u,{cache:'no-store',credentials:'same-origin'}).then(function(r){var ct=r.headers.get('content-type')||'';if(r.redirected||ct.indexOf('json')<0)throw new Error('auth');return r.json().then(function(j){return {s:r.status,j:j};});});}
+function busyUI(){var a=document.activeElement;return !!(mo||pick||(a&&/INPUT|SELECT|TEXTAREA/.test(a.tagName)));}
+function rr(){var m=document.getElementById('mn'),y=m.scrollTop;render();m.scrollTop=y;}
+function push(){
+  if(!api)return; if(busy){return;} busy=true; dirty=false;
+  fetch('/api/state',{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:S,version:ver})})
+  .then(function(r){var ct=r.headers.get('content-type')||'';if(r.redirected||ct.indexOf('json')<0)throw new Error('auth');return r.json().then(function(j){
+    failed=false;
+    if(r.status===200){ver=j.version;}
+    else if(r.status===409){if(j.data){S=norm(j.data);ver=j.version;cache();}dirty=false;toast('Someone just changed this on another device. Please try that again.');rr();}
+    else if(r.status===503){api=false;}
+    else throw new Error('save');});})
+  .catch(function(e){dirty=true;failed=true;if(e.message==='auth')toast('Your sign-in expired. Tap here to sign in again.',0);})
+  .then(function(){busy=false;if(dirty)setTimeout(push,failed?15000:50);});
+}
+function pull(first){
+  if(!api||busy||dirty)return;
+  getJSON('/api/state').then(function(x){
+    if(x.s===503){api=false;return;} if(x.s!==200)return;
+    if(x.j.data===null){if(first){ver=0;dirty=true;push();}return;}
+    if(x.j.version!==ver){S=norm(x.j.data);ver=x.j.version;cache();if(!busyUI())rr();}
+  }).catch(function(e){if(e.message==='auth')toast('Your sign-in expired. Tap here to sign in again.',0);});
+}
+function gcal(){
+  if(!api)return;
+  getJSON('/api/calendar').then(function(x){if(x.s!==200)return;GE=x.j.events||[];gErr=x.j.errors||[];gN=x.j.calendars||0;if(tab==='cal'&&!busyUI())rr();}).catch(function(){});
+}
+function pid(name){for(var i=0;i<S.people.length;i++){if(S.people[i].name.toLowerCase()===String(name||'').toLowerCase())return S.people[i].id;}return '';}
 function find(a,id){for(var i=0;i<a.length;i++){if(a[i].id===id)return a[i];}return null;}
 function val(id){var el=document.getElementById(id);return el?el.value.replace(/^\s+|\s+$/g,''):'';}
 function not(a,id){return a.filter(function(x){return x.id!==id;});}
@@ -108,26 +143,36 @@ function wx(){try{fetch('https://api.open-meteo.com/v1/forecast?latitude=21.3&lo
   .then(function(r){return r.json();}).then(function(j){var c=j.current.weather_code,e=c===0?'☀️':c<4?'⛅':c<50?'🌫️':c<70?'🌧️':c<80?'❄️':c<90?'🌦️':'⛈️';
   document.getElementById('wx').textContent=e+' '+Math.round(j.current.temperature_2m)+'°';}).catch(function(){});}catch(e){}}
 
+function dayEvents(k){
+  var a=S.events.filter(function(e){return e.date===k;});
+  GE.forEach(function(g){if(g.date===k)a.push({id:'g:'+g.id,title:g.title,date:g.date,time:g.time,end:g.end,who:pid(g.cal),g:1});});
+  return a;}
 function vCal(){
   var days=[0,1,2,3].map(function(i){return addDays(wkStart,i);}), T=iso(new Date()), nd=new Date(), nm=nd.getHours()*60+nd.getMinutes(), h, hr;
   var d0=new Date(days[0]+'T12:00:00');
-  h='<div class="ctop"><div><button data-a="wk" data-n="-4">◀</button><button data-a="wk" data-n="0">Today</button><button data-a="wk" data-n="4">▶</button></div><b style="font-size:18px">'+MN[d0.getMonth()]+' '+d0.getFullYear()+'</b></div><div class="sch"><div class="tl"><div class="sp"></div>';
+  H0=7;H1=22;days.forEach(function(k){dayEvents(k).forEach(function(e){if(!e.time)return;var s=mins(e.time),en=e.end?mins(e.end):s+60;H0=Math.min(H0,Math.floor(s/60));H1=Math.max(H1,Math.min(24,Math.ceil(en/60)));});});
+  var gs=!api?'':gN===0?'Google Calendar not connected yet':gErr.length?'Couldn\u2019t load: '+gErr.join(', '):'';
+  h='<div class="ctop"><div><button data-a="wk" data-n="-4">◀</button><button data-a="wk" data-n="0">Today</button><button data-a="wk" data-n="4">▶</button></div><b style="font-size:18px">'+MN[d0.getMonth()]+' '+d0.getFullYear()+(gs?'<span class="gst">'+esc(gs)+'</span>':'')+'</b></div><div class="sch"><div class="tl"><div class="sp"></div>';
   for(hr=H0;hr<H1;hr++)h+='<div>'+(hr%12||12)+' '+(hr<12?'AM':'PM')+'</div>';
   h+='</div>';
   days.forEach(function(k){
-    var dd=new Date(k+'T12:00:00'), ev=S.events.filter(function(e){return e.date===k;});
+    var dd=new Date(k+'T12:00:00'), ev=dayEvents(k);
     h+='<div class="dc"><div class="dh'+(k===T?' t':'')+'">'+DN[dd.getDay()]+' <b>'+dd.getDate()+'</b>';
-    ev.filter(function(e){return !e.time;}).forEach(function(e){h+='<span class="ad" data-a="evt" data-i="'+e.id+'" style="background:'+pc(e.who)+'33">'+esc(e.title)+'</span>';});
-    h+='</div><div class="db" data-a="newat" data-d="'+k+'">';
-    ev.filter(function(e){return e.time;}).forEach(function(e){
-      var s=mins(e.time), en=e.end?mins(e.end):s+60, top=(s-H0*60)/60*PX, ht=Math.max(30,(en-s)/60*PX), c=pc(e.who);
-      h+='<div class="ev" data-a="evt" data-i="'+e.id+'" style="top:'+top+'px;height:'+ht+'px;background:'+c+'33;border-color:'+c+'"><b>'+esc(e.title)+'</b><br><span class="sub">'+tf(e.time)+(e.end?' - '+tf(e.end):'')+'</span></div>';});
+    ev.filter(function(e){return !e.time;}).forEach(function(e){h+='<span class="ad" data-a="evt" data-i="'+esc(e.id)+'" style="background:'+pc(e.who)+'33">'+esc(e.title)+'</span>';});
+    h+='</div><div class="db" data-a="newat" data-d="'+k+'" style="height:'+((H1-H0)*PX)+'px">';
+    var tl=ev.filter(function(e){return e.time;}).map(function(e){var s=mins(e.time),en=e.end?mins(e.end):s+60;if(en<=s)en=s+30;return {e:e,s:s,en:en};}).sort(function(a,b){return a.s-b.s||b.en-a.en;});
+    var grp=null,gEnd=-1;
+    tl.forEach(function(x){if(x.s>=gEnd){grp={lanes:[],items:[]};gEnd=x.en;}else gEnd=Math.max(gEnd,x.en);var l=0;while(grp.lanes[l]>x.s)l++;grp.lanes[l]=x.en;x.l=l;x.g=grp;grp.items.push(x);});
+    tl.forEach(function(x){
+      var e=x.e, n=x.g.lanes.length, top=(x.s-H0*60)/60*PX, ht=Math.max(30,(x.en-x.s)/60*PX), c=pc(e.who);
+      h+='<div class="ev'+(e.g?' g':'')+'" data-a="evt" data-i="'+esc(e.id)+'" style="top:'+top+'px;height:'+ht+'px;left:calc('+(x.l*100/n)+'% + 2px);width:calc('+(100/n)+'% - 4px);right:auto;background:'+c+'33;border-color:'+c+'"><b>'+esc(e.title)+'</b><br><span class="sub">'+tf(e.time)+(e.end?' - '+tf(e.end):'')+'</span></div>';});
     if(k===T&&nm>=H0*60&&nm<H1*60)h+='<div class="nl" style="top:'+((nm-H0*60)/60*PX)+'px"></div>';
     h+='</div></div>';});
   return h+'</div><button class="fab" data-a="new">+</button>';}
 
 function vModal(){
   if(!mo)return '';
+  if(mo.ro){var g=mo.g;return '<div class="ov"><div class="mo"><h3>'+esc(g.title)+'</h3><p style="font-size:18px;margin:0 0 6px">'+new Date(g.date+'T12:00:00').toDateString()+'<br>'+(g.time?tf(g.time)+(g.end?' - '+tf(g.end):''):'All day')+'</p>'+(g.loc?'<p class="hint">\uD83D\uDCCD '+esc(g.loc)+'</p>':'')+'<p class="hint">From '+esc(g.cal)+'\u2019s Google Calendar. To change it, use Google Calendar on your phone.</p><div class="row"><button data-a="mcl">Close</button></div></div></div>';}
   var h='<div class="ov"><div class="mo"><h3>'+(mo.id?'Edit event':'New event')+'</h3><div class="row"><input id="mt" placeholder="Title" value="'+esc(mo.title)+'"></div><div class="row"><input id="md" type="date" value="'+mo.date+'"></div>';
   h+='<div class="row"><input id="ms" type="time" value="'+mo.time+'"><input id="me" type="time" value="'+mo.end+'"></div><p class="hint" style="margin:0">Leave the times empty for an all-day event.</p><div class="row"><select id="mw"><option value="">Everyone</option>';
   S.people.forEach(function(p){h+='<option value="'+p.id+'"'+(mo.who===p.id?' selected':'')+'>'+esc(p.name)+'</option>';});
@@ -178,7 +223,7 @@ function render(){
   TABS.forEach(function(t){h+='<button class="nb'+(t[0]===tab?' on':'')+'" data-a="tab" data-i="'+t[0]+'"><b>'+t[1]+'</b>'+t[2]+'</button>';});
   h+='<button class="nb" data-a="sleep" style="margin-top:auto"><b>🌙</b>Sleep</button>';
   document.getElementById('nav').innerHTML=h;
-  document.getElementById('ttl').textContent=S.people.map(function(p){return p.name;}).join(' & ')||'Home';
+  document.getElementById('ttl').textContent=S.title||DEFTITLE;
   S.people.forEach(function(p){a+='<i style="background:'+p.color+'">'+esc(p.name.charAt(0).toUpperCase())+'</i>';});
   document.getElementById('av').innerHTML=a;
   document.getElementById('app').innerHTML=tab==='cal'?vCal():tab==='tasks'?vTasks():tab==='rem'?vRem():vChores();
@@ -188,7 +233,7 @@ function render(){
 
 function openMo(e,d){mo=e?{id:e.id,title:e.title,date:e.date,time:e.time||'',end:e.end||'',who:e.who||''}:{id:'',title:'',date:d,time:'',end:'',who:''};}
 function act(a,t){
-  var id=t.getAttribute('data-i')||'', T=today(), c, p, r;
+  var id=t.getAttribute('data-i')||'', T=today(), c, p, r, before=JSON.stringify(S);
   if(a!=='tog'&&a!=='who')msg='';
   if(a!=='delp')armed='';
   if(a==='tab'){tab=id;edit=false;pick='';toNow=(id==='cal');}
@@ -196,7 +241,8 @@ function act(a,t){
   else if(a==='wk'){var n=parseInt(t.getAttribute('data-n'),10);wkStart=n?addDays(wkStart,n):iso(new Date());}
   else if(a==='new'){openMo(null,iso(new Date())>wkStart?iso(new Date()):wkStart);}
   else if(a==='newat'){return;}
-  else if(a==='evt'){openMo(find(S.events,id));}
+  else if(a==='evt'){if(id.indexOf('g:')===0){var gg=find(GE,id.slice(2));if(gg)mo={ro:true,g:gg};}else openMo(find(S.events,id));}
+  else if(a==='toast'){document.getElementById('toast').style.display='none';if(/sign-in/.test(t.textContent))location.reload();return;}
   else if(a==='mcl'){mo=null;}
   else if(a==='mdl'){S.events=not(S.events,mo.id);mo=null;}
   else if(a==='msv'){var ti=val('mt');if(ti){var st=val('ms'),en=val('me');if(st&&!en)en=hhmm(mins(st)+60);if(!st)en='';
@@ -219,7 +265,8 @@ function act(a,t){
   else if(a==='addr'){var rn=val('rn');if(rn)S.rewards.push({id:uid(),name:rn,cost:Math.max(1,parseInt(val('rc'),10)||1)});}
   else if(a==='delr'){S.rewards=not(S.rewards,id);}
   else if(a==='red'){r=find(S.rewards,id);p=find(S.people,t.getAttribute('data-p'));if(r&&p&&p.stars>=r.cost){p.stars-=r.cost;msg=p.name+' redeemed '+r.name+'! 🎉';}}
-  save();render();
+  if(JSON.stringify(S)!==before)save();
+  render();
 }
 document.addEventListener('click',function(e){
   var t=e.target;
@@ -227,9 +274,10 @@ document.addEventListener('click',function(e){
   if(!t||t===document)return;
   act(t.getAttribute('data-a'),t);
 });
-S=load();render();clock();wx();
-setInterval(clock,20000);setInterval(wx,1800000);
-setInterval(function(){if(tab==='cal'&&!mo){var m=document.getElementById('mn'),y=m.scrollTop;render();m.scrollTop=y;}},300000);
+S=load();render();clock();wx();pull(true);gcal();
+setInterval(clock,20000);setInterval(wx,1800000);setInterval(gcal,600000);setInterval(function(){pull(false);},20000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden){pull(false);gcal();}});
+setInterval(function(){if(tab==='cal'&&!busyUI())rr();},300000);
 </script>
 </body>
 </html>
