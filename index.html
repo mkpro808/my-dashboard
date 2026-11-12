@@ -38,9 +38,12 @@ input.n{flex:none;width:70px}
 .sch{display:flex}
 .tl{width:54px;flex:none}
 .tl div{height:50px;font-size:12px;color:var(--mute);text-align:right;padding-right:8px;box-sizing:border-box;position:relative;top:-7px}
-.tl .sp{height:66px;top:0}
+.tl .sp{height:67px;top:130px;position:sticky;background:var(--bg);z-index:3}
 .dc{flex:1;min-width:0;border-left:1px solid var(--line)}
-.dh{height:66px;text-align:center;font-size:20px;padding-top:6px;box-sizing:border-box}
+.dh{height:66px;text-align:center;font-size:20px;padding-top:6px;box-sizing:border-box;position:sticky;top:130px;background:var(--bg);z-index:3;border-bottom:1px solid var(--line)}
+.ctop{position:sticky;top:59px;height:71px;margin:-12px -18px 0;padding:12px 18px;box-sizing:border-box;background:var(--bg);z-index:4;display:flex;align-items:center;justify-content:space-between}
+.ctop button{margin-right:6px}
+header{height:59px;box-sizing:border-box}
 .dh b{display:inline-block;min-width:34px;height:34px;line-height:34px;border-radius:17px;font-weight:600}
 .dh.t b{background:#e5654b;color:#fff}
 .db{position:relative;height:750px;background-image:linear-gradient(var(--line) 1px,transparent 1px);background-size:100% 50px}
@@ -108,7 +111,7 @@ function wx(){try{fetch('https://api.open-meteo.com/v1/forecast?latitude=21.3&lo
 function vCal(){
   var days=[0,1,2,3].map(function(i){return addDays(wkStart,i);}), T=iso(new Date()), nd=new Date(), nm=nd.getHours()*60+nd.getMinutes(), h, hr;
   var d0=new Date(days[0]+'T12:00:00');
-  h='<div class="top"><div><button data-a="wk" data-n="-4">◀</button><button data-a="wk" data-n="0">Today</button><button data-a="wk" data-n="4">▶</button></div><b style="font-size:18px">'+MN[d0.getMonth()]+' '+d0.getFullYear()+'</b></div><div class="sch"><div class="tl"><div class="sp"></div>';
+  h='<div class="ctop"><div><button data-a="wk" data-n="-4">◀</button><button data-a="wk" data-n="0">Today</button><button data-a="wk" data-n="4">▶</button></div><b style="font-size:18px">'+MN[d0.getMonth()]+' '+d0.getFullYear()+'</b></div><div class="sch"><div class="tl"><div class="sp"></div>';
   for(hr=H0;hr<H1;hr++)h+='<div>'+(hr%12||12)+' '+(hr<12?'AM':'PM')+'</div>';
   h+='</div>';
   days.forEach(function(k){
@@ -180,7 +183,7 @@ function render(){
   document.getElementById('av').innerHTML=a;
   document.getElementById('app').innerHTML=tab==='cal'?vCal():tab==='tasks'?vTasks():tab==='rem'?vRem():vChores();
   document.getElementById('ovl').innerHTML=vModal();
-  if(tab==='cal'&&toNow){toNow=false;var m=document.getElementById('mn'),n=new Date();m.scrollTop=Math.max(0,((n.getHours()-H0-1)*PX));}
+  if(tab==='cal'&&toNow){toNow=false;var m=document.getElementById('mn'),n=new Date();m.scrollTop=Math.max(0,((n.getHours()-H0-1)*PX)+12);}
 }
 
 function openMo(e,d){mo=e?{id:e.id,title:e.title,date:e.date,time:e.time||'',end:e.end||'',who:e.who||''}:{id:'',title:'',date:d,time:'',end:'',who:''};}
