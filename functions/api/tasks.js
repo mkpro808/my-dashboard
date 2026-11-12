@@ -1,6 +1,7 @@
 // Google Tasks for the dashboard.
-// GET  /api/tasks  -> all lists and their items. The list named "Chores" is returned
-//                     separately, and chores checked off on an earlier day are reset.
+// GET  /api/tasks?chores=id1,id2 -> all lists and their items. Lists named in ?chores=
+//                     are chore lists: anything checked off on an earlier day is reset.
+//                     Without ?chores=, the list titled "Chores" is used (created if missing).
 // POST /api/tasks  -> one change: {op:'add'|'toggle'|'delete'|'clear'|'newlist', list, id, title, done}
 import { configured, accessToken, gapi, json } from "../_lib/google.js";
 
@@ -27,7 +28,7 @@ async function allItems(token, listId) {
     .map((t) => ({ id: t.id, title: t.title || "", done: t.status === "completed", completed: t.completed || null, hidden: !!t.hidden, notes: t.notes || "" }));
 }
 
-export async function onRequestGet({ env }) {
+export async function onRequestGet({ env, request }) {
   if (!configured(env)) return json({ connected: false, configured: false });
   const token = await accessToken(env);
   if (!token) return json({ connected: false, configured: true });
@@ -35,25 +36,35 @@ export async function onRequestGet({ env }) {
   const today = ymdInZone(Date.now(), tz);
   try {
     const lists = (await gapi(token, "GET", "/users/@me/lists?maxResults=100")).items || [];
-    let choresList = lists.find((l) => (l.title || "").trim().toLowerCase() === CHORES);
-    let created = false;
-    if (!choresList) {
-      choresList = await gapi(token, "POST", "/users/@me/lists", { title: "Chores" });
-      created = true;
+    const param = new URL(request.url).searchParams.get("chores");
+    let choreIds, created = false;
+    if (param !== null) {
+      const want = param.split(",").filter(Boolean);
+      choreIds = lists.filter((l) => want.indexOf(l.id) >= 0).map((l) => l.id);
+    } else {
+      let cl = lists.find((l) => (l.title || "").trim().toLowerCase() === CHORES);
+      if (!cl) { cl = await gapi(token, "POST", "/users/@me/lists", { title: "Chores" }); lists.push(cl); created = true; }
+      choreIds = [cl.id];
     }
-    const others = lists.filter((l) => l.id !== choresList.id);
-    const [choreItems, ...otherItems] = await Promise.all([allItems(token, choresList.id)].concat(others.map((l) => allItems(token, l.id))));
+    const items = await Promise.all(lists.map((l) => allItems(token, l.id)));
 
-    // Daily reset: chores checked off before today go back to "not done".
-    const resets = choreItems.filter((t) => t.done && (!t.completed || ymdInZone(Date.parse(t.completed), tz) < today));
-    await Promise.all(resets.map((t) => gapi(token, "PATCH", "/lists/" + encodeURIComponent(choresList.id) + "/tasks/" + encodeURIComponent(t.id), { status: "needsAction", completed: null })));
-    for (const t of resets) { t.done = false; t.completed = null; t.hidden = false; }
+    // Daily reset: on chore lists, anything checked off before today goes back to "not done".
+    const resets = [];
+    lists.forEach((l, i) => {
+      if (choreIds.indexOf(l.id) < 0) return;
+      for (const t of items[i]) {
+        if (t.done && (!t.completed || ymdInZone(Date.parse(t.completed), tz) < today)) resets.push([l.id, t]);
+      }
+    });
+    await Promise.all(resets.map(([lid, t]) => gapi(token, "PATCH", "/lists/" + encodeURIComponent(lid) + "/tasks/" + encodeURIComponent(t.id), { status: "needsAction", completed: null })));
+    for (const [, t] of resets) { t.done = false; t.completed = null; t.hidden = false; }
 
     return json({
       connected: true,
       today,
-      chores: { id: choresList.id, created, items: choreItems },
-      lists: others.map((l, i) => ({ id: l.id, title: l.title, items: otherItems[i].filter((t) => !t.hidden) })),
+      created,
+      choreIds,
+      lists: lists.map((l, i) => ({ id: l.id, title: l.title, items: items[i] })),
     });
   } catch (e) {
     return json({ connected: true, error: String(e.message || e) }, 502);
