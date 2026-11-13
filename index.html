@@ -194,6 +194,8 @@ header{height:var(--hh);box-sizing:border-box}
 .trashb .ntext{font-size:20px;text-decoration:line-through;text-decoration-color:rgba(0,0,0,.35)}.note.done .ndue{font-size:15px;margin-top:6px}
 .nback{margin:0;min-height:36px;padding:2px 12px;font-size:14px;border-radius:12px;background:rgba(255,255,255,.65);color:#2b2b2b;border:2px solid rgba(0,0,0,.15)}
 .ndel{margin:0;min-height:36px;width:38px;padding:0;border-radius:50%;background:rgba(255,255,255,.5);color:#2b2b2b;border:2px solid rgba(0,0,0,.15)}
+.sub.fq{display:block;font-size:13px;color:var(--acc)}
+.tagh{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:baseline;margin:6px 0 2px}.tagh code{background:var(--line);border-radius:6px;padding:2px 7px;font-size:15px;white-space:nowrap}
 .wb.team{border-color:var(--acc);color:var(--acc);font-weight:700}
 .tcard{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:0 0 10px;overflow:hidden}.tcard.open{border-color:var(--acc)}
 .thd{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;min-height:56px}.tnm{flex:1;min-width:0}.tnm>b{font-size:20px;display:block}.tnm .dot{margin-right:6px;vertical-align:-1px}.tcard.open .tlv2{display:none}.lrow .lt{white-space:nowrap;width:auto!important;min-width:64px}.tnm .sub{display:block;font-size:15px;margin-top:2px}
@@ -551,7 +553,7 @@ function vModal(){
   return h+'<button data-a="mcl" style="margin-left:8px">Cancel</button></div></div></div>';}
 
 function GT(){return !!(TK&&TK.connected&&TK.chores&&!TK.error);}
-function parseChore(t){var b=String(t||'').match(/^(.*?)\s*\[(\d{1,3})\]\s*$/);if(b){var r=parseChore0(b[1]);r.n=Math.max(1,parseInt(b[2],10));r.custom=true;return r;}return parseChore0(t);}
+function parseChore(t){var fq=String(t||'').match(/\s*\((\d{1,2})\s*([dwm])\)/i);if(fq){var r0=parseChore(String(t).replace(fq[0],''));r0.f={n:+fq[1],u:fq[2].toLowerCase()};return r0;}var b=String(t||'').match(/^(.*?)\s*\[(\d{1,3})\]\s*$/);if(b){var r=parseChore0(b[1]);r.n=Math.max(1,parseInt(b[2],10));r.custom=true;return r;}return parseChore0(t);}
 function parseChore0(t){var m=String(t||'').match(/^(.*?)\s*\((\d+)\s*(?:\u2B50|stars?)?\)\s*$/i);return m?{name:m[1]||t,n:Math.max(1,parseInt(m[2],10))}:{name:t||'(untitled)',n:1};}
 function guessPer(t){t=String(t||'').toLowerCase();return /month/.test(t)?'m':/week/.test(t)?'w':'d';}
 var PERN={d:'Resets every morning',w:'Resets every Sunday',m:'Resets on the 1st'};
@@ -573,6 +575,12 @@ function mName(k){var a=k.split('-');return new Date(+a[0],+a[1]-1,1).toLocaleDa
 function vPast(){var P=S.past&&S.past[0];if(!P)return '';var ids=Object.keys(P.scores),t=0;ids.forEach(function(i){t+=P.scores[i].stars;});
   return '<div class="past">🎉 In '+esc(mName(P.month))+' the ohana earned <b>'+t+'</b> '+STAR+' together</div>';}
 ICON.home='<path d="M5 15L16 6l11 9" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M8 13v12h16V13" stroke="#fff" stroke-width="2.6" stroke-linejoin="round" fill="none"/><path d="M16 22.5c-3-2-4.5-3.4-4.5-5a2.2 2.2 0 0 1 4.5-.6 2.2 2.2 0 0 1 4.5.6c0 1.6-1.5 3-4.5 5z" fill="#fff"/>';
+// Same cycle math as the server: counted from Sunday, Jan 4, 2026.
+function fqLabel(f){var w={d:['day','days'],w:['week','weeks'],m:['month','months']}[f.u];return f.n===1?'every '+w[0]:'every '+f.n+' '+w[1];}
+function fqNext(f){var A=Date.UTC(2026,0,4),n=new Date(),T=Date.UTC(n.getFullYear(),n.getMonth(),n.getDate()),days=Math.round((T-A)/864e5),ms;
+  if(f.u==='d')ms=A+(Math.floor(days/f.n)+1)*f.n*864e5;else if(f.u==='w')ms=A+(Math.floor(days/(7*f.n))+1)*7*f.n*864e5;
+  else{var mo=(n.getFullYear()-2026)*12+n.getMonth(),i=(Math.floor(mo/f.n)+1)*f.n;ms=Date.UTC(2026+Math.floor(i/12),i%12,1);}
+  var d=new Date(ms);return new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});}
 var PSTAR={d:1,w:3,m:5};function stOf(id){var v=S.gcfg&&S.gcfg.pts&&S.gcfg.pts[id];return v>0?v:(PSTAR[perOf(id)]||1);}
 function ptsOf(it){var c=parseChore(it.title);return c.custom?c.n:stOf(it.list);}
 function perOf(id){return (S.gcfg&&S.gcfg.per&&S.gcfg.per[id])||'d';}
@@ -865,7 +873,7 @@ function vChores(){
     // Not done first (in their usual order), finished ones below.
     L.items.filter(function(x){return !x.done;}).concat(L.items.filter(function(x){return x.done;})).forEach(function(it){
       var c=parseChore(it.title), rec=S.cdone[it.id], by=rec?find(S.people,rec.by):null, d=it.done;
-      h+='<div class="it'+(d?' done':'')+'" style="display:block"><div style="display:flex;align-items:center;min-height:48px" data-a="gtog" data-i="'+esc(it.id)+'"><span class="chk">'+(d?'✓':'')+'</span><span class="cn">'+esc(c.name)+(d?'<span class="sub" style="display:block">'+(rec&&rec.by==='team'?'Team effort':by?esc(by.name):'Checked off in Google Tasks')+doneAt(rec&&rec.at||it.completed)+'</span>':'')+'</span><span class="cs">+'+ptsOf(it)+' '+STAR+'</span>';
+      h+='<div class="it'+(d?' done':'')+'" style="display:block"><div style="display:flex;align-items:center;min-height:48px" data-a="gtog" data-i="'+esc(it.id)+'"><span class="chk">'+(d?'✓':'')+'</span><span class="cn">'+esc(c.name)+(d?'<span class="sub" style="display:block">'+(rec&&rec.by==='team'?'Team effort':by?esc(by.name):'Checked off in Google Tasks')+doneAt(rec&&rec.at||it.completed)+(c.f?' · back '+fqNext(c.f):'')+'</span>':(c.f?'<span class="sub fq">↻ '+fqLabel(c.f)+'</span>':''))+'</span><span class="cs">+'+ptsOf(it)+' '+STAR+'</span>';
       if(edit)h+='<button class="x" data-a="gdc" data-i="'+esc(it.id)+'">✕</button>';
       h+='</div>';
       if(!d&&pick===it.id){h+='<div class="who"><span class="sub">Who did it?</span><br>';
@@ -877,6 +885,11 @@ function vChores(){
     if(!TK.chores.lists.length)h+='<p class="hint">No chore list chosen yet. Tap Edit and set a Google Tasks list to “Chores”.</p>';
 
     if(edit&&TK.chores.lists.length)h+='<div class="row"><input id="cn" placeholder="New chore, like Laundry [5] for 5 stars">'+(TK.chores.lists.length>1?'<select id="cl" style="flex:none;width:auto;margin-right:8px">'+TK.chores.lists.map(function(l){return '<option value="'+esc(l.id)+'">'+esc(l.title)+'</option>';}).join('')+'</select>':'')+'<button data-a="gac">Add</button></div>';
+    if(edit)h+='<div class="rw"><div class="rt">Name tags</div><p class="hint" style="margin-top:0">Add these at the end of a chore\'s name, here or in Google Tasks. They don\'t show on the chore itself.</p><div class="tagh">'+
+      '<code>[5]</code><span><b>Stars:</b> this chore is worth 5 stars, instead of its list\'s usual amount. Like “Laundry [5]”.</span>'+
+      '<code>(2w)</code><span><b>How often:</b> comes back every 2 weeks instead of with its list. Use <b>d</b> for days, <b>w</b> for weeks, <b>m</b> for months, like “Air filters (3m)”.</span>'+
+      '<code>(2w) [4]</code><span><b>Both:</b> every 2 weeks, worth 4 stars. Either order works.</span>'+
+      '</div><p class="hint" style="margin-bottom:0">Every-few-weeks cycles start on Sundays, counted from Jan 4, 2026, so they always land on the same Sundays.</p></div>';
     if(edit)h+=vListCfg();
   } else
   S.chores.forEach(function(c){
@@ -889,7 +902,7 @@ function vChores(){
     h+='</div>';});
   if(edit&&!GT())h+='<div class="row"><input id="cn" placeholder="New chore"><input class="n" id="cs" type="number" min="1" value="1"><button data-a="addc">Add</button></div>';
   if(edit){h+='<h3>Add a person</h3><div class="row"><input id="pn" placeholder="Name"><button data-a="addp">Add</button></div>';}
-  return h+'<p class="hint">Tap a finished chore to undo it.'+(GT()?' Scores start over on the 1st of each month.'+' Chores come from your chore lists in Google Tasks. Stars per chore can be changed for each list in Edit. For a bigger job, add the stars in brackets at the end of its name, like “Laundry [5]”.':'')+'</p>';}
+  return h+'<p class="hint">Tap a finished chore to undo it.'+(GT()?' Scores start over on the 1st of each month.'+' Chores come from your chore lists in Google Tasks. Stars per chore can be changed for each list in Edit. Name tags like [5] for stars or (2w) for every 2 weeks are explained in Edit.':'')+'</p>';}
 
 function render(){
   var h='',a='';

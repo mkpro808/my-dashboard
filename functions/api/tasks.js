@@ -15,6 +15,22 @@ function guessPeriod(title) {
   const t = String(title || "").toLowerCase();
   return /month/.test(t) ? "m" : /week/.test(t) ? "w" : "d";
 }
+// A chore can set its own rhythm with a tag in its name: (2d), (2w), (3m) = every 2 days / 2 weeks / 3 months.
+// Cycles count from Sunday, January 4, 2026, so "every other week" always lands on the same Sundays.
+function freqOf(title) {
+  const m = /\((\d{1,2})\s*([dwm])\)/i.exec(String(title || ""));
+  return m && +m[1] >= 1 ? { n: +m[1], u: m[2].toLowerCase() } : null;
+}
+const ANCHOR = Date.UTC(2026, 0, 4);
+const ymdUTC = (ms) => new Date(ms).toISOString().slice(0, 10);
+function freqStart(f, today) {
+  const [y, mo, d] = today.split("-").map(Number);
+  const days = Math.round((Date.UTC(y, mo - 1, d) - ANCHOR) / 86400000);
+  if (f.u === "d") return ymdUTC(ANCHOR + Math.floor(days / f.n) * f.n * 86400000);
+  if (f.u === "w") return ymdUTC(ANCHOR + Math.floor(days / (7 * f.n)) * 7 * f.n * 86400000);
+  const months = (y - 2026) * 12 + (mo - 1), i = Math.floor(months / f.n) * f.n;
+  return ymdUTC(Date.UTC(2026 + Math.floor(i / 12), ((i % 12) + 12) % 12, 1));
+}
 function periodStart(per, today, now, tz) {
   if (per === "m") return today.slice(0, 8) + "01";
   if (per === "w") return ymdInZone(now - weekdayInZone(now, tz) * 86400000, tz);
@@ -71,8 +87,9 @@ export async function onRequestGet({ env, request }) {
     const resets = [];
     lists.forEach((l, i) => {
       if (choreIds.indexOf(l.id) < 0) return;
-      const start = periodStart(per[l.id], today, now, tz);
+      const listStart = periodStart(per[l.id], today, now, tz);
       for (const t of items[i]) {
+        const f = freqOf(t.title), start = f ? freqStart(f, today) : listStart;
         if (t.done && (!t.completed || ymdInZone(Date.parse(t.completed), tz) < start)) resets.push([l.id, t]);
       }
     });
