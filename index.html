@@ -229,6 +229,8 @@ header{height:var(--hh);box-sizing:border-box}
 .wxt{text-align:right;white-space:nowrap}.wxt b{display:block;font-size:36px;font-weight:800;line-height:1}.wxt .sub{font-size:14px}
 .wxb{border-top:1px solid var(--line);padding:10px 16px 14px}.wxm{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:16px;color:var(--mute);margin-bottom:8px}
 @media (max-width:700px){.wxg{grid-template-columns:1fr}.wxh{min-height:64px;gap:10px}.wxi{width:44px;height:44px}.wxi svg{width:44px;height:44px}.wxt b{font-size:30px}}
+.wb.tpick{display:flex;align-items:center;gap:10px}.tpk{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
+.wb.tpick.on{background:var(--acc);color:#fff;border-color:var(--acc)}.wb.tpick.on .tpk{background:#fff;color:var(--acc);border-color:#fff}
 .wb.team{border-color:var(--acc);color:var(--acc);font-weight:700}
 .tcard{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:0 0 10px;overflow:hidden}.tcard.open{border-color:var(--acc)}
 .thd{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;min-height:56px}.tnm{flex:1;min-width:0}.tnm>b{font-size:20px;display:block}.tnm .dot{margin-right:6px;vertical-align:-1px}.tcard.open .tlv2{display:none}.lrow .lt{white-space:nowrap;width:auto!important;min-width:64px}.tnm .sub{display:block;font-size:15px;margin-top:2px}
@@ -476,7 +478,7 @@ function vTraffic(){
     if(TGR){
       [['f','From'],['t','To']].forEach(function(k){var R=TGR[k[0]];h+='<div class="sub" style="margin:8px 0 2px">'+k[1]+'</div>';
         if(!R.length)h+='<p class="hint" style="margin:2px 0">No match. Try adding the city, like "Kapolei, HI".</p>';
-        R.forEach(function(r,i){h+='<button class="wb tpick'+(TGS[k[0]]===i?' on':'')+'" data-a="tpick" data-i="'+k[0]+i+'">'+esc(r.label)+'</button>';});});
+        R.forEach(function(r,i){var on=TGS[k[0]]===i;h+='<button class="wb tpick'+(on?' on':'')+'" data-a="tpick" data-i="'+k[0]+i+'" aria-pressed="'+on+'"><span class="tpk">'+(on?'\u2713':'')+'</span>'+esc(r.label)+'</button>';});});
       if(TGR.f.length&&TGR.t.length)h+='<div class="row" style="margin-top:8px"><span style="flex:1"></span><button class="pri" data-a="tadd">Add drive</button></div>';}
     h+='</div>';}
   if(!d){return h+(edit?'':'<div class="rw"><p style="margin:0">Add a drive with <b>Edit</b> to see live traffic and the best time to leave.</p></div>');}
