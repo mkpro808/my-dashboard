@@ -206,6 +206,10 @@ header{height:var(--hh);box-sizing:border-box}
 .spider::before{content:"";position:absolute;left:50%;top:-40px;height:42px;border-left:1px solid #9a8f80}.spider svg{width:18px;height:15px;display:block;margin-top:14px}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
 @media (prefers-reduced-motion:reduce){.spider{animation:none}}
+.exg{margin-top:12px;display:grid;gap:10px}.exr{display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,1.4fr);gap:14px;align-items:center}
+.exl code{display:inline-block;background:var(--line);border-radius:6px;padding:3px 8px;font-size:15px;margin-bottom:3px}.exl .sub{display:block;font-size:13px}
+.exr .it{pointer-events:none}
+@media (max-width:700px){.exr{grid-template-columns:1fr;gap:4px}}
 .wb.team{border-color:var(--acc);color:var(--acc);font-weight:700}
 .tcard{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:0 0 10px;overflow:hidden}.tcard.open{border-color:var(--acc)}
 .thd{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;min-height:56px}.tnm{flex:1;min-width:0}.tnm>b{font-size:20px;display:block}.tnm .dot{margin-right:6px;vertical-align:-1px}.tcard.open .tlv2{display:none}.lrow .lt{white-space:nowrap;width:auto!important;min-width:64px}.tnm .sub{display:block;font-size:15px;margin-top:2px}
@@ -602,6 +606,26 @@ function dustOf(it){if(it.done)return 0;var last=(S.clast&&S.clast[it.id])||S.cl
 function dustAge(it){var last=S.clast&&S.clast[it.id];if(!last)return 'Not done in a while';var d=Math.floor((Date.now()-last)/864e5);return 'Not done in '+(d>=60?Math.round(d/30)+' months':d>=14&&d%7===0?d/7+' weeks':d+' days');}
 var WEB='<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M0 0L48 6M0 0L40 26M0 0L24 42M0 0L6 48M14.4 1.8Q11 4 12 7.8Q8.5 9 7.2 12.6Q4 11.5 1.8 14.4M28.8 3.6Q22 9 24 15.6Q17 18 14.4 25.2Q8 23 3.6 28.8M43.2 5.4Q33 14 36 23.4Q26 27 21.6 37.8Q12 35 5.4 43.2"/></svg>';
 var SPIDER='<span class="spider" aria-hidden="true"><svg viewBox="0 0 24 20"><path d="M12 9L4 4M12 9L3 9M12 11L4 15M12 12L6 18M12 9L20 4M12 9L21 9M12 11L20 15M12 12L18 18" stroke="#3a332b" stroke-width="1.3" fill="none" stroke-linecap="round"/><ellipse cx="12" cy="11" rx="3.6" ry="4.4" fill="#3a332b"/><circle cx="12" cy="6.6" r="2.2" fill="#3a332b"/><circle cx="11.2" cy="6.2" r=".55" fill="#fff"/><circle cx="12.8" cy="6.2" r=".55" fill="#fff"/></svg></span>';
+// Example gallery for the Edit screen: every chore format, for display only (nothing is saved or tapped).
+var exOpen=false;
+function exRow(typed,o){var c=parseChore(typed),f=c.f,pts=c.custom?c.n:(o.list||1),sub='';
+  if(o.done)sub='<span class="sub" style="display:block">'+o.who+(f?' · back '+fqNext(f):'')+'</span>';
+  else{if(o.dust)sub+='<span class="sub dustl">🕸 Not done in '+o.age+'</span>';if(f)sub+='<span class="sub fq">↻ '+fqLabel(f)+' · '+fqDue(f)+'</span>';}
+  return '<div class="exr"><div class="exl"><code>'+esc(typed)+'</code><span class="sub">'+o.note+'</span></div>'+
+    '<div class="it'+(o.done?' done':'')+(o.dust?' dust'+o.dust:'')+'" style="display:block;margin:0">'+(o.dust?'<span class="web tl">'+WEB+'</span>'+(o.dust>1?'<span class="web tr">'+WEB+'</span>'+SPIDER:''):'')+
+    '<div style="display:flex;align-items:center;min-height:48px"><span class="chk">'+(o.done?'✓':'')+'</span><span class="cn">'+esc(c.name)+sub+'</span><span class="cs">+'+pts+' '+STAR+'</span></div></div></div>';}
+function vExamples(){var P=S.people,j=P[0]?esc(P[0].name):'Jericho',k=P[1]?esc(P[1].name):'Kahoku';
+  return '<div class="exg">'+
+    exRow('Dishes',{list:1,note:'A plain daily chore, worth its list\'s stars'})+
+    exRow('Laundry [5]',{list:3,note:'[5] makes it worth 5 stars'})+
+    exRow('Change the sheets (2w)',{list:3,note:'(2w) brings it back every 2 weeks'})+
+    exRow('Clean the fridge (2w) [4]',{list:3,note:'Both tags together, in either order'})+
+    exRow('Water Plants',{list:3,done:1,who:k+' · 9:12 AM',note:'Done: shows who and when'})+
+    exRow('Wash the car',{list:5,done:1,who:'Team effort · Tue 4:30 PM',note:'Done as a team: everyone gets the stars'})+
+    exRow('Air filters (3m)',{list:5,done:1,who:j+' · Mon 6:00 PM',note:'Done, with a tag: shows when it comes back'})+
+    exRow('Feed the fish',{list:1,dust:1,age:'2 days',note:'Skipped a whole cycle: dusty'})+
+    exRow('Wipe the counters',{list:1,dust:2,age:'5 days',note:'Skipped 2+ cycles: cobwebs and a spider'})+
+    '</div>';}
 var PSTAR={d:1,w:3,m:5};function stOf(id){var v=S.gcfg&&S.gcfg.pts&&S.gcfg.pts[id];return v>0?v:(PSTAR[perOf(id)]||1);}
 function ptsOf(it){var c=parseChore(it.title);return c.custom?c.n:stOf(it.list);}
 function perOf(id){return (S.gcfg&&S.gcfg.per&&S.gcfg.per[id])||'d';}
@@ -913,7 +937,8 @@ function vChores(){
       '<code>[5]</code><span><b>Stars:</b> this chore is worth 5 stars, instead of its list\'s usual amount. Like “Laundry [5]”.</span>'+
       '<code>(2w)</code><span><b>How often:</b> comes back every 2 weeks instead of with its list. Use <b>d</b> for days, <b>w</b> for weeks, <b>m</b> for months, like “Air filters (3m)”.</span>'+
       '<code>(2w) [4]</code><span><b>Both:</b> every 2 weeks, worth 4 stars. Either order works.</span>'+
-      '</div><p class="hint" style="margin-bottom:0">Every-few-weeks cycles start on Sundays, counted from Jan 4, 2026, so they always land on the same Sundays.</p></div>';
+      '</div><p class="hint" style="margin-bottom:0">Every-few-weeks cycles start on Sundays, counted from Jan 4, 2026, so they always land on the same Sundays.</p>'+
+      '<button data-a="exopen" style="margin-top:10px">'+(exOpen?'Hide examples':'See examples of every format')+'</button>'+(exOpen?vExamples():'')+'</div>';
     if(edit)h+=vListCfg();
   } else
   S.chores.forEach(function(c){
@@ -1025,6 +1050,7 @@ function act(a,t){
         el.animate([{transform:getComputedStyle(el).transform,opacity:1},{transform:'translate('+(b1.left+b1.width/2-a1.left-a1.width/2)+'px,'+(b1.top+b1.height/2-a1.top-a1.height/2)+'px) scale(.08) rotate(200deg)',opacity:.4}],{duration:520,easing:'cubic-bezier(.5,0,.75,0)',fill:'forwards'}).onfinish=go;}
       else go();}return;}
   else if(a==='lpts'){if(!S.gcfg)S.gcfg={where:{}};S.gcfg.pts=S.gcfg.pts||{};S.gcfg.pts[id]=Math.max(1,Math.min(20,stOf(id)+parseInt(t.getAttribute('data-n'),10)));}
+  else if(a==='exopen'){exOpen=!exOpen;}
   else if(a==='trash'){trash=!trash;armed='';}
   else if(a==='trest'){var tr=find(S.remDone||[],id);if(tr){S.remDone=not(S.remDone,id);delete tr.doneAt;S.rem.push(tr);toast('Back on the board.');}}
   else if(a==='tdel2'){S.remDone=not(S.remDone||[],id);}
