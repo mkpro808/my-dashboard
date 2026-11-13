@@ -572,7 +572,7 @@ function mName(k){var a=k.split('-');return new Date(+a[0],+a[1]-1,1).toLocaleDa
 function vPast(){var P=S.past&&S.past[0];if(!P)return '';var ids=Object.keys(P.scores),t=0;ids.forEach(function(i){t+=P.scores[i].stars;});
   return '<div class="past">🎉 In '+esc(mName(P.month))+' the ohana earned <b>'+t+'</b> '+STAR+' together</div>';}
 ICON.home='<path d="M5 15L16 6l11 9" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M8 13v12h16V13" stroke="#fff" stroke-width="2.6" stroke-linejoin="round" fill="none"/><path d="M16 22.5c-3-2-4.5-3.4-4.5-5a2.2 2.2 0 0 1 4.5-.6 2.2 2.2 0 0 1 4.5.6c0 1.6-1.5 3-4.5 5z" fill="#fff"/>';
-var PSTAR={d:1,w:2,m:3};function stOf(id){return PSTAR[perOf(id)]||1;}
+var PSTAR={d:1,w:3,m:5};function stOf(id){var v=S.gcfg&&S.gcfg.pts&&S.gcfg.pts[id];return v>0?v:(PSTAR[perOf(id)]||1);}
 function ptsOf(it){var c=parseChore(it.title);return c.custom?c.n:stOf(it.list);}
 function perOf(id){return (S.gcfg&&S.gcfg.per&&S.gcfg.per[id])||'d';}
 function where(id){return (S.gcfg&&S.gcfg.where[id])||'lists';}
@@ -614,14 +614,15 @@ function gNote(){
   if(TK.error)return '<p class="hint">Couldn\u2019t reach Google Tasks right now. Showing what\u2019s saved on the dashboard.</p>';
   return '';}
 function vListCfg(){
-  var h='<div class="rw"><div class="rt">Google Tasks lists</div><p class="hint" style="margin-top:0">Choose where each list shows up. Each chore list resets on its own schedule; weeks start on Sunday.</p>';
+  var h='<div class="rw"><div class="rt">Google Tasks lists</div><p class="hint" style="margin-top:0">Choose where each list shows up. Each chore list resets on its own schedule (weeks start on Sunday) and has its own stars per chore.</p>';
   TK.lists.forEach(function(l){var w=where(l.id);
     h+='<div class="row" style="flex-wrap:wrap"><span class="cn" style="min-width:160px">'+esc(l.title)+'</span>';
     [['lists','Lists'],['chores','Chores'],['hide','Hide']].forEach(function(o){var on=w===o[0];h+='<button class="wb" data-a="lcfg" data-i="'+esc(l.id)+'" data-w="'+o[0]+'" style="'+(on?'background:var(--acc);color:#fff;border-color:var(--acc)':'')+'">'+o[1]+'</button>';});
     h+='</div>';
     if(w==='chores'){var pr=perOf(l.id);h+='<div class="row" style="flex-wrap:wrap;margin:-4px 0 10px 12px"><span class="sub" style="min-width:148px">Resets</span>';
       [['d','Daily'],['w','Weekly'],['m','Monthly']].forEach(function(o){var on=pr===o[0];h+='<button class="wb" data-a="lper" data-i="'+esc(l.id)+'" data-w="'+o[0]+'" style="min-height:38px;padding:5px 12px;'+(on?'background:#16a34a;color:#fff;border-color:#16a34a':'')+'">'+o[1]+'</button>';});
-      h+='</div>';}});
+      h+='</div>';
+      var sv=stOf(l.id);h+='<div class="row" style="flex-wrap:wrap;margin:-4px 0 10px 12px"><span class="sub" style="min-width:148px">Stars per chore</span><button class="wb" data-a="lpts" data-i="'+esc(l.id)+'" data-n="-1" style="min-height:38px;width:44px;padding:0"'+(sv<=1?' disabled':'')+'>−</button><b style="min-width:54px;text-align:center;font-size:20px">'+sv+' '+STAR+'</b><button class="wb" data-a="lpts" data-i="'+esc(l.id)+'" data-n="1" style="min-height:38px;width:44px;padding:0"'+(sv>=20?' disabled':'')+'>+</button><span class="sub" style="margin-left:8px">[n] in a chore name overrides this</span></div>';}});
   h+='<div class="row"><input id="nl" placeholder="New list name, like Groceries"><button data-a="gnl">Create</button></div>';
   return h+'</div>';}
 function vGTasks(){
@@ -887,7 +888,7 @@ function vChores(){
     h+='</div>';});
   if(edit&&!GT())h+='<div class="row"><input id="cn" placeholder="New chore"><input class="n" id="cs" type="number" min="1" value="1"><button data-a="addc">Add</button></div>';
   if(edit){h+='<h3>Add a person</h3><div class="row"><input id="pn" placeholder="Name"><button data-a="addp">Add</button></div>';}
-  return h+'<p class="hint">Tap a finished chore to undo it.'+(GT()?' Scores start over on the 1st of each month.'+' Chores come from your chore lists in Google Tasks. Daily chores earn 1 star, weekly 2 and monthly 3. For a bigger job, add the stars in brackets at the end of its name, like “Laundry [5]”.':'')+'</p>';}
+  return h+'<p class="hint">Tap a finished chore to undo it.'+(GT()?' Scores start over on the 1st of each month.'+' Chores come from your chore lists in Google Tasks. Stars per chore can be changed for each list in Edit. For a bigger job, add the stars in brackets at the end of its name, like “Laundry [5]”.':'')+'</p>';}
 
 function render(){
   var h='',a='';
@@ -985,6 +986,7 @@ function act(a,t){
       if(el&&can&&el.animate){var a1=el.getBoundingClientRect(),b1=can.getBoundingClientRect();
         el.animate([{transform:getComputedStyle(el).transform,opacity:1},{transform:'translate('+(b1.left+b1.width/2-a1.left-a1.width/2)+'px,'+(b1.top+b1.height/2-a1.top-a1.height/2)+'px) scale(.08) rotate(200deg)',opacity:.4}],{duration:520,easing:'cubic-bezier(.5,0,.75,0)',fill:'forwards'}).onfinish=go;}
       else go();}return;}
+  else if(a==='lpts'){if(!S.gcfg)S.gcfg={where:{}};S.gcfg.pts=S.gcfg.pts||{};S.gcfg.pts[id]=Math.max(1,Math.min(20,stOf(id)+parseInt(t.getAttribute('data-n'),10)));}
   else if(a==='trash'){trash=!trash;armed='';}
   else if(a==='trest'){var tr=find(S.remDone||[],id);if(tr){S.remDone=not(S.remDone,id);delete tr.doneAt;S.rem.push(tr);toast('Back on the board.');}}
   else if(a==='tdel2'){S.remDone=not(S.remDone||[],id);}
