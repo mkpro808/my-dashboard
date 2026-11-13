@@ -14,6 +14,7 @@
 <link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials">
 <link rel="apple-touch-icon" href="/icon-180.png">
 <link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
 <style>
 :root{--hh:76px;--ic:#f4a261;--bg:#fff;--card:#fff;--ink:#2b2b33;--mute:#7b7f8a;--line:#e6e8ee;--ok:#16a34a;--acc:#7c5cdb;--side:#eaf1f9;--on:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15161b;--card:#1f2027;--ink:#f1f2f6;--mute:#9a9eab;--line:#31333d;--side:#101116;--on:#1f2027}}
@@ -168,6 +169,22 @@ header{height:var(--hh);box-sizing:border-box}
 .sbc:not(:has(.sbe)){flex-wrap:nowrap}.sbm{min-width:0}.sbn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:700px){.sb{gap:8px}.sbc{min-width:0;flex:1 1 100%;gap:8px;padding:5px 12px 5px 5px}.sbc:not(.ohana){flex:1 1 40%}.sbc .av{width:30px;height:30px;font-size:15px}.sbc:not(.ohana){gap:6px;padding-right:10px}.sbc .av svg{width:22px;height:22px}.sbc .sbn{font-size:16px}.sbc .sbt{font-size:12px}.sbc .sbs{font-size:21px;gap:2px}.sbc .sbs svg{width:16px;height:16px}.sbr{margin-left:2px}}
 .past{margin:8px 2px 0;color:var(--mute);font-size:16px}.past b{color:var(--ink)}
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:22px;padding:8px 4px 20px;align-items:start}
+.note{position:relative;background:var(--nc);color:#2b2b2b;min-height:190px;padding:22px 16px 12px;border-radius:3px 3px 14px 3px;box-shadow:0 10px 18px -10px rgba(0,0,0,.35),0 2px 3px rgba(0,0,0,.08);transform:rotate(var(--rot,0deg));display:flex;flex-direction:column;font-family:"Patrick Hand","Comic Sans MS","Segoe Print",cursive;transition:transform .15s}
+.note:not(.new):hover{transform:rotate(0) scale(1.02)}
+.tape{position:absolute;top:-10px;left:50%;width:74px;height:22px;transform:translateX(-50%) rotate(-3deg);background:rgba(255,255,255,.55);box-shadow:0 1px 2px rgba(0,0,0,.12);border-radius:2px}
+.ntext{font-size:24px;line-height:1.2;flex:1;white-space:pre-wrap;word-break:break-word}
+.nwho{align-self:flex-start;font-size:16px;margin-bottom:6px;padding:0 9px;border-radius:10px;background:rgba(255,255,255,.6);border:2px solid var(--pc)}
+.nfoot{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:8px}
+.ndue{font-size:17px;opacity:.8}.ndue.late{color:#b42318;opacity:1;font-weight:700}
+.ndone{margin:0;min-height:40px;width:44px;padding:0;border-radius:50%;border:2px solid rgba(0,0,0,.25);background:rgba(255,255,255,.55);color:#2b2b2b;font-size:20px;font-weight:700}
+.note.new{grid-column:span 2;min-height:0;transform:none;border:2px dashed rgba(0,0,0,.18);font-family:inherit;gap:8px;padding-top:12px}
+.note.new textarea{background:transparent;border:0;outline:0;resize:none;min-height:60px!important;font:24px/1.2 "Patrick Hand","Comic Sans MS",cursive;color:#2b2b2b;width:100%;padding:0;min-height:72px}
+.note.new textarea::placeholder{color:rgba(0,0,0,.4)}
+.ncol{display:flex;gap:7px}.cdot{width:26px;height:26px;min-height:0;padding:0;margin:0;border-radius:50%;border:2px solid rgba(0,0,0,.18)}.cdot.on{border:3px solid #2b2b2b}
+.nfor{display:flex;flex-wrap:wrap;gap:5px}.nf{margin:0;min-height:30px;padding:2px 10px;font-size:13px;border-radius:14px;background:rgba(255,255,255,.55);color:#2b2b2b;border:2px solid rgba(0,0,0,.12)}.nf.on{border-color:var(--pc,#2b2b2b);font-weight:700}
+.nrow{display:flex;gap:6px;align-items:center}.nrow input{flex:1;min-width:0;font-size:13px;background:rgba(255,255,255,.6);color:#2b2b2b;border-color:rgba(0,0,0,.15)}.nrow button{margin:0;white-space:nowrap}
+@media (max-width:700px){.board{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.note{min-height:150px;padding:18px 11px 10px}.ntext{font-size:20px}.note.new{grid-column:1/-1}.nrow input{font-size:12px}}
 .wb.team{border-color:var(--acc);color:var(--acc);font-weight:700}
 .tcard{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:0 0 10px;overflow:hidden}.tcard.open{border-color:var(--acc)}
 .thd{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;min-height:56px}.tnm{flex:1;min-width:0}.tnm>b{font-size:20px;display:block}.tnm .dot{margin-right:6px;vertical-align:-1px}.tcard.open .tlv2{display:none}.lrow .lt{white-space:nowrap;width:auto!important;min-width:64px}.tnm .sub{display:block;font-size:15px;margin-top:2px}
@@ -751,14 +768,30 @@ function ssOpen(){
   document.body.appendChild(d);ssClock();ssList=[];ssShow(0);photosLoad();}
 function ssClose(){lastAct=Date.now();var d=document.getElementById('ss');if(d)document.body.removeChild(d);clearTimeout(ssTimer);ssTimer=null;}
 
+// Reminders as sticky notes on a board.
+var NOTEC={yellow:'#fff3a3',pink:'#ffc9de',blue:'#c3e4ff',green:'#c8f2c2',orange:'#ffd8a8',purple:'#e2d4ff'},NF={c:'yellow',f:''};
+function nHash(id){var h=0;for(var i=0;i<id.length;i++)h=(h*31+id.charCodeAt(i))|0;return Math.abs(h);}
+function noteWhen(w){var d=new Date(w);if(isNaN(d))return w;var n=new Date(),t=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}),tm=new Date(n);tm.setDate(n.getDate()+1);
+  if(d.toDateString()===n.toDateString())return 'Today '+t;if(d.toDateString()===tm.toDateString())return 'Tomorrow '+t;
+  return d.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'})+(w.length>10?' · '+t:'');}
 function vRem(){
-  var n=new Date(), nowS=iso(n)+'T'+p2(n.getHours())+':'+p2(n.getMinutes());
-  var h='<h1>Reminders</h1><div class="row"><input id="rt" placeholder="New reminder"><input id="rw" type="datetime-local" style="flex:none;width:220px"><button data-a="addm">Add</button></div>';
-  S.rem.slice().sort(function(a,b){return (a.when||'9').localeCompare(b.when||'9');}).forEach(function(r){
-    h+='<div class="it'+(r.when&&r.when<nowS?' late':'')+'"><span class="cn">'+esc(r.text)+(r.when?' <span class="sub">'+r.when.replace('T',' ')+'</span>':'')+'</span><button class="x" data-a="delm" data-i="'+r.id+'">✓ Done</button></div>';});
-  if(!S.rem.length)h+='<p class="hint">No reminders.</p>';
+  var n=new Date(), nowS=iso(n)+'T'+p2(n.getHours())+':'+p2(n.getMinutes()), keys=Object.keys(NOTEC);
+  var h='<div class="top"><h1>Reminders</h1></div><div class="board">';
+  // the blank note you write on
+  h+='<div class="note new" style="--nc:'+NOTEC[NF.c]+'"><textarea id="rt" rows="3" placeholder="Write a note…"></textarea>'+
+     '<div class="ncol">'+keys.map(function(k){return '<button class="cdot'+(NF.c===k?' on':'')+'" style="background:'+NOTEC[k]+'" data-a="ncol" data-i="'+k+'" aria-label="'+k+'"></button>';}).join('')+'</div>'+
+     '<div class="nfor"><button class="nf'+(!NF.f?' on':'')+'" data-a="nfor" data-i="">Everyone</button>'+S.people.map(function(p){return '<button class="nf'+(NF.f===p.id?' on':'')+'" data-a="nfor" data-i="'+p.id+'" style="--pc:'+p.color+'">'+esc(p.name)+'</button>';}).join('')+'</div>'+
+     '<div class="nrow"><input id="rw" type="datetime-local" aria-label="Due (optional)"><button class="pri" data-a="addm">Stick it</button></div></div>';
+  var L=S.rem.slice().sort(function(a,b){if(!!a.when!==!!b.when)return a.when?-1:1;return a.when?a.when.localeCompare(b.when):(b.at||0)-(a.at||0);});
+  L.forEach(function(r){var hs=nHash(r.id),col=NOTEC[r.color]||NOTEC[keys[hs%keys.length]],rot=((hs%7)-3)*0.8,late=r.when&&r.when<nowS,who=r.for?find(S.people,r.for):null;
+    h+='<div class="note" style="--nc:'+col+';--rot:'+rot.toFixed(1)+'deg"><span class="tape"></span>'+
+       (who?'<span class="nwho" style="--pc:'+who.color+'">For '+esc(who.name)+'</span>':'')+
+       '<div class="ntext">'+esc(r.text)+'</div>'+
+       '<div class="nfoot">'+(r.when?'<span class="ndue'+(late?' late':'')+'">'+(late?'⏰ ':'')+noteWhen(r.when)+'</span>':'<span></span>')+
+       '<button class="ndone" data-a="delm" data-i="'+r.id+'" aria-label="Done">✓</button></div></div>';});
+  h+='</div>';
+  if(!S.rem.length)h+='<p class="hint">No notes yet. Write one on the blank note above.</p>';
   return h;}
-
 function vHist(){
   var L=S.slog||[],now=new Date(),from=0;
   if(HF.r==='week'){var w=new Date(now);w.setHours(0,0,0,0);w.setDate(w.getDate()-w.getDay());from=+w;}
@@ -919,7 +952,9 @@ function act(a,t){
   else if(a==='tgt'){r=find(S.tasks,id);if(r)r.done=!r.done;}
   else if(a==='delt'){S.tasks=not(S.tasks,id);}
   else if(a==='clrt'){S.tasks=S.tasks.filter(function(x){return !x.done;});}
-  else if(a==='addm'){var rt=val('rt');if(rt)S.rem.push({id:uid(),text:rt,when:val('rw')});}
+  else if(a==='addm'){var rt=val('rt');if(rt){var nr={id:uid(),text:rt,when:val('rw'),color:NF.c,at:Date.now()};if(NF.f)nr.for=NF.f;S.rem.push(nr);NF.f='';}else{toast('Write something on the note first.');return;}}
+  else if(a==='ncol'){NF.c=id;var tx=document.getElementById('rt'),keep=tx?tx.value:'',dw=val('rw');render();var t2=document.getElementById('rt');if(t2){t2.value=keep;}var w2=document.getElementById('rw');if(w2)w2.value=dw;return;}
+  else if(a==='nfor'){NF.f=id;var tx2=document.getElementById('rt'),keep2=tx2?tx2.value:'',dw2=val('rw');render();var t3=document.getElementById('rt');if(t3)t3.value=keep2;var w3=document.getElementById('rw');if(w3)w3.value=dw2;return;}
   else if(a==='delm'){S.rem=not(S.rem,id);}
   else if(a==='edit'){edit=!edit;pick='';hist=false;}
   else if(a==='hist'){hist=!hist;edit=false;pick='';}
