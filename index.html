@@ -212,6 +212,16 @@ header{height:var(--hh);box-sizing:border-box}
 .exl code{display:inline-block;background:var(--line);border-radius:6px;padding:3px 8px;font-size:15px;margin-bottom:3px}.exl .sub{display:block;font-size:13px}
 .exr .it{pointer-events:none}
 @media (max-width:700px){.exr{grid-template-columns:1fr;gap:4px}}
+.shopst .wb{display:inline-flex;align-items:center;gap:7px}.shopst .wb b{font-size:13px;background:rgba(0,0,0,.08);border-radius:9px;padding:0 7px}.shopst .wb.on b{background:rgba(255,255,255,.25)}
+.sdot{display:inline-block;width:11px;height:11px;border-radius:50%;background:var(--sc,#7b7f8a);flex:none;margin-right:6px}
+.shopadd{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 12px;margin:0 0 10px}.shfor{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}.shfor .nf{background:var(--card);color:var(--ink);border-color:var(--line)}.shfor .nf.on{border-color:var(--pc,var(--acc));background:color-mix(in srgb,var(--pc,var(--acc)) 14%,var(--card))}
+.usuals{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 12px}.ub{margin:0;min-height:38px;padding:4px 12px;border-radius:19px;font-size:15px}.ub.has{opacity:.55}.ub.ued{display:inline-flex;align-items:center;gap:4px;border:2px solid var(--line);background:var(--card);padding-right:4px}.ub.ued .x{min-height:28px;padding:0 6px;margin:0}
+.shopg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;align-items:start}
+.shsec{background:var(--card);border:1px solid var(--line);border-top:5px solid var(--sc);border-radius:14px;padding:8px 10px}.shh{display:flex;align-items:center;gap:8px;margin:2px 4px 6px}.shh b{font-size:18px}.shh .sub{margin-left:auto}
+.shopit{min-height:52px}.shopit .cn{font-size:18px}.stag{display:inline-block;margin-left:8px;font-size:12px;border:2px solid var(--sc);border-radius:9px;padding:0 7px;color:var(--ink);text-decoration:none}
+.shbtog{margin:14px 0 4px}
+@media (max-width:700px){.shopst,.shfor,.usuals{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-right:-16px;padding-right:16px}.shopst::-webkit-scrollbar,.shfor::-webkit-scrollbar,.usuals::-webkit-scrollbar{display:none}
+.shopst .wb{flex:none;min-height:40px;padding:4px 12px;font-size:15px;margin:0}.shfor .nf,.usuals .ub{flex:none;white-space:nowrap}.usuals .sub,.shfor .sub{flex:none}.ub{min-height:34px;font-size:14px}.shopadd{padding:8px 10px}.shopg{grid-template-columns:1fr}}.shbought .it{opacity:.75}
 .wb.team{border-color:var(--acc);color:var(--acc);font-weight:700}
 .tcard{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:0 0 10px;overflow:hidden}.tcard.open{border-color:var(--acc)}
 .thd{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;min-height:56px}.tnm{flex:1;min-width:0}.tnm>b{font-size:20px;display:block}.tnm .dot{margin-right:6px;vertical-align:-1px}.tcard.open .tlv2{display:none}.lrow .lt{white-space:nowrap;width:auto!important;min-width:64px}.tnm .sub{display:block;font-size:15px;margin-top:2px}
@@ -681,19 +691,67 @@ function vListCfg(){
     h+='<div class="row" style="flex-wrap:wrap"><span class="cn" style="min-width:160px">'+esc(l.title)+'</span>';
     [['lists','Lists'],['chores','Chores'],['hide','Hide']].forEach(function(o){var on=w===o[0];h+='<button class="wb" data-a="lcfg" data-i="'+esc(l.id)+'" data-w="'+o[0]+'" style="'+(on?'background:var(--acc);color:#fff;border-color:var(--acc)':'')+'">'+o[1]+'</button>';});
     h+='</div>';
+    if(w==='lists'){var sh=isShop(l);h+='<div class="row" style="flex-wrap:wrap;margin:-4px 0 10px 12px"><span class="sub" style="min-width:148px">Shopping list</span><button class="wb" data-a="lshop" data-i="'+esc(l.id)+'" data-w="1" style="min-height:38px;padding:5px 12px;'+(sh?'background:#16a34a;color:#fff;border-color:#16a34a':'')+'">On: group by store</button><button class="wb" data-a="lshop" data-i="'+esc(l.id)+'" data-w="0" style="min-height:38px;padding:5px 12px;'+(!sh?'background:#16a34a;color:#fff;border-color:#16a34a':'')+'">Off</button></div>';}
     if(w==='chores'){var pr=perOf(l.id);h+='<div class="row" style="flex-wrap:wrap;margin:-4px 0 10px 12px"><span class="sub" style="min-width:148px">Resets</span>';
       [['d','Daily'],['w','Weekly'],['m','Monthly']].forEach(function(o){var on=pr===o[0];h+='<button class="wb" data-a="lper" data-i="'+esc(l.id)+'" data-w="'+o[0]+'" style="min-height:38px;padding:5px 12px;'+(on?'background:#16a34a;color:#fff;border-color:#16a34a':'')+'">'+o[1]+'</button>';});
       h+='</div>';
       var sv=stOf(l.id);h+='<div class="row" style="flex-wrap:wrap;margin:-4px 0 10px 12px"><span class="sub" style="min-width:148px">Stars per chore</span><button class="wb" data-a="lpts" data-i="'+esc(l.id)+'" data-n="-1" style="min-height:38px;width:44px;padding:0"'+(sv<=1?' disabled':'')+'>−</button><b style="min-width:54px;text-align:center;font-size:20px">'+sv+' '+STAR+'</b><button class="wb" data-a="lpts" data-i="'+esc(l.id)+'" data-n="1" style="min-height:38px;width:44px;padding:0"'+(sv>=20?' disabled':'')+'>+</button><span class="sub" style="margin-left:8px">[n] in a chore name overrides this</span></div>';}});
   h+='<div class="row"><input id="nl" placeholder="New list name, like Groceries"><button data-a="gnl">Create</button></div>';
   return h+'</div>';}
+// ---------- Shopping lists: one list, items tagged @store, grouped by store ----------
+var DEFSTORES=[{id:'costco',name:'Costco',color:'#d23b3b',alias:['costco']},{id:'foodland',name:'Foodland',color:'#e8890c',alias:['foodland']},
+  {id:'wholefoods',name:'Whole Foods',color:'#1f7a4d',alias:['wholefoods','wf']},{id:'downtoearth',name:'Down to Earth',color:'#7a9a2e',alias:['downtoearth','dte','d2e']}];
+var DEFUSUALS=['Rice','Eggs','Milk','Bread','Bananas','Toilet paper @costco','Paper towels @costco'];
+var shopStore='',shopAdd='',shopBought=false;
+function stores(){return (S.shop&&S.shop.stores)||DEFSTORES;}
+function usuals(){return (S.shop&&S.shop.usuals)||DEFUSUALS;}
+function shopInit(){if(!S.shop)S.shop={stores:DEFSTORES.slice(),usuals:DEFUSUALS.slice()};}
+function normTag(t){return String(t||'').toLowerCase().replace(/[^a-z0-9]/g,'');}
+function storeOf(tag){var n=normTag(tag),r=null;stores().forEach(function(st){if(st.id===n||(st.alias||[]).indexOf(n)>=0||normTag(st.name)===n)r=st;});return r;}
+function parseShop(t){var m=String(t||'').match(/^(.*?)\s*@([A-Za-z0-9][\w\- ]{0,30})\s*$/);if(!m)return {name:String(t||''),st:null,tag:''};
+  var st=storeOf(m[2]);return {name:m[1]||t,st:st||{id:normTag(m[2]),name:m[2],color:'#7b7f8a'},tag:m[2]};}
+function isShop(L){if(!L)return false;var v=S.gcfg&&S.gcfg.shop&&S.gcfg.shop[L.id];if(v!==undefined)return v;return /grocer|shopping/i.test(L.title);}
+function onList(L,name){var n=normTag(name),hit=null;L.items.forEach(function(t){if(!t.done&&normTag(parseShop(t.title).name)===n)hit=t;});return hit;}
+function shopRow(t,showSt){var p=parseShop(t.title);
+  return '<div class="it shopit'+(t.done?' done':'')+'" data-a="gtg" data-i="'+esc(t.id)+'"><span class="chk">'+(t.done?'\u2713':'')+'</span><span class="cn">'+esc(p.name)+(showSt&&p.st?'<span class="stag" style="--sc:'+p.st.color+'">'+esc(p.st.name)+'</span>':'')+'</span><button class="x" data-a="gdl" data-i="'+esc(t.id)+'">\u2715</button></div>';}
+function vShop(L){
+  var S0=stores(),open=L.items.filter(function(t){return !t.done;}),done=L.items.filter(function(t){return t.done;}),h='';
+  var groups={},order=[];open.forEach(function(t){var p=parseShop(t.title),k=p.st?p.st.id:'';if(!groups[k]){groups[k]={st:p.st,items:[]};order.push(k);}groups[k].items.push(t);});
+  // store buttons (for when you're at the store)
+  h+='<div class="wloc shopst"><button class="wb'+(!shopStore?' on':'')+'" data-a="shst" data-i="">All stores <b>'+open.length+'</b></button>';
+  S0.forEach(function(st){var n=(groups[st.id]||{items:[]}).items.length;h+='<button class="wb'+(shopStore===st.id?' on':'')+'" data-a="shst" data-i="'+st.id+'" style="--sc:'+st.color+'"><i class="sdot"></i>'+esc(st.name)+(n?' <b>'+n+'</b>':'')+'</button>';});
+  h+='</div>';
+  // add row: item + which store it goes to
+  h+='<div class="shopadd"><div class="row" style="margin:0"><input id="tt" placeholder="Add an item, like Milk or Poke @foodland" value="'+esc(shopAdd)+'"><button class="pri" data-a="shadd">Add</button></div>'+
+     '<div class="shfor"><span class="sub">Add to:</span><button class="nf'+(!shopStore?' on':'')+'" data-a="shst" data-i="">Anywhere</button>'+S0.map(function(st){return '<button class="nf'+(shopStore===st.id?' on':'')+'" data-a="shst" data-i="'+st.id+'" style="--pc:'+st.color+'">'+esc(st.name)+'</button>';}).join('')+'</div></div>';
+  // usuals
+  var U=usuals();if(U.length){h+='<div class="usuals"><span class="sub">Usuals:</span>';
+    U.forEach(function(u,i){var p=parseShop(u),has=onList(L,p.name);h+='<button class="ub'+(has?' has':'')+'" data-a="shusual" data-i="'+i+'"'+(has?' disabled':'')+'>'+(has?'\u2713 ':'+ ')+esc(p.name)+'</button>';});h+='</div>';}
+  // sections
+  var show=order.slice().sort(function(a,b){var ia=S0.findIndex(function(x){return x.id===a;}),ib=S0.findIndex(function(x){return x.id===b;});if(!a)return 1;if(!b)return -1;return (ia<0?99:ia)-(ib<0?99:ib);});
+  if(shopStore)show=show.filter(function(k){return k===shopStore||k==='';});
+  if(!show.length)h+='<p class="hint">'+(shopStore?'Nothing needed from '+esc((storeOf(shopStore)||{name:shopStore}).name)+'. 🎉':'The list is empty. 🎉')+'</p>';
+  h+='<div class="shopg">';show.forEach(function(k){var g=groups[k],st=g.st;
+    h+='<div class="shsec" style="--sc:'+(st?st.color:'#7b7f8a')+'"><div class="shh"><i class="sdot"></i><b>'+(st?esc(st.name):'Anywhere')+'</b><span class="sub">'+g.items.length+'</span></div>';
+    g.items.forEach(function(t){h+=shopRow(t,false);});h+='</div>';});h+='</div>';
+  if(done.length){h+='<button class="shbtog" data-a="shbought">'+(shopBought?'▾':'▸')+' Bought ('+done.length+')</button>';
+    if(shopBought){h+='<div class="shbought"><p class="hint" style="margin:2px 0 6px">Tap one to put it back on the list.</p>';done.forEach(function(t){h+=shopRow(t,true);});h+='<button data-a="gcl" style="margin-top:6px">Clear bought</button></div>';}}
+  return h;}
+function vShopEdit(){shopInit();var h='<div class="rw"><div class="rt">Stores</div><p class="hint" style="margin-top:0">Tag an item with @ and a store, like <code>Toilet paper @costco</code>. Untagged items go under Anywhere.</p>';
+  stores().forEach(function(st,i){h+='<div class="row"><i class="sdot" style="--sc:'+st.color+'"></i><span class="cn">'+esc(st.name)+'</span><span class="sub" style="margin-right:8px">'+[st.id].concat((st.alias||[]).filter(function(a){return a!==st.id;})).map(function(a){return '@'+a;}).join(' ')+'</span><button class="x" data-a="shstdel" data-i="'+i+'">\u2715</button></div>';});
+  h+='<div class="row"><input id="stn" placeholder="New store name, like Target"><button data-a="shstnew">Add store</button></div></div>';
+  h+='<div class="rw"><div class="rt">Usuals</div><p class="hint" style="margin-top:0">One-tap buttons for things you buy all the time. Add a store tag to send it there.</p><div class="usuals" style="margin:0 0 8px">';
+  usuals().forEach(function(u,i){h+='<span class="ub ued">'+esc(u)+' <button class="x" data-a="shudel" data-i="'+i+'">\u2715</button></span>';});
+  h+='</div><div class="row"><input id="usn" placeholder="New usual, like Coffee @costco"><button data-a="shunew">Add usual</button></div></div>';
+  return h;}
 function vGTasks(){
-  var L=curList(), h='<div class="top"><h1>Lists</h1><div>'+(L&&!edit?'<button data-a="gcl">Clear done</button> ':'')+'<button data-a="edit">'+(edit?'Done':'Edit')+'</button></div></div>';
+  var L=curList(), h='<div class="top"><h1>Lists</h1><div>'+(L&&!edit&&!isShop(L)?'<button data-a="gcl">Clear done</button> ':'')+'<button data-a="edit">'+(edit?'Done':'Edit')+'</button></div></div>';
   if(edit)h+=vListCfg();
   h+='<div class="row" style="flex-wrap:wrap">';
   TK.shown.forEach(function(l){var on=L&&l.id===L.id;h+='<button class="wb" data-a="tsel" data-i="'+esc(l.id)+'" style="'+(on?'background:var(--acc);color:#fff;border-color:var(--acc)':'')+'">'+esc(l.title)+'</button>';});
   h+='</div>';
   if(L){
+    if(isShop(L)){if(edit)h+=vShopEdit();return h+vShop(L)+'<p class="hint">Synced with Google Tasks. Changes on your phone show up here within a minute.</p>';}
     h+='<div class="row"><input id="tt" placeholder="Add to '+esc(L.title)+'"><button data-a="gad">Add</button></div>';
     L.items.forEach(function(t){h+='<div class="it'+(t.done?' done':'')+'" data-a="gtg" data-i="'+esc(t.id)+'"><span class="chk">'+(t.done?'\u2713':'')+'</span><span class="cn">'+esc(t.title)+'</span><button class="x" data-a="gdl" data-i="'+esc(t.id)+'">\u2715</button></div>';});
     if(!L.items.length)h+='<p class="hint">All clear!</p>';
@@ -758,6 +816,8 @@ function vPomo(){
   return h;}
 
 var lastAct=Date.now(), ssIdle=(function(){try{var v=localStorage.getItem('ssIdle');if(v!==null)return +v;}catch(e){}return window.innerWidth<700?0:10;})();
+// Enter in a one-line box presses that row's button (Add, Search…).
+document.addEventListener('keydown',function(e){var t=e.target;if(e.key!=='Enter'||!t||t.tagName!=='INPUT'||e.isComposing)return;var r=t.closest('.row');var b=r&&(r.querySelector('button.pri')||r.querySelector('button[data-a]'));if(b&&!b.disabled){e.preventDefault();b.click();}});
 ['pointerdown','touchstart','keydown','wheel'].forEach(function(ev){document.addEventListener(ev,function(){lastAct=Date.now();},true);});
 function idleCheck(){if(!ssIdle||!PH.length||document.getElementById('ss')||document.querySelector('.slp')||mo||impRunning)return;if(Date.now()-lastAct>=ssIdle*60000)ssOpen();}
 var PHS={}, impRunning=false, PH=[], phIdx=0, ssTimer=null, ssLayer=0, ssPaused=false, ssCtlT=null;
@@ -1032,7 +1092,17 @@ function act(a,t){
     var o={id:mo.id||uid(),title:ti,date:val('md')||mo.date,time:st,end:en,who:document.getElementById('mw').value};
     if(mo.id)S.events=S.events.map(function(x){return x.id===o.id?o:x;});else S.events.push(o);mo=null;}}
   else if(a==='gconnect'){location.href='/api/google/connect';return;}
-  else if(a==='tsel'){tkSel=id;}
+  else if(a==='tsel'){tkSel=id;shopStore='';}
+  else if(a==='lshop'){if(!S.gcfg)S.gcfg={where:{}};S.gcfg.shop=S.gcfg.shop||{};S.gcfg.shop[id]=t.getAttribute('data-w')==='1';}
+  else if(a==='shst'){shopAdd=val('tt');shopStore=id;}
+  else if(a==='shbought'){shopBought=!shopBought;shopAdd=val('tt');}
+  else if(a==='shadd'){var Ls=curList(),txt=val('tt');if(Ls&&txt){var ps=parseShop(txt),title=txt;if(!/@\S/.test(txt)&&shopStore)title=txt+' @'+shopStore;
+      var dup=onList(Ls,ps.name);if(dup){toast(ps.name+' is already on the list.');shopAdd='';}else{Ls.items.unshift({id:'tmp'+uid(),title:title,done:false});tkPost({op:'add',list:Ls.id,title:title});shopAdd='';}}}
+  else if(a==='shusual'){var Lu=curList(),u=usuals()[+id];if(Lu&&u&&!onList(Lu,parseShop(u).name)){Lu.items.unshift({id:'tmp'+uid(),title:u,done:false});tkPost({op:'add',list:Lu.id,title:u});toast('Added '+parseShop(u).name+'.');}}
+  else if(a==='shstnew'){shopInit();var sn=val('stn');if(sn){var sid=normTag(sn);if(sid&&!storeOf(sid))S.shop.stores.push({id:sid,name:sn,color:COLORS[S.shop.stores.length%COLORS.length],alias:[sid]});}}
+  else if(a==='shstdel'){shopInit();S.shop.stores.splice(+id,1);}
+  else if(a==='shunew'){shopInit();var un=val('usn');if(un)S.shop.usuals.push(un);}
+  else if(a==='shudel'){shopInit();S.shop.usuals.splice(+id,1);}
   else if(a==='gad'){var L1=curList(),gt=val('tt');if(L1&&gt){L1.items.unshift({id:'tmp'+uid(),title:gt,done:false});tkPost({op:'add',list:L1.id,title:gt});}}
   else if(a==='gtg'){var L2=curList();if(L2){var it2=find(L2.items,id);if(it2&&id.indexOf('tmp')!==0){it2.done=!it2.done;tkPost({op:'toggle',list:L2.id,id:id,done:it2.done});}}}
   else if(a==='gdl'){var L3=curList();if(L3&&id.indexOf('tmp')!==0){L3.items=not(L3.items,id);tkPost({op:'delete',list:L3.id,id:id});}}
