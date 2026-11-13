@@ -65,7 +65,7 @@ input.n{flex:none;width:70px}
 .ar{display:flex;align-items:center;background:var(--card);border:1px solid var(--line);border-left:5px solid;border-radius:10px;padding:12px 14px;margin:6px 0;cursor:pointer}
 @media (max-height:700px) and (min-width:701px){:root{--hh:62px}#ttl{font-size:22px}#clk{font-size:38px}#clk small{font-size:16px}#wx{font-size:19px}#sun{font-size:16px}
 .nb{min-height:0;padding:7px 2px;font-size:11px}.nb b{height:26px;margin-bottom:2px}.nb svg{width:26px;height:26px}#app{padding-top:8px}.top{margin-bottom:4px}h1{font-size:21px}}
-@media (max-width:700px){header{height:auto;flex-wrap:wrap;position:static}#ttl{font-size:22px}#clk{font-size:30px}#wx{display:none}#sun{display:none}.ctop{position:static;height:auto;flex-wrap:wrap;margin:0 -18px;padding:8px 18px}.tbar{flex-wrap:wrap}.clab{flex-basis:100%;margin-top:6px}.dh,.tl .sp{position:static}.ar .tm{width:110px}}
+@media (max-width:700px){header{height:auto;flex-wrap:wrap;position:static}#ttl{font-size:22px}#clk{font-size:30px}#wx{font-size:18px;margin-left:12px}#sun{font-size:14px;margin-left:10px}.ctop{position:static;height:auto;flex-wrap:wrap;margin:0 -18px;padding:8px 18px}.tbar{flex-wrap:wrap}.clab{flex-basis:100%;margin-top:6px}.dh,.tl .sp{position:static}.ar .tm{width:110px}}
 .pm{display:flex;justify-content:center;flex-wrap:wrap;margin:0 0 2px}.pm button{margin:3px;border-radius:999px;padding:6px 16px;min-height:40px;font-size:15px}.pm button.on{color:#fff}
 .pw{position:relative;width:clamp(150px,calc(100vh - var(--hh) - 320px),340px);margin:6px auto 0;container-type:inline-size}.pring{display:block;width:100%;height:auto}.pring circle{transition:stroke-dashoffset .3s linear}
 .pc{position:absolute;left:0;top:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -187,17 +187,42 @@ function not(a,id){return a.filter(function(x){return x.id!==id;});}
 function pc(id){var p=find(S.people,id);return p?p.color:'#8b5cf6';}
 
 var SUN=null;
+
 function sunIco(up){return '<svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><path d="M8.5 22.5a9.5 9.5 0 0 1 19 0z" fill="var(--ic)"/><path d="M6.5 21a9.5 9.5 0 0 1 19 0M3 25h26M16 3.5v6'+(up?'M12.5 6.5l3.5-3.5 3.5 3.5':'M12.5 6.5l3.5 3.5 3.5-3.5')+'" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';}
 function sunText(){
-  if(!SUN||!SUN.rise||!SUN.set)return '';
-  var d=new Date(),now=iso(d)+'T'+p2(d.getHours())+':'+p2(d.getMinutes()),k,up;
+  if(!SUN)sunCalc();
+  var d=new Date(),now=iso(d)+'T'+p2(d.getHours())+':'+p2(d.getMinutes()),k,up;if(!SUN.rise[0]||SUN.rise[0].slice(0,10)!==iso(d)){sunCalc();if(!SUN.rise[0])return '';}
   if(now<SUN.rise[0]){k=SUN.rise[0];up=1;}else if(now<SUN.set[0]){k=SUN.set[0];up=0;}else{k=SUN.rise[1];up=1;}
   if(!k)return '';
   return sunIco(up)+(up?'Sunrise':'Sunset')+'<b>'+tf(k.slice(11,16))+'</b>';}
 function clock(){var d=new Date(),h=d.getHours()%12||12;document.getElementById('clk').innerHTML=h+':'+p2(d.getMinutes())+'<span class="sec">:'+p2(d.getSeconds())+'</span><small>'+(d.getHours()<12?'AM':'PM')+'</small>';var sn=sunText(),se=document.getElementById('sun');if(se.innerHTML!==sn)se.innerHTML=sn;}
-function wx(){try{fetch('https://api.open-meteo.com/v1/forecast?latitude=21.3&longitude=-157.8&current=temperature_2m,weather_code&daily=sunrise,sunset&timezone=auto&forecast_days=2&temperature_unit=fahrenheit')
-  .then(function(r){return r.json();}).then(function(j){var c=j.current.weather_code,e=c===0?'☀️':c<4?'⛅':c<50?'🌫️':c<70?'🌧️':c<80?'❄️':c<90?'🌦️':'⛈️';
-  document.getElementById('wx').textContent=e+' '+Math.round(j.current.temperature_2m)+'°';if(j.daily&&j.daily.sunrise&&j.daily.sunset){SUN={rise:j.daily.sunrise,set:j.daily.sunset};clock();}}).catch(function(){});}catch(e){}}
+var LAT=21.3, LON=-157.8, wxT=null;
+function wxShow(t){var el=document.getElementById('wx');if(el&&t)el.textContent=t;}
+(function(){try{var c=JSON.parse(localStorage.getItem('wxCache'));if(c&&Date.now()-c.t<3*3600e3)setTimeout(function(){wxShow(c.txt);},0);}catch(e){}})();
+function wx(){
+  clearTimeout(wxT);
+  var retry=function(){wxT=setTimeout(wx,120000);};
+  try{fetch('https://api.open-meteo.com/v1/forecast?latitude='+LAT+'&longitude='+LON+'&current=temperature_2m,weather_code&temperature_unit=fahrenheit',{cache:'no-store'})
+  .then(function(r){if(!r.ok)throw new Error('weather '+r.status);return r.json();}).then(function(j){
+    if(!j||!j.current||typeof j.current.temperature_2m!=='number')throw new Error('weather data');
+    var c=j.current.weather_code,e=c===0?'☀️':c<4?'⛅':c<50?'🌫️':c<70?'🌧️':c<80?'❄️':c<90?'🌦️':'⛈️';
+    var txt=e+' '+Math.round(j.current.temperature_2m)+'°';wxShow(txt);
+    try{localStorage.setItem('wxCache',JSON.stringify({t:Date.now(),txt:txt}));}catch(x){}
+    wxT=setTimeout(wx,1800000);
+  }).catch(retry);}catch(e){retry();}}
+// Sunrise/sunset worked out on the device (NOAA method), so it never depends on the internet.
+function sunEvent(y,m,d,rising){
+  var rad=Math.PI/180,N=Math.floor((Date.UTC(y,m-1,d)-Date.UTC(y,0,0))/864e5),lh=LON/15,t=N+((rising?6:18)-lh)/24;
+  var M=0.9856*t-3.289,L=(M+1.916*Math.sin(M*rad)+0.020*Math.sin(2*M*rad)+282.634+720)%360;
+  var RA=(Math.atan(0.91764*Math.tan(L*rad))/rad+720)%360;RA=(RA+Math.floor(L/90)*90-Math.floor(RA/90)*90)/15;
+  var sd=0.39782*Math.sin(L*rad),cd=Math.cos(Math.asin(sd)),ch=(Math.cos(90.833*rad)-sd*Math.sin(LAT*rad))/(cd*Math.cos(LAT*rad));
+  if(ch>1||ch<-1)return null;
+  var H=(rising?360-Math.acos(ch)/rad:Math.acos(ch)/rad)/15,T=H+RA-0.06571*t-6.622,UT=((T-lh)%24+24)%24;
+  var off=new Date(y,m-1,d,12).getTimezoneOffset();
+  var lh2=((UT-off/60)%24+24)%24,hh=Math.floor(lh2),mm=Math.round((lh2-hh)*60);if(mm===60){hh=(hh+1)%24;mm=0;}
+  return y+'-'+p2(m)+'-'+p2(d)+'T'+p2(hh)+':'+p2(mm);}
+function sunCalc(){var d=new Date(),t2=new Date(Date.now()+864e5),a=[d,t2];
+  SUN={rise:a.map(function(x){return sunEvent(x.getFullYear(),x.getMonth()+1,x.getDate(),true);}),set:a.map(function(x){return sunEvent(x.getFullYear(),x.getMonth()+1,x.getDate(),false);})};}
 
 function dayEvents(k){
   var a=calHide.Dashboard?[]:S.events.filter(function(e){return e.date===k;});
@@ -629,8 +654,8 @@ document.addEventListener('click',function(e){
 S=load();render();clock();wx();pull(true);gcal();tasksLoad();photosLoad();
 (function(){var g=(location.search.match(/[?&]google=(\w+)/)||[])[1];if(!g)return;try{history.replaceState(null,'','/');}catch(e){}
   toast({connected:'Google Tasks connected!',cancelled:'Google sign-in was cancelled.',expired:'That sign-in took too long. Please try again.',failed:'Google sign-in didn\u2019t finish. Please try again.',notsetup:'Google Tasks isn\u2019t set up in Cloudflare yet.'}[g]||'Google sign-in finished.',6000);})();
-setInterval(clock,1000);setInterval(idleCheck,15000);setInterval(ssClock,15000);setInterval(pTick,250);setInterval(wx,1800000);setInterval(gcal,600000);setInterval(function(){pull(false);},20000);
-document.addEventListener('visibilitychange',function(){if(!document.hidden){pull(false);gcal();tasksLoad();}});
+setInterval(clock,1000);setInterval(idleCheck,15000);setInterval(ssClock,15000);setInterval(pTick,250);setInterval(gcal,600000);setInterval(function(){pull(false);},20000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden){pull(false);gcal();tasksLoad();wx();}});
 setInterval(function(){if(!document.hidden)tasksLoad();},60000);
 setInterval(function(){if(tab==='cal'&&!busyUI())rr();},300000);
 </script>
