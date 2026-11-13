@@ -151,6 +151,8 @@ header{height:var(--hh);box-sizing:border-box}
 .tlv{font-weight:700;margin:2px 0 8px;display:flex;align-items:center;gap:8px}.dot{display:inline-block;width:12px;height:12px;border-radius:6px}.dot.tg{background:#16a34a}.dot.ty{background:#d97706}.dot.tr{background:#dc2626}
 .tmin.tg,b.tg{color:#15803d}.tmin.ty,b.ty{color:#b45309}.tmin.tr,b.tr{color:#b91c1c}.tln{font-size:17px;margin:3px 0}
 .tleave{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(124,92,219,.1);font-size:17px}.tleave .big{font-size:22px;color:var(--acc)}
+.it.done .cn .sub{text-decoration:none;display:inline-block!important;width:100%}
+.wb.team{border-color:var(--acc);color:var(--acc);font-weight:700}
 .tcard{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:0 0 10px;overflow:hidden}.tcard.open{border-color:var(--acc)}
 .thd{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;min-height:56px}.tnm{flex:1;min-width:0}.tnm>b{font-size:20px;display:block}.tnm .dot{margin-right:6px;vertical-align:-1px}.tcard.open .tlv2{display:none}.lrow .lt{white-space:nowrap;width:auto!important;min-width:64px}.tnm .sub{display:block;font-size:15px;margin-top:2px}
 .tmin2{font-size:34px;font-weight:800;white-space:nowrap}.tmin2.tg{color:#15803d}.tmin2.ty{color:#b45309}.tmin2.tr{color:#b91c1c}.tchev{color:var(--mute);font-size:18px}.tlv2{display:block;margin-top:2px;color:var(--acc)}
@@ -509,6 +511,9 @@ function GT(){return !!(TK&&TK.connected&&TK.chores&&!TK.error);}
 function parseChore(t){var m=String(t||'').match(/^(.*?)\s*\((\d+)\s*(?:\u2B50|stars?)?\)\s*$/i);return m?{name:m[1]||t,n:Math.max(1,parseInt(m[2],10))}:{name:t||'(untitled)',n:1};}
 function guessPer(t){t=String(t||'').toLowerCase();return /month/.test(t)?'m':/week/.test(t)?'w':'d';}
 var PERN={d:'Resets every morning',w:'Resets every Sunday',m:'Resets on the 1st'};
+// "3:42 PM" if done today, otherwise "Tue 3:42 PM" (or "Nov 3, 3:42 PM" if more than a week ago).
+function doneAt(v){if(!v)return '';var d=new Date(v);if(isNaN(d))return '';var t=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}),n=new Date();
+  if(d.toDateString()===n.toDateString())return ' · '+t;if(n-d<6*864e5)return ' · '+d.toLocaleDateString([],{weekday:'short'})+' '+t;return ' · '+d.toLocaleDateString([],{month:'short',day:'numeric'})+', '+t;}
 var PSTAR={d:1,w:2,m:3};function stOf(id){return PSTAR[perOf(id)]||1;}
 function perOf(id){return (S.gcfg&&S.gcfg.per&&S.gcfg.per[id])||'d';}
 function where(id){return (S.gcfg&&S.gcfg.where[id])||'lists';}
@@ -734,11 +739,11 @@ function vChores(){
     h+='<div class="ccol"><div class="ch"><b>'+esc(L.title)+'</b><span class="sub">'+nd+' of '+L.items.length+' done</span></div><div class="sub" style="margin:-2px 0 6px">'+PERN[pr]+' · '+stOf(L.id)+' '+STAR+' each</div>';
     L.items.forEach(function(it){
       var c=parseChore(it.title), rec=S.cdone[it.id], by=rec?find(S.people,rec.by):null, d=it.done;
-      h+='<div class="it'+(d?' done':'')+'" style="display:block"><div style="display:flex;align-items:center;min-height:48px" data-a="gtog" data-i="'+esc(it.id)+'"><span class="chk">'+(d?'✓':'')+'</span><span class="cn">'+esc(c.name)+(d?'<span class="sub" style="display:block">'+(by?esc(by.name):'Checked off in Google Tasks')+'</span>':'')+'</span><span class="cs">+'+stOf(L.id)+' '+STAR+'</span>';
+      h+='<div class="it'+(d?' done':'')+'" style="display:block"><div style="display:flex;align-items:center;min-height:48px" data-a="gtog" data-i="'+esc(it.id)+'"><span class="chk">'+(d?'✓':'')+'</span><span class="cn">'+esc(c.name)+(d?'<span class="sub" style="display:block">'+(rec&&rec.by==='team'?'Team effort':by?esc(by.name):'Checked off in Google Tasks')+doneAt(rec&&rec.at||it.completed)+'</span>':'')+'</span><span class="cs">+'+stOf(L.id)+' '+STAR+'</span>';
       if(edit)h+='<button class="x" data-a="gdc" data-i="'+esc(it.id)+'">✕</button>';
       h+='</div>';
       if(!d&&pick===it.id){h+='<div class="who"><span class="sub">Who did it?</span><br>';
-        S.people.forEach(function(p){h+='<button class="wb" data-a="gwho" data-i="'+esc(it.id)+'" data-p="'+p.id+'" style="border-color:'+p.color+'">'+esc(p.name)+'</button>';});h+='</div>';}
+        S.people.forEach(function(p){h+='<button class="wb" data-a="gwho" data-i="'+esc(it.id)+'" data-p="'+p.id+'" style="border-color:'+p.color+'">'+esc(p.name)+'</button>';});if(S.people.length>1)h+='<button class="wb team" data-a="gwho" data-i="'+esc(it.id)+'" data-p="team">Team · +'+stOf(it.list)+' each</button>';h+='</div>';}
       h+='</div>';});
     if(!L.items.length)h+='<p class="hint">Nothing here yet.</p>';
     h+='</div>';});
@@ -838,8 +843,8 @@ function act(a,t){
   else if(a==='gdl'){var L3=curList();if(L3&&id.indexOf('tmp')!==0){L3.items=not(L3.items,id);tkPost({op:'delete',list:L3.id,id:id});}}
   else if(a==='gcl'){var L4=curList();if(L4){L4.items=L4.items.filter(function(x){return !x.done;});tkPost({op:'clear',list:L4.id});}}
   else if(a==='gnl'){var nl=val('nl');if(nl&&GT())tkPost({op:'newlist',title:nl},function(){tkSel='';tasksLoad();});}
-  else if(a==='gtog'&&GT()){var ci=find(TK.chores.items,id);if(ci){if(ci.done){var rc=S.cdone[id];if(rc){p=find(S.people,rc.by);if(p)p.stars=Math.max(0,p.stars-rc.n);}delete S.cdone[id];ci.done=false;pick='';msg='';tkPost({op:'toggle',list:ci.list,id:id,done:false});}else pick=(pick===id?'':id);}}
-  else if(a==='gwho'&&GT()){var cw=find(TK.chores.items,id);p=find(S.people,t.getAttribute('data-p'));if(cw&&p){var pc2=parseChore(cw.title);pc2.n=stOf(cw.list);p.stars+=pc2.n;S.cdone[id]={on:T,by:p.id,n:pc2.n};cw.done=true;pick='';msg=p.name+' earned '+pc2.n+(pc2.n===1?' star':' stars')+' for '+pc2.name+'!';tkPost({op:'toggle',list:cw.list,id:id,done:true});}}
+  else if(a==='gtog'&&GT()){var ci=find(TK.chores.items,id);if(ci){if(ci.done){var rc=S.cdone[id];if(rc){(rc.who||[rc.by]).forEach(function(pid){var q=find(S.people,pid);if(q)q.stars=Math.max(0,q.stars-rc.n);});}delete S.cdone[id];ci.done=false;pick='';msg='';tkPost({op:'toggle',list:ci.list,id:id,done:false});}else pick=(pick===id?'':id);}}
+  else if(a==='gwho'&&GT()){var cw=find(TK.chores.items,id);var tp=t.getAttribute('data-p');p=tp==='team'?{id:'team',name:'Team'}:find(S.people,tp);if(cw&&p&&(tp!=='team'||S.people.length)){var pc2=parseChore(cw.title);pc2.n=stOf(cw.list);var who=tp==='team'?S.people.map(function(q){return q.id;}):[p.id];who.forEach(function(pid){var q=find(S.people,pid);if(q)q.stars+=pc2.n;});S.cdone[id]={on:T,by:p.id,n:pc2.n,who:who,at:Date.now()};cw.done=true;pick='';msg=(tp==='team'?'Team effort! Everyone':p.name)+' earned '+pc2.n+(pc2.n===1?' star':' stars')+' for '+pc2.name+'!';tkPost({op:'toggle',list:cw.list,id:id,done:true});}}
   else if(a==='gac'&&GT()){var cn2=val('cn'),cl2=val('cl')||TK.chores.id;if(cn2&&cl2){TK.chores.items.push({id:'tmp'+uid(),title:cn2,done:false,list:cl2});tkPost({op:'add',list:cl2,title:cn2});}}
   else if(a==='gdc'&&GT()){var cd=find(TK.chores.items,id);if(cd&&id.indexOf('tmp')!==0){TK.chores.items=not(TK.chores.items,id);tkPost({op:'delete',list:cd.list,id:id});}}
   else if(a==='lper'){S.gcfg.per=S.gcfg.per||{};S.gcfg.per[id]=t.getAttribute('data-w');setTimeout(tasksLoad,0);}
