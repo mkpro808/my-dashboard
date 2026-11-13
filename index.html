@@ -94,6 +94,7 @@ header{height:auto;flex-wrap:wrap;position:sticky;top:0;z-index:6;padding:8px 16
 .ch{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.ch b{font-size:18px}
 .ccol .it{margin:6px 0}.ccol .cn{font-size:17px}
 @media (max-width:700px){.ccols{grid-template-columns:1fr!important}}
+.nb .ls{display:none}@media (max-width:700px){.nb .lf{display:none}.nb .ls{display:inline}#nav .nb{font-size:9.5px;min-width:0;overflow:hidden;white-space:nowrap}}
 .wloc{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:2px 0 10px}.wloc .wb{margin:0}.wloc .wb.on,.seg button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .seg{display:inline-flex}.seg button{border-radius:0;margin:0;min-height:42px}.seg button:first-child{border-radius:12px 0 0 12px}.seg button:last-child{border-radius:0 12px 12px 0;border-left:0}
 .wcur{display:flex;align-items:center;gap:20px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 18px;flex-wrap:wrap}
@@ -144,6 +145,18 @@ header{height:var(--hh);box-sizing:border-box}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;font-size:16px;z-index:40;max-width:80%;text-align:center;display:none;cursor:pointer}
 .gst{font-size:13px;color:var(--mute);margin-left:12px;font-weight:400}
 .ev.g{border-left-style:solid}
+.tgrid{display:grid;grid-template-columns:minmax(300px,1fr) minmax(0,1.25fr);gap:16px;align-items:start}
+.tmap iframe{display:block;width:100%;height:calc(100vh - var(--hh) - 150px);min-height:300px;border:0;border-radius:18px;background:var(--line)}
+.tcur{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 18px}.tmin{font-size:60px;font-weight:800;line-height:1.05;letter-spacing:-1px}
+.tlv{font-weight:700;margin:2px 0 8px;display:flex;align-items:center;gap:8px}.dot{display:inline-block;width:12px;height:12px;border-radius:6px}.dot.tg{background:#16a34a}.dot.ty{background:#d97706}.dot.tr{background:#dc2626}
+.tmin.tg,b.tg{color:#15803d}.tmin.ty,b.ty{color:#b45309}.tmin.tr,b.tr{color:#b91c1c}.tln{font-size:17px;margin:3px 0}
+.tleave{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(124,92,219,.1);font-size:17px}.tleave .big{font-size:22px;color:var(--acc)}
+.lrow{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 12px;margin:5px 0}.lrow .lt{width:72px;font-weight:600}.lrow .lm{width:78px;text-align:right;font-weight:700}
+.lbar{flex:1;height:10px;border-radius:5px;background:var(--line);position:relative}.lbar i{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:linear-gradient(90deg,#60a5fa,#f4a261)}
+.lrow.best{border-color:#16a34a}.lrow .tag{font-size:12px;font-weight:700;color:#fff;background:#16a34a;border-radius:8px;padding:2px 7px}
+.tbtn{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.btnl{display:inline-block;padding:10px 14px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:inherit;text-decoration:none;font-weight:600}
+.trow{flex-wrap:wrap;gap:6px}.tft{display:block;font-size:13px;margin-top:2px}.tpick{display:block;text-align:left;margin:4px 0;width:100%;font-size:15px}.tset code{font-size:14px}
+@media (max-width:700px){.tgrid{grid-template-columns:1fr}.tmap iframe{height:380px}.tmin{font-size:48px}.lrow .lt{width:64px}}
 </style>
 </head>
 <body>
@@ -152,7 +165,8 @@ header{height:var(--hh);box-sizing:border-box}
 <div id="ovl"></div><div id="toast" data-a="toast"></div>
 <script>
 var KEY='chorestars.v2', COLORS=['#f59e0b','#3b82f6','#ec4899','#10b981','#8b5cf6','#ef4444'];
-var TABS=[['show','Slideshow'],['cal','Calendar'],['wx','Weather'],['chores','Chores'],['tasks','Lists'],['rem','Reminders'],['pomo','Pomodoro']];
+var SHORT={show:'Photos',cal:'Calendar',rem:'Remind'};
+var TABS=[['show','Slideshow'],['cal','Calendar'],['wx','Weather'],['traffic','Traffic'],['chores','Chores'],['tasks','Lists'],['rem','Reminders'],['pomo','Pomodoro']];
 var ICON={show:'<rect x="7" y="8.5" width="22" height="18" rx="3" fill="var(--ic)"/><rect x="4" y="6" width="22" height="18" rx="3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M4.5 20l6-6 4.5 4.5 3-3 7.5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="19.5" cy="11.5" r="2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',pomo:'<ellipse cx="17.5" cy="20" rx="11" ry="9.5" fill="var(--ic)"/><ellipse cx="15.5" cy="18" rx="11" ry="9.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M15.5 8.5c-1.6-2.2-4.2-2.6-6.2-2M15.5 8.5c1.6-2.2 4.2-2.6 6.2-2M15.5 8.5V4.5M15.5 13.5v4.5l3 2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',cal:'<rect x="7.5" y="9.5" width="21" height="19" rx="4" fill="var(--ic)"/><rect x="4.5" y="7" width="21" height="19.5" rx="4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M4.5 13h21M10 4.5v5M20 4.5v5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M10 18.5h.1M15 18.5h.1M20 18.5h.1M10 22.5h.1M15 22.5h.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-width="2.8"/>',chores:'<polygon points="17.5,6.0 20.6,13.8 28.9,14.3 22.4,19.6 24.6,27.7 17.5,23.2 10.4,27.7 12.6,19.6 6.1,14.3 14.4,13.8" fill="var(--ic)"/><polygon points="15.5,4.0 18.6,11.8 26.9,12.3 20.4,17.6 22.6,25.7 15.5,21.2 8.4,25.7 10.6,17.6 4.1,12.3 12.4,11.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',tasks:'<rect x="8.5" y="8.5" width="19" height="21" rx="3.5" fill="var(--ic)"/><rect x="5.5" y="6" width="19" height="21.5" rx="3.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M11 4.5h8v4h-8z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M9.5 14.5l2 2 3.5-3.5M9.5 21.5l2 2 3.5-3.5M18 15.5h3M18 22.5h3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',rem:'<path d="M18 7.5c4.6 0 7.5 3.4 7.5 8v4.5l2.5 4H8l2.5-4V15.5c0-4.6 2.9-8 7.5-8z" fill="var(--ic)"/><path d="M15.5 5.5c4.6 0 7.5 3.4 7.5 8V18l2.5 4H5.5L8 18v-4.5c0-4.6 2.9-8 7.5-8zM12.5 25.5a3 3 0 0 0 6 0M15.5 3v2.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',sleep:'<path d="M23.5 21.5A10 10 0 0 1 13 7.5a10 10 0 1 0 12.5 12.6" fill="var(--ic)" transform="translate(2.5 2)"/><path d="M23.5 21.5A10 10 0 0 1 13 7.5a10 10 0 1 0 12.5 12.6z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M23 5v4M21 7h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-width="1.8"/>'};
 function ico(k,sz){return '<svg viewBox="0 0 32 32" width="'+(sz||30)+'" height="'+(sz||30)+'" aria-hidden="true">'+ICON[k]+'</svg>';}
 var STAR='<svg viewBox="0 0 32 32" width="1em" height="1em" style="vertical-align:-0.12em" aria-hidden="true"><polygon points="16.0,3.5 19.3,12.0 28.4,12.5 21.3,18.2 23.6,27.0 16.0,22.1 8.4,27.0 10.7,18.2 3.6,12.5 12.7,12.0" fill="var(--ic)" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>';
@@ -176,7 +190,7 @@ function seed(){
   return {people:[{id:uid(),name:'Jericho',color:COLORS[0],stars:0},{id:uid(),name:'Kahoku',color:COLORS[1],stars:0}],
     chores:c.map(function(x){return {id:uid(),name:x[0],stars:x[1],doneOn:'',doneBy:''};}),
     rewards:[{id:uid(),name:'Pick the movie',cost:8},{id:uid(),name:'Treat of your choice',cost:12},{id:uid(),name:'Skip a chore',cost:15}]};}
-function norm(s){s=s||seed();s.people=s.people||[];s.chores=s.chores||[];s.rewards=s.rewards||[];s.events=s.events||[];s.tasks=s.tasks||[];s.rem=s.rem||[];s.title=s.title||DEFTITLE;s.cdone=s.cdone||{};s.slides=s.slides||{secs:15,shuffle:true};s.wx=s.wx||{locs:[{id:'home',name:'Home',lat:21.28,lon:-157.75},{id:'aulani',name:'Aulani',lat:21.34,lon:-158.12}],range:'today'};s.pomo=s.pomo||{focus:25,short:5,long:15,rounds:4,auto:false,sound:true};if(!s.colorsV1){s.colorsV1=1;s.people.forEach(function(p){var c=CALCOL[String(p.name).toLowerCase()];if(c)p.color=c;});}return s;}
+function norm(s){s=s||seed();s.people=s.people||[];s.chores=s.chores||[];s.rewards=s.rewards||[];s.events=s.events||[];s.tasks=s.tasks||[];s.rem=s.rem||[];s.title=s.title||DEFTITLE;s.cdone=s.cdone||{};s.slides=s.slides||{secs:15,shuffle:true};s.wx=s.wx||{locs:[{id:'home',name:'Home',lat:21.28,lon:-157.75},{id:'aulani',name:'Aulani',lat:21.34,lon:-158.12}],range:'today'};s.traffic=s.traffic||{drives:[]};s.pomo=s.pomo||{focus:25,short:5,long:15,rounds:4,auto:false,sound:true};if(!s.colorsV1){s.colorsV1=1;s.people.forEach(function(p){var c=CALCOL[String(p.name).toLowerCase()];if(c)p.color=c;});}return s;}
 function load(){var s=null;try{s=JSON.parse(localStorage.getItem(KEY));}catch(e){}return norm(s);}
 function cache(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 function save(){cache();if(!api)return;dirty=true;clearTimeout(pushT);pushT=setTimeout(push,300);}
@@ -244,6 +258,7 @@ function wInner(cat,day){
   return c+'<path d="M17 21.5l-3.5 5h4l-2 5 5.5-6.5h-4l2-3.5z" '+WAC+' stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>';}
 function wIco(code,day,sz){return '<svg viewBox="0 0 32 32" width="'+(sz||28)+'" height="'+(sz||28)+'" aria-hidden="true" style="vertical-align:middle">'+wInner(wCat(code),day!==0&&day!==false)+'</svg>';}
 ICON.wx=wInner('partly',true);
+ICON.traffic='<path d="M7.5 18.5l2.4-6.6c.4-1.1 1.4-1.9 2.6-1.9h11.4c1.2 0 2.2.8 2.6 1.9l2.4 6.6v7H7.5z" fill="var(--ic)"/><path d="M4.5 16l2.4-6.6C7.3 8.3 8.3 7.5 9.5 7.5h11c1.2 0 2.2.8 2.6 1.9L25.5 16v6.5h-21zM4.5 16h21M8.5 22.5V25M21.5 22.5V25" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M9 19.2h.1M21 19.2h.1" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/>';
 function wxLocs(){return (S&&S.wx&&S.wx.locs&&S.wx.locs.length)?S.wx.locs:[{id:'home',name:'Home',lat:21.28,lon:-157.75}];}
 function wxTz(loc){if(loc.tz)return loc.tz;return (loc.lat>18&&loc.lat<23&&loc.lon>-161&&loc.lon<-154)?'Pacific/Honolulu':'';}
 function wxFetch(loc,cb){
@@ -301,6 +316,81 @@ function vWeather(){
       h+='<div class="dr"><span class="dn2">'+(i===0?'Today':DN[d.getDay()])+'</span>'+wIco(dl.weather_code[i],1,32)+'<span class="pp">'+(pp!=null&&pp>=10?pp+'%':'')+'</span><span class="lo">'+Math.round(lo)+'°</span><span class="bar2"><i style="left:'+((lo-mn)/sp*100).toFixed(1)+'%;right:'+((mx-hi)/sp*100).toFixed(1)+'%"></i></span><span class="hi">'+Math.round(hi)+'°</span></div>';});
   }
   return h+'<p class="hint">Forecast from '+(j.source==='MET Norway'?'<a href="https://www.met.no/en" target="_blank" rel="noopener">MET Norway</a>':'<a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a>')+'. Updated '+new Date(c.t).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'.</p>';}
+// ---------- Traffic: live drive times (TomTom, through /api/traffic) and the Waze live map ----------
+var TRD={},TRP={},TRE={},TRR={},TGR=null,TF={n:'',f:'',t:'',a:''},TGS={f:0,t:0},trSel=(function(){try{return localStorage.getItem('trSel')||'';}catch(e){return '';}})();
+function trDrives(){return (S&&S.traffic&&S.traffic.drives)||[];}
+function trCur(){var L=trDrives(),d=L[0];L.forEach(function(x){if(x.id===trSel)d=x;});return d;}
+function trReady(d){return d&&d.from&&d.to&&d.from.lat!=null&&d.to.lat!=null;}
+function trT(ms){return new Date(ms).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});}
+function trMin(m){return m>=60?Math.floor(m/60)+' hr '+(m%60?m%60+' min':''):m+' min';}
+function trGeo(q){return fetch('/api/traffic?geo='+encodeURIComponent(q),{credentials:'same-origin'}).then(function(r){return r.json();}).then(function(j){return j.results||[];});}
+// A drive saved as plain addresses gets its map points the first time it is shown.
+function trResolve(d){if(TRR[d.id]||!api)return;TRR[d.id]=1;
+  Promise.all([d.from.lat!=null?[d.from]:trGeo(d.from.q),d.to.lat!=null?[d.to]:trGeo(d.to.q)]).then(function(r){
+    if(!r[0][0]||!r[1][0]){TRE[d.id]='Couldn\'t find one of the addresses for this drive. Delete it and add it again with Edit.';rr();return;}
+    trDrives().forEach(function(x){if(x.id===d.id){x.from={label:r[0][0].label,lat:r[0][0].lat,lon:r[0][0].lon};x.to={label:r[1][0].label,lat:r[1][0].lat,lon:r[1][0].lon};}});
+    save();if(tab==='traffic'&&!busyUI())rr();
+  }).catch(function(){TRR[d.id]=0;TRE[d.id]='Couldn\'t look up the addresses right now.';if(tab==='traffic')rr();});}
+function trFetch(d,force){
+  if(!trReady(d)||!api)return;var c=TRD[d.id];if(!force&&c&&Date.now()-c.t<240000)return;
+  if(TRP[d.id]&&Date.now()-TRP[d.id]<30000)return;TRP[d.id]=Date.now();
+  var ac=window.AbortController?new AbortController():null,tm=ac?setTimeout(function(){ac.abort();},25000):0;
+  fetch('/api/traffic?from='+d.from.lat+','+d.from.lon+'&to='+d.to.lat+','+d.to.lon+(d.arrive?'&arrive='+d.arrive:''),{cache:'no-store',credentials:'same-origin',signal:ac?ac.signal:undefined})
+  .then(function(r){return r.json();}).then(function(j){clearTimeout(tm);TRP[d.id]=0;
+    if(j.configured===false){TRD[d.id]={t:Date.now(),j:j};delete TRE[d.id];}
+    else if(j.now){TRD[d.id]={t:Date.now(),j:j};delete TRE[d.id];}
+    else TRE[d.id]=j.paused?'Live times are paused for today to stay inside the free traffic allowance.':'Couldn\'t get live traffic right now.';
+    trPaint(d);
+  }).catch(function(){clearTimeout(tm);TRP[d.id]=0;TRE[d.id]='Couldn\'t get live traffic right now.';trPaint(d);});}
+function trPaint(d){if(tab!=='traffic')return;var el=document.getElementById('trinfo'),cur=trCur();if(el&&cur&&cur.id===d.id)el.innerHTML=trInfo(d);}
+function trInfo(d){
+  if(!trReady(d))return TRE[d.id]?'<div class="rw"><p style="margin:0">'+esc(TRE[d.id])+'</p></div>':'<p class="hint">Finding the addresses for '+esc(d.name)+'…</p>';
+  var c=TRD[d.id],h='';
+  if(!c){if(TRE[d.id])return '<div class="rw"><p style="margin:0 0 10px">'+esc(TRE[d.id])+'</p><button data-a="tretry" data-i="'+esc(d.id)+'">Try again</button></div>';
+    trFetch(d);return '<p class="hint">Checking traffic for '+esc(d.name)+'…</p>';}
+  var j=c.j;
+  if(j.configured===false)return '<div class="rw tset"><b>Live drive times need a free TomTom key.</b><p style="margin:6px 0 0">The live map works now. To also see minutes, leave-by times and the best time to leave, add a <code>TOMTOM_KEY</code> secret in Cloudflare (Claude can walk you through it).</p></div>';
+  var n=j.now,ratio=n.usual?n.min/n.usual:1,lv=ratio<=1.1?['tg','Light traffic']:ratio<=1.3?['ty','Moderate traffic']:['tr','Heavy traffic'];
+  h+='<div class="tcur"><div class="tmin '+lv[0]+'">'+trMin(n.min)+'</div><div class="tlv"><i class="dot '+lv[0]+'"></i>'+lv[1]+'</div>'+
+     '<div class="tln">Leave now, arrive <b>'+trT(Date.parse(n.arrive))+'</b> · '+n.miles+' mi</div>'+
+     '<div class="tln sub">Usually '+trMin(n.usual)+(n.delay>0?' · <b class="'+lv[0]+'">+'+n.delay+' min</b> from traffic right now':' · no traffic delays')+'</div>';
+  if(j.leave){var tomorrow=new Date(j.leave.by).toDateString()!==new Date().toDateString();
+    h+='<div class="tleave">To arrive by <b>'+trT(j.leave.by)+'</b>'+(tomorrow?' tomorrow':'')+', leave by <b class="big">'+trT(j.leave.depart)+'</b></div>';}
+  h+='</div>';
+  var pts=[{at:0,min:n.min}].concat(j.later||[]);
+  if(pts.length>1){var mx=Math.max.apply(null,pts.map(function(p){return p.min;})),mn=Math.min.apply(null,pts.map(function(p){return p.min;}));
+    h+='<div class="rt" style="margin:14px 0 4px">Leaving later</div>';
+    pts.forEach(function(p){var best=p.min===mn&&mx>mn;
+      h+='<div class="lrow'+(best?' best':'')+'"><span class="lt">'+(p.at?trT(p.at):'Now')+'</span><span class="lbar"><i style="width:'+Math.max(8,p.min/mx*100).toFixed(0)+'%"></i></span><span class="lm">'+trMin(p.min)+'</span>'+(best?'<span class="tag">Best</span>':'')+'</div>';});}
+  h+='<p class="hint">Live times from <a href="https://www.tomtom.com" target="_blank" rel="noopener">TomTom</a>. Updated '+trT(j.updated)+'.'+(j.paused?' Paused for today to stay inside the free allowance.':'')+'</p>';
+  return h;}
+function trMap(d){
+  var a=d.from,b=d.to,la=(a.lat+b.lat)/2,lo=(a.lon+b.lon)/2,sp=Math.max(Math.abs(a.lat-b.lat),Math.abs(a.lon-b.lon)*Math.cos(la*Math.PI/180),0.01);
+  var z=Math.max(3,Math.min(15,Math.floor(Math.log(360*1.6/sp)/Math.LN2)));
+  return '<iframe title="Live traffic map" src="https://embed.waze.com/iframe?zoom='+z+'&lat='+la.toFixed(4)+'&lon='+lo.toFixed(4)+'" allowfullscreen loading="lazy"></iframe>';}
+function vTraffic(){
+  var L=trDrives(),d=trCur(),h='<div class="top"><h1>Traffic</h1><button data-a="edit">'+(edit?'Done':'Edit')+'</button></div>';
+  if(L.length){h+='<div class="wloc">';L.forEach(function(x){h+='<button class="wb'+(d&&x.id===d.id?' on':'')+'" data-a="trsel" data-i="'+esc(x.id)+'">'+esc(x.name)+'</button>';});h+='</div>';}
+  if(edit){
+    h+='<div class="rw"><div class="rt">Drives</div>';
+    if(!L.length)h+='<p class="hint" style="margin:4px 0">No drives yet.</p>';
+    L.forEach(function(x){h+='<div class="row trow"><span class="cn">'+esc(x.name)+'<span class="sub tft">'+esc((x.from.label||x.from.q||'')+' → '+(x.to.label||x.to.q||''))+'</span></span>'+
+      '<label class="sub" style="white-space:nowrap">Arrive by <input type="time" id="ta_'+esc(x.id)+'" value="'+esc(x.arrive||'')+'" style="width:auto"></label><button data-a="tarr" data-i="'+esc(x.id)+'">Set</button><button class="x" data-a="tdel" data-i="'+esc(x.id)+'">✕</button></div>';});
+    h+='<div class="rt" style="margin-top:14px">Add a drive</div>'+
+      '<div class="row"><input id="tn" placeholder="Name, like Work or Grandma\'s" value="'+esc(TF.n)+'"></div>'+
+      '<div class="row"><input id="tf" placeholder="From: address or place" value="'+esc(TF.f)+'"></div>'+
+      '<div class="row"><input id="tt" placeholder="To: address or place" value="'+esc(TF.t)+'"></div>'+
+      '<div class="row"><label class="sub" style="white-space:nowrap">Arrive by (optional) <input type="time" id="ta" value="'+esc(TF.a)+'" style="width:auto"></label><span style="flex:1"></span><button data-a="tfind">Find addresses</button></div>';
+    if(TGR){
+      [['f','From'],['t','To']].forEach(function(k){var R=TGR[k[0]];h+='<div class="sub" style="margin:8px 0 2px">'+k[1]+'</div>';
+        if(!R.length)h+='<p class="hint" style="margin:2px 0">No match. Try adding the city, like "Kapolei, HI".</p>';
+        R.forEach(function(r,i){h+='<button class="wb tpick'+(TGS[k[0]]===i?' on':'')+'" data-a="tpick" data-i="'+k[0]+i+'">'+esc(r.label)+'</button>';});});
+      if(TGR.f.length&&TGR.t.length)h+='<div class="row" style="margin-top:8px"><span style="flex:1"></span><button class="pri" data-a="tadd">Add drive</button></div>';}
+    h+='</div>';}
+  if(!d){return h+(edit?'':'<div class="rw"><p style="margin:0">Add a drive with <b>Edit</b> to see live traffic and the best time to leave.</p></div>');}
+  if(!trReady(d))trResolve(d);
+  var links=trReady(d)?'<div class="tbtn"><a class="btnl" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&origin='+d.from.lat+','+d.from.lon+'&destination='+d.to.lat+','+d.to.lon+'&travelmode=driving">Open in Google Maps</a><a class="btnl" target="_blank" rel="noopener" href="https://waze.com/ul?ll='+d.to.lat+','+d.to.lon+'&navigate=yes">Open in Waze</a></div>':'';
+  return h+'<div class="tgrid"><div><div id="trinfo">'+trInfo(d)+'</div>'+links+'</div><div class="tmap">'+(trReady(d)?trMap(d):'')+'</div></div>';}
 // Sunrise/sunset worked out on the device (NOAA method), so it never depends on the internet.
 function sunEvent(y,m,d,rising){
   var rad=Math.PI/180,N=Math.floor((Date.UTC(y,m-1,d)-Date.UTC(y,0,0))/864e5),lh=LON/15,t=N+((rising?6:18)-lh)/24;
@@ -667,11 +757,11 @@ function vChores(){
 
 function render(){
   var h='',a='';
-  TABS.forEach(function(t){h+='<button class="nb'+(t[0]===tab?' on':'')+'" data-a="tab" data-i="'+t[0]+'"><b>'+ico(t[0])+'</b>'+(t[0]==='pomo'?'<span id="pnav">'+(P.running?mmss(pLeft()):t[1])+'</span>':t[1])+'</button>';});
+  TABS.forEach(function(t){h+='<button class="nb'+(t[0]===tab?' on':'')+'" data-a="tab" data-i="'+t[0]+'"><b>'+ico(t[0])+'</b>'+(t[0]==='pomo'?'<span id="pnav">'+(P.running?mmss(pLeft()):t[1])+'</span>':(SHORT[t[0]]?'<span class="lf">'+t[1]+'</span><span class="ls">'+SHORT[t[0]]+'</span>':t[1]))+'</button>';});
   h+='<button class="nb" data-a="sleep" style="margin-top:auto"><b>'+ico('sleep')+'</b>Sleep</button>';
   document.getElementById('nav').innerHTML=h;
   document.getElementById('ttl').textContent=S.title||DEFTITLE;
-  document.getElementById('app').innerHTML=tab==='cal'?vCal():tab==='wx'?vWeather():tab==='tasks'?vTasks():tab==='rem'?vRem():tab==='pomo'?vPomo():vChores();
+  document.getElementById('app').innerHTML=tab==='cal'?vCal():tab==='wx'?vWeather():tab==='traffic'?vTraffic():tab==='tasks'?vTasks():tab==='rem'?vRem():tab==='pomo'?vPomo():vChores();
   document.getElementById('ovl').innerHTML=vModal();if(mo&&mo.ss){phStatus();if(mo.pick&&mo.uri)drawQR(mo.uri);}
   if(tab==='cal'&&toNow){toNow=false;var m=document.getElementById('mn'),n=new Date();m.scrollTop=(/^[1347]$/.test(calView)&&window.innerWidth>=700)?Math.max(0,((n.getHours()-H0-1)*PX)+12):0;}
 }
@@ -683,7 +773,7 @@ function act(a,t){
   if(a!=='delp')armed='';
   var hadDD=!!dd;if(a!=='dd'&&a!=='ctog'&&a!=='call')dd='';
   if(a==='tab'&&id==='show'){ssOpen();return;}
-  if(a==='tab'){tab=id;edit=false;pick='';WQR=null;toNow=(id==='cal');if(id==='tasks'||id==='chores')tasksLoad();}
+  if(a==='tab'){tab=id;edit=false;pick='';WQR=null;TGR=null;toNow=(id==='cal');if(id==='tasks'||id==='chores')tasksLoad();}
   else if(a==='sleep'){var s=document.createElement('div');s.className='slp';s.textContent='Tap to wake';s.onclick=function(){document.body.removeChild(s);};document.body.appendChild(s);return;}
   else if(a==='wk'){var n=parseInt(t.getAttribute('data-n'),10);if(!n){wkStart=iso(new Date());toNow=true;}
     else if(calView==='m'){var fm=new Date(firstOfMonth(wkStart)+'T12:00:00');fm.setMonth(fm.getMonth()+n);wkStart=iso(fm);}
@@ -713,6 +803,16 @@ function act(a,t){
   else if(a==='wdel'){if(S.wx.locs.length>1){S.wx.locs=S.wx.locs.filter(function(x){return x.id!==id;});if(wxSel===id)wxSel=S.wx.locs[0].id;if(S.wx.locs[0])setTimeout(wx,0);}}
   else if(a==='wsearch'){var wq=val('wq');if(wq){var u=api?'/api/weather?q='+encodeURIComponent(wq):'https://geocoding-api.open-meteo.com/v1/search?count=8&language=en&name='+encodeURIComponent(wq);
     fetch(u,{credentials:'same-origin'}).then(function(r){return r.json();}).then(function(j){WQR=j.results?j.results.map(function(p){return p.region!==undefined?p:{name:p.name,region:[p.admin1,p.country].filter(Boolean).join(', '),lat:Math.round(p.latitude*100)/100,lon:Math.round(p.longitude*100)/100,tz:p.timezone||''};}):[];render();}).catch(function(){WQR=[];render();});}return;}
+  else if(a==='trsel'){trSel=id;try{localStorage.setItem('trSel',id);}catch(e){}}
+  else if(a==='tretry'){delete TRE[id];TRR[id]=0;}
+  else if(a==='tdel'){S.traffic.drives=S.traffic.drives.filter(function(x){return x.id!==id;});}
+  else if(a==='tarr'){var tv=val('ta_'+id);S.traffic.drives.forEach(function(x){if(x.id===id){if(tv)x.arrive=tv;else delete x.arrive;}});delete TRD[id];}
+  else if(a==='tfind'){TF={n:val('tn'),f:val('tf'),t:val('tt'),a:val('ta')};if(!TF.f||!TF.t){toast('Type where the drive starts and ends.');return;}
+    toast('Looking up addresses…',0);Promise.all([trGeo(TF.f),trGeo(TF.t)]).then(function(r){document.getElementById('toast').style.display='none';TGR={f:r[0],t:r[1]};TGS={f:0,t:0};render();}).catch(function(){toast('Address search isn\'t working right now. Try again in a minute.');});return;}
+  else if(a==='tpick'){TF={n:val('tn'),f:val('tf'),t:val('tt'),a:val('ta')};TGS[id.charAt(0)]=+id.slice(1);}
+  else if(a==='tadd'){TF={n:val('tn'),f:val('tf'),t:val('tt'),a:val('ta')};var F=TGR&&TGR.f[TGS.f],To=TGR&&TGR.t[TGS.t];
+    if(F&&To){var tid='d'+uid();S.traffic.drives.push({id:tid,name:TF.n||'Drive '+(S.traffic.drives.length+1),from:{label:F.label,lat:F.lat,lon:F.lon},to:{label:To.label,lat:To.lat,lon:To.lon},arrive:TF.a||undefined});
+      if(!TF.a)delete S.traffic.drives[S.traffic.drives.length-1].arrive;trSel=tid;try{localStorage.setItem('trSel',tid);}catch(e){}TGR=null;TF={n:'',f:'',t:'',a:''};}}
   else if(a==='wretry'){delete WXE[id];if(id===wxLocs()[0].id){wx();}}
   else if(a==='wadd'){var pl=WQR&&WQR[+id];if(pl){var nid='w'+uid();S.wx.locs.push({id:nid,name:pl.name,lat:pl.lat,lon:pl.lon,tz:pl.tz||''});WQR=null;wxSel=nid;try{localStorage.setItem('wxSel',nid);}catch(e){}}}
   else if(a==='cv'){calView=id;toNow=true;try{localStorage.setItem('calView',id);}catch(e){}}
@@ -772,6 +872,7 @@ setInterval(clock,1000);setInterval(idleCheck,15000);setInterval(ssClock,15000);
 document.addEventListener('visibilitychange',function(){if(!document.hidden){pull(false);gcal();tasksLoad();wx();}});
 setInterval(function(){if(!document.hidden)tasksLoad();},60000);
 setInterval(function(){if(tab==='cal'&&!busyUI())rr();},300000);
+setInterval(function(){if(tab==='traffic'&&!document.hidden){var d=trCur();if(d)trFetch(d);}},60000);
 </script>
 </body>
 </html>
