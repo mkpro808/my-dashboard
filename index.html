@@ -232,6 +232,9 @@ header{height:var(--hh);box-sizing:border-box}
 .wb.tpick{display:flex;align-items:center;gap:10px}.tpk{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
 .wb.tpick.on{background:var(--acc);color:#fff;border-color:var(--acc)}.wb.tpick.on .tpk{background:#fff;color:var(--acc);border-color:#fff}
 .wb.team{border-color:var(--acc);color:var(--acc);font-weight:700}
+.trslot,.trmap{width:100%}.trmap{height:calc(100vh - var(--hh) - 150px);min-height:320px;border-radius:18px;overflow:hidden;background:var(--line);position:relative;z-index:0;isolation:isolate}
+.trtip{font-weight:700;font-size:13px}
+@media (max-width:700px){.trmap{height:380px}}
 .tcard{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:0 0 10px;overflow:hidden}.tcard.open{border-color:var(--acc)}
 .thd{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;min-height:56px}.tnm{flex:1;min-width:0}.tnm>b{font-size:20px;display:block}.tnm .dot{margin-right:6px;vertical-align:-1px}.tcard.open .tlv2{display:none}.lrow .lt{white-space:nowrap;width:auto!important;min-width:64px}.tnm .sub{display:block;font-size:15px;margin-top:2px}
 .tmin2{font-size:34px;font-weight:800;white-space:nowrap}.tmin2.tg{color:#15803d}.tmin2.ty{color:#b45309}.tmin2.tr{color:#b91c1c}.tchev{color:var(--mute);font-size:18px}.tlv2{display:block;margin-top:2px;color:var(--acc)}
@@ -431,7 +434,7 @@ function trFetch(d,force){
     else TRE[d.id]=j.paused?'Live times are paused for today to stay inside the free traffic allowance.':'Couldn\'t get live traffic right now.';
     trPaint(d);
   }).catch(function(){clearTimeout(tm);TRP[d.id]=0;TRE[d.id]='Couldn\'t get live traffic right now.';trPaint(d);});}
-function trPaint(d){if(tab!=='traffic'||busyUI())return;var el=document.getElementById('trc_'+d.id);if(el)el.outerHTML=trCard(d);}
+function trPaint(d){if(tab!=='traffic'||busyUI())return;var el=document.getElementById('trc_'+d.id);if(el)el.outerHTML=trCard(d);trMapUpdate();}
 function trLv(n){var ratio=n.usual?n.min/n.usual:1;return ratio<=1.1?['tg','Light traffic']:ratio<=1.3?['ty','Moderate traffic']:['tr','Heavy traffic'];}
 // One drive as a compact card; tapping it opens the details underneath.
 function trCard(d){
@@ -459,10 +462,29 @@ function trCard(d){
     if(trReady(d))h+='<div class="tbtn"><a class="btnl" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&origin='+d.from.lat+','+d.from.lon+'&destination='+d.to.lat+','+d.to.lon+'&travelmode=driving">Open in Google Maps</a><a class="btnl" target="_blank" rel="noopener" href="https://waze.com/ul?ll='+d.to.lat+','+d.to.lon+'&navigate=yes">Open in Waze</a></div>';
     h+='</div>';}
   return h+'</div>';}
-function trMap(d){
-  var a=d.from,b=d.to,la=(a.lat+b.lat)/2,lo=(a.lon+b.lon)/2,sp=Math.max(Math.abs(a.lat-b.lat),Math.abs(a.lon-b.lon)*Math.cos(la*Math.PI/180),0.01);
-  var z=Math.max(3,Math.min(15,Math.floor(Math.log(360*1.6/sp)/Math.LN2)));
-  return '<iframe title="Live traffic map" src="https://embed.waze.com/iframe?zoom='+z+'&lat='+la.toFixed(4)+'&lon='+lo.toFixed(4)+'" allowfullscreen loading="lazy"></iframe>';}
+// Live map with the drive drawn on it (Leaflet + TomTom tiles through /api/tile). The map element is kept
+// between screen refreshes and moved back into place, so it doesn't reload every time.
+var TMAP=null,TMAPEL=null,TMAPKEY='',TLAY=null;
+function trMap(d){return '<div id="trmapslot" class="trslot"></div>';}
+function needLeaflet(cb){if(window.L&&window.L.map)return cb();if(needLeaflet.q){needLeaflet.q.push(cb);return;}needLeaflet.q=[cb];
+  var c=document.createElement('link');c.rel='stylesheet';c.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';document.head.appendChild(c);
+  var j=document.createElement('script');j.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';j.onload=function(){var q=needLeaflet.q;needLeaflet.q=null;q.forEach(function(f){f();});};document.head.appendChild(j);}
+function trMapDrive(){var L0=trDrives(),md=null;L0.forEach(function(x){if(x.id===trSel)md=x;});return md||L0[0]||null;}
+function trMount(){var slot=document.getElementById('trmapslot');if(!slot)return;if(!TMAPEL){TMAPEL=document.createElement('div');TMAPEL.className='trmap';}slot.appendChild(TMAPEL);
+  needLeaflet(function(){if(!document.body.contains(TMAPEL))return;
+    if(!TMAP){TMAP=window.L.map(TMAPEL,{zoomControl:true,scrollWheelZoom:false});
+      window.L.tileLayer('/api/tile?l=base&z={z}&x={x}&y={y}',{maxZoom:18,attribution:'&copy; TomTom &middot; OpenStreetMap'}).addTo(TMAP);
+      window.L.tileLayer('/api/tile?l=flow&z={z}&x={x}&y={y}',{maxZoom:18,opacity:.9}).addTo(TMAP);
+      TLAY=window.L.layerGroup().addTo(TMAP);TMAPKEY='';}
+    TMAP.invalidateSize();trMapUpdate();});}
+function trMapUpdate(){if(!TMAP||!TLAY)return;var md=trMapDrive();if(!md||!trReady(md))return;
+  var c=TRD[md.id],n=c&&c.j&&c.j.now,pts=n&&n.pts,col=n?{tg:'#16a34a',ty:'#d97706',tr:'#dc2626'}[trLv(n)[0]]:'#7c5cdb';
+  var key=md.id+'|'+(pts?pts.length+'|'+pts[0]+'|'+pts[pts.length-1]:'none')+'|'+col;if(key===TMAPKEY){TMAP.invalidateSize();return;}TMAPKEY=key;TLAY.clearLayers();var W=window.L;
+  var A=[md.from.lat,md.from.lon],B=[md.to.lat,md.to.lon];
+  if(pts&&pts.length>1){W.polyline(pts,{color:'#fff',weight:10,opacity:.95}).addTo(TLAY);W.polyline(pts,{color:col,weight:6,opacity:1}).addTo(TLAY);}
+  W.circleMarker(A,{radius:9,color:'#fff',weight:3,fillColor:'#2563eb',fillOpacity:1}).bindTooltip('Start',{direction:'top'}).addTo(TLAY);
+  W.circleMarker(B,{radius:9,color:'#fff',weight:3,fillColor:col,fillOpacity:1}).bindTooltip(esc(md.name),{direction:'top',permanent:true,className:'trtip'}).addTo(TLAY);
+  TMAP.fitBounds(W.latLngBounds(pts&&pts.length>1?pts:[A,B]),{padding:[36,36]});}
 function vTraffic(){
   var L=trDrives(),d=trCur(),h='<div class="top"><h1>Traffic</h1><button data-a="edit">'+(edit?'Done':'Edit')+'</button></div>';
   if(edit){
@@ -1038,6 +1060,7 @@ function render(){
   document.getElementById('nav').innerHTML=h;
   document.getElementById('ttl').textContent=S.title||DEFTITLE;
   document.getElementById('app').innerHTML=tab==='cal'?vCal():tab==='wx'?vWeather():tab==='traffic'?vTraffic():tab==='tasks'?vTasks():tab==='rem'?vRem():tab==='pomo'?vPomo():vChores();
+  if(tab==='traffic')trMount();
   document.getElementById('ovl').innerHTML=vModal();if(mo&&mo.ss){phStatus();if(mo.pick&&mo.uri)drawQR(mo.uri);}
   if(tab==='cal'&&toNow){toNow=false;var m=document.getElementById('mn'),n=new Date();m.scrollTop=(/^[1347]$/.test(calView)&&window.innerWidth>=700)?Math.max(0,((n.getHours()-H0-1)*PX)+12):0;}
 }

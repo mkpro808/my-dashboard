@@ -41,13 +41,21 @@ async function budget(db, n) {
   return true;
 }
 
-async function route(key, a, b, extra) {
+async function route(key, a, b, extra, full) {
   const url = "https://api.tomtom.com/routing/1/calculateRoute/" + a.join(",") + ":" + b.join(",") + "/json?key=" + encodeURIComponent(key) +
-    "&traffic=true&travelMode=car&routeType=fastest&computeTravelTimeFor=all&routeRepresentation=summaryOnly" + (extra || "");
+    "&traffic=true&travelMode=car&routeType=fastest&computeTravelTimeFor=all&routeRepresentation=" + (full ? "polyline" : "summaryOnly") + (extra || "");
   const r = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(8000) });
   if (!r.ok) throw new Error("TomTom " + r.status);
-  const s = (((await r.json()).routes || [])[0] || {}).summary;
+  const rt = ((await r.json()).routes || [])[0] || {}, s = rt.summary;
   if (!s) throw new Error("No route found");
+  // The drive's path for the map (thinned to at most ~400 points).
+  let pts;
+  if (full) {
+    const all = [];
+    for (const leg of rt.legs || []) for (const p of leg.points || []) all.push([Math.round(p.latitude * 1e5) / 1e5, Math.round(p.longitude * 1e5) / 1e5]);
+    const step = Math.max(1, Math.ceil(all.length / 400));
+    pts = all.filter((p, i) => i % step === 0 || i === all.length - 1);
+  }
   return {
     min: Math.round(s.travelTimeInSeconds / 60),
     usual: Math.round((s.historicTrafficTravelTimeInSeconds || s.noTrafficTravelTimeInSeconds || s.travelTimeInSeconds) / 60),
@@ -55,6 +63,7 @@ async function route(key, a, b, extra) {
     delay: Math.round((s.trafficDelayInSeconds || 0) / 60),
     miles: Math.round((s.lengthInMeters / 1609.34) * 10) / 10,
     depart: s.departureTime, arrive: s.arrivalTime,
+    pts,
   };
 }
 
@@ -96,7 +105,7 @@ export async function onRequestGet({ env, request }) {
 
   if (!c.now || now - c.now.t > NOW_TTL) {
     if (await budget(db, 1)) {
-      try { c.now = { t: now, r: await route(key, a, b) }; } catch (e) { err = String(e.message || e); }
+      try { c.now = { t: now, r: await route(key, a, b, "", true) }; } catch (e) { err = String(e.message || e); }
     } else paused = true;
   }
   const wantPlan = u.searchParams.get("plan") === "1";
