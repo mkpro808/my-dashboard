@@ -19,7 +19,7 @@ async function openMeteo(lat, lon) {
     "&hourly=temperature_2m,precipitation_probability,weather_code,is_day" +
     "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset,wind_speed_10m_max" +
     "&timezone=auto&forecast_days=7&temperature_unit=fahrenheit&wind_speed_unit=mph";
-  const r = await fetch(url, { headers: { "User-Agent": UA }, cf: { cacheTtl: 600, cacheEverything: true } });
+  const r = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(5000), cf: { cacheTtl: 600, cacheEverything: true } });
   if (!r.ok) throw new Error("Open-Meteo " + r.status);
   const j = await r.json();
   if (!j.current || !j.daily || !j.hourly) throw new Error("Open-Meteo bad data");
@@ -72,7 +72,7 @@ function sunUTC(y, m, d, lat, lon, rising) {
 
 async function metNorway(lat, lon, tz) {
   const r = await fetch("https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=" + lat.toFixed(2) + "&lon=" + lon.toFixed(2),
-    { headers: { "User-Agent": UA }, cf: { cacheTtl: 600, cacheEverything: true } });
+    { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(5000), cf: { cacheTtl: 600, cacheEverything: true } });
   if (!r.ok) throw new Error("MET Norway " + r.status);
   const ts = ((await r.json()).properties || {}).timeseries || [];
   if (!ts.length) throw new Error("MET Norway bad data");
@@ -125,7 +125,7 @@ async function metNorway(lat, lon, tz) {
 
 async function placeSearch(q) {
   try {
-    const r = await fetch("https://geocoding-api.open-meteo.com/v1/search?count=8&language=en&format=json&name=" + encodeURIComponent(q), { headers: { "User-Agent": UA }, cf: { cacheTtl: 86400, cacheEverything: true } });
+    const r = await fetch("https://geocoding-api.open-meteo.com/v1/search?count=8&language=en&format=json&name=" + encodeURIComponent(q), { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(5000), cf: { cacheTtl: 86400, cacheEverything: true } });
     if (!r.ok) throw new Error("geo " + r.status);
     const j = await r.json();
     return (j.results || []).map((p) => ({
@@ -134,7 +134,7 @@ async function placeSearch(q) {
     }));
   } catch (e) {
     // Backup: OpenStreetMap's place search.
-    const r = await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=8&q=" + encodeURIComponent(q), { headers: { "User-Agent": UA, "Accept-Language": "en" } });
+    const r = await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=8&q=" + encodeURIComponent(q), { headers: { "User-Agent": UA, "Accept-Language": "en" }, signal: AbortSignal.timeout(5000) });
     if (!r.ok) throw new Error("search " + r.status);
     return (await r.json()).map((p) => {
       const a = p.address || {};
