@@ -576,7 +576,12 @@ function vPast(){var P=S.past&&S.past[0];if(!P)return '';var ids=Object.keys(P.s
   return '<div class="past">🎉 In '+esc(mName(P.month))+' the ohana earned <b>'+t+'</b> '+STAR+' together</div>';}
 ICON.home='<path d="M5 15L16 6l11 9" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M8 13v12h16V13" stroke="#fff" stroke-width="2.6" stroke-linejoin="round" fill="none"/><path d="M16 22.5c-3-2-4.5-3.4-4.5-5a2.2 2.2 0 0 1 4.5-.6 2.2 2.2 0 0 1 4.5.6c0 1.6-1.5 3-4.5 5z" fill="#fff"/>';
 // Same cycle math as the server: counted from Sunday, Jan 4, 2026.
-function fqLabel(f){var w={d:['day','days'],w:['week','weeks'],m:['month','months']}[f.u];return f.n===1?'every '+w[0]:'every '+f.n+' '+w[1];}
+function fqLabel(f){var w={d:['day','days'],w:['week','weeks'],m:['month','months']}[f.u];return f.n===1?'Every '+w[0]:'Every '+f.n+' '+w[1];}
+function fqNextD(f){var A=Date.UTC(2026,0,4),n=new Date(),T=Date.UTC(n.getFullYear(),n.getMonth(),n.getDate()),days=Math.round((T-A)/864e5),ms;
+  if(f.u==='d')ms=A+(Math.floor(days/f.n)+1)*f.n*864e5;else if(f.u==='w')ms=A+(Math.floor(days/(7*f.n))+1)*7*f.n*864e5;
+  else{var mo=(n.getFullYear()-2026)*12+n.getMonth(),i=(Math.floor(mo/f.n)+1)*f.n;ms=Date.UTC(2026+Math.floor(i/12),i%12,1);}
+  var d=new Date(ms);return new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate());}
+function fqDue(f){var d=fqNextD(f);d.setDate(d.getDate()-1);var n=new Date();if(d.toDateString()===n.toDateString())return 'due today';return 'due by '+d.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});}
 function fqNext(f){var A=Date.UTC(2026,0,4),n=new Date(),T=Date.UTC(n.getFullYear(),n.getMonth(),n.getDate()),days=Math.round((T-A)/864e5),ms;
   if(f.u==='d')ms=A+(Math.floor(days/f.n)+1)*f.n*864e5;else if(f.u==='w')ms=A+(Math.floor(days/(7*f.n))+1)*7*f.n*864e5;
   else{var mo=(n.getFullYear()-2026)*12+n.getMonth(),i=(Math.floor(mo/f.n)+1)*f.n;ms=Date.UTC(2026+Math.floor(i/12),i%12,1);}
@@ -873,7 +878,7 @@ function vChores(){
     // Not done first (in their usual order), finished ones below.
     L.items.filter(function(x){return !x.done;}).concat(L.items.filter(function(x){return x.done;})).forEach(function(it){
       var c=parseChore(it.title), rec=S.cdone[it.id], by=rec?find(S.people,rec.by):null, d=it.done;
-      h+='<div class="it'+(d?' done':'')+'" style="display:block"><div style="display:flex;align-items:center;min-height:48px" data-a="gtog" data-i="'+esc(it.id)+'"><span class="chk">'+(d?'✓':'')+'</span><span class="cn">'+esc(c.name)+(d?'<span class="sub" style="display:block">'+(rec&&rec.by==='team'?'Team effort':by?esc(by.name):'Checked off in Google Tasks')+doneAt(rec&&rec.at||it.completed)+(c.f?' · back '+fqNext(c.f):'')+'</span>':(c.f?'<span class="sub fq">↻ '+fqLabel(c.f)+'</span>':''))+'</span><span class="cs">+'+ptsOf(it)+' '+STAR+'</span>';
+      h+='<div class="it'+(d?' done':'')+'" style="display:block"><div style="display:flex;align-items:center;min-height:48px" data-a="gtog" data-i="'+esc(it.id)+'"><span class="chk">'+(d?'✓':'')+'</span><span class="cn">'+esc(c.name)+(d?'<span class="sub" style="display:block">'+(rec&&rec.by==='team'?'Team effort':by?esc(by.name):'Checked off in Google Tasks')+doneAt(rec&&rec.at||it.completed)+(c.f?' · back '+fqNext(c.f):'')+'</span>':(c.f?'<span class="sub fq">↻ '+fqLabel(c.f)+' · '+fqDue(c.f)+'</span>':''))+'</span><span class="cs">+'+ptsOf(it)+' '+STAR+'</span>';
       if(edit)h+='<button class="x" data-a="gdc" data-i="'+esc(it.id)+'">✕</button>';
       h+='</div>';
       if(!d&&pick===it.id){h+='<div class="who"><span class="sub">Who did it?</span><br>';
