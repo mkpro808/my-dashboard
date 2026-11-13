@@ -1,7 +1,7 @@
 // Live drive times for the Traffic tab. Data: TomTom Routing API (free tier, key in the
 // TOMTOM_KEY secret). Results are kept for a few minutes in the database so several
 // screens share one lookup, and a daily cap keeps use well inside the free allowance.
-// GET /api/traffic?from=lat,lon&to=lat,lon[&arrive=HH:MM]  -> now, leaving-later plan, leave-by
+// GET /api/traffic?from=lat,lon&to=lat,lon[&arrive=HH:MM][&plan=1] -> now; with plan=1 also leaving-later and leave-by
 // GET /api/traffic?geo=329 Main St                            -> address search for adding a drive
 import { kvGet, kvSet } from "../_lib/google.js";
 
@@ -99,23 +99,27 @@ export async function onRequestGet({ env, request }) {
       try { c.now = { t: now, r: await route(key, a, b) }; } catch (e) { err = String(e.message || e); }
     } else paused = true;
   }
-  if (!c.plan || now - c.plan.t > PLAN_TTL) {
-    const n = LATER.length + (arrive ? 1 : 0);
-    if (await budget(db, n)) {
+  const wantPlan = u.searchParams.get("plan") === "1";
+  if (wantPlan && (!c.plan || now - c.plan.t > PLAN_TTL)) {
+    if (await budget(db, LATER.length)) {
       const slot = Math.ceil(now / 900000) * 900000; // next quarter hour
       const later = await Promise.all(LATER.map((m) => {
         const t = slot + (m - 15) * 60000;
         return route(key, a, b, "&departAt=" + iso(t)).then((r) => ({ at: t, min: r.min })).catch(() => null);
       }));
-      let leave = null;
-      if (arrive) {
-        const t = nextClock(arrive, tz, now);
-        try { const r = await route(key, a, b, "&arriveAt=" + iso(t)); leave = { by: t, depart: Date.parse(r.depart), min: r.min }; } catch (e) { leave = null; }
-      }
-      c.plan = { t: now, later: later.filter(Boolean), leave };
+      c.plan = { t: now, later: later.filter(Boolean) };
     } else paused = true;
   }
-  if (c.now || c.plan) await kvSet(db, ck, JSON.stringify(c));
+  // "Leave by" is cheap (one lookup per half hour), so it is kept fresh even on the compact card.
+  if (arrive && (!c.lv || now - c.lv.t > PLAN_TTL || (c.lv.leave && c.lv.leave.by < now))) {
+    if (await budget(db, 1)) {
+      const t = nextClock(arrive, tz, now);
+      let leave = null;
+      try { const r = await route(key, a, b, "&arriveAt=" + iso(t)); leave = { by: t, depart: Date.parse(r.depart), min: r.min }; } catch (e) { leave = null; }
+      c.lv = { t: now, leave };
+    } else paused = true;
+  }
+  if (c.now || c.plan || c.lv) await kvSet(db, ck, JSON.stringify(c));
   if (!c.now) return json({ configured: true, error: err || "Daily traffic limit reached", paused }, 502);
-  return json({ configured: true, updated: c.now.t, now: c.now.r, later: (c.plan || {}).later || [], leave: (c.plan || {}).leave || null, paused });
+  return json({ configured: true, updated: c.now.t, now: c.now.r, later: (c.plan || {}).later || [], leave: (arrive && c.lv && c.lv.leave) || null, paused });
 }
