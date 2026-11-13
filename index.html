@@ -169,7 +169,7 @@ header{height:var(--hh);box-sizing:border-box}
 .sbc:not(:has(.sbe)){flex-wrap:nowrap}.sbm{min-width:0}.sbn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:700px){.sb{gap:8px}.sbc{min-width:0;flex:1 1 100%;gap:8px;padding:5px 12px 5px 5px}.sbc:not(.ohana){flex:1 1 40%}.sbc .av{width:30px;height:30px;font-size:15px}.sbc:not(.ohana){gap:6px;padding-right:10px}.sbc .av svg{width:22px;height:22px}.sbc .sbn{font-size:16px}.sbc .sbt{font-size:12px}.sbc .sbs{font-size:21px;gap:2px}.sbc .sbs svg{width:16px;height:16px}.sbr{margin-left:2px}}
 .past{margin:8px 2px 0;color:var(--mute);font-size:16px}.past b{color:var(--ink)}
-.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:22px;padding:8px 4px 20px;align-items:start}
+.board{padding-bottom:90px!important;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:22px;padding:8px 4px 20px;align-items:start}
 .note{position:relative;background:var(--nc);color:#2b2b2b;min-height:190px;padding:22px 16px 12px;border-radius:3px 3px 14px 3px;box-shadow:0 10px 18px -10px rgba(0,0,0,.35),0 2px 3px rgba(0,0,0,.08);transform:rotate(var(--rot,0deg));display:flex;flex-direction:column;font-family:"Patrick Hand","Comic Sans MS","Segoe Print",cursive;transition:transform .15s}
 .note:not(.new):hover{transform:rotate(0) scale(1.02)}
 .tape{position:absolute;top:-10px;left:50%;width:74px;height:22px;transform:translateX(-50%) rotate(-3deg);background:rgba(255,255,255,.55);box-shadow:0 1px 2px rgba(0,0,0,.12);border-radius:2px}
@@ -185,6 +185,14 @@ header{height:var(--hh);box-sizing:border-box}
 .nfor{display:flex;flex-wrap:wrap;gap:5px}.nf{margin:0;min-height:30px;padding:2px 10px;font-size:13px;border-radius:14px;background:rgba(255,255,255,.55);color:#2b2b2b;border:2px solid rgba(0,0,0,.12)}.nf.on{border-color:var(--pc,#2b2b2b);font-weight:700}
 .nrow{display:flex;gap:6px;align-items:center}.nrow input{flex:1;min-width:0;font-size:13px;background:rgba(255,255,255,.6);color:#2b2b2b;border-color:rgba(0,0,0,.15)}.nrow button{margin:0;white-space:nowrap}
 @media (max-width:700px){.board{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.note{min-height:150px;padding:18px 11px 10px}.ntext{font-size:20px}.note.new{grid-column:1/-1}.nrow input{font-size:12px}}
+.tcan{position:fixed;right:26px;bottom:24px;z-index:15;margin:0;width:72px;height:72px;min-height:0;padding:0;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--card);border:2px solid var(--line);box-shadow:0 8px 20px -8px rgba(0,0,0,.35)}
+@media (max-width:700px){.tcan{right:16px;bottom:calc(env(safe-area-inset-bottom) + 92px);width:60px;height:60px}}
+.tcnt{position:absolute;top:-2px;right:-2px;background:var(--acc);color:#fff;font-size:12px;min-width:20px;height:20px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 5px}
+.tcan.bump{animation:bump .45s ease}@keyframes bump{30%{transform:scale(1.18) rotate(-8deg)}60%{transform:scale(.95) rotate(5deg)}}
+.trashb .note.done{min-height:130px;filter:saturate(.55);opacity:.85;border-radius:10px 4px 16px 6px;box-shadow:inset 0 0 22px rgba(0,0,0,.08),0 4px 10px -6px rgba(0,0,0,.3)}
+.trashb .ntext{font-size:20px;text-decoration:line-through;text-decoration-color:rgba(0,0,0,.35)}.note.done .ndue{font-size:15px;margin-top:6px}
+.nback{margin:0;min-height:36px;padding:2px 12px;font-size:14px;border-radius:12px;background:rgba(255,255,255,.65);color:#2b2b2b;border:2px solid rgba(0,0,0,.15)}
+.ndel{margin:0;min-height:36px;width:38px;padding:0;border-radius:50%;background:rgba(255,255,255,.5);color:#2b2b2b;border:2px solid rgba(0,0,0,.15)}
 .wb.team{border-color:var(--acc);color:var(--acc);font-weight:700}
 .tcard{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:0 0 10px;overflow:hidden}.tcard.open{border-color:var(--acc)}
 .thd{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;min-height:56px}.tnm{flex:1;min-width:0}.tnm>b{font-size:20px;display:block}.tnm .dot{margin-right:6px;vertical-align:-1px}.tcard.open .tlv2{display:none}.lrow .lt{white-space:nowrap;width:auto!important;min-width:64px}.tnm .sub{display:block;font-size:15px;margin-top:2px}
@@ -214,7 +222,7 @@ var MN=['January','February','March','April','May','June','July','August','Septe
 var CALCOL={jericho:'#3b82f6',kahoku:'#a78bfa',ohana:'#7e22ce'};
 var DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], H0=7, H1=22, PX=50, DEFTITLE='Sombrio Ohana';
 var dd='', gLabels=[], calHide=(function(){try{return JSON.parse(localStorage.getItem('calHide')||'{}')||{};}catch(e){return {};}})(), TK=null, tkSel='', api=/^https?:$/.test(location.protocol), ver=0, busy=false, dirty=false, failed=false, pushT=null, GE=[], gErr=[], gN=-1, toastT=null;
-var tab='cal', edit=false, hist=false, HF={p:'',r:'week'}, armed='', pick='', msg='', S, mo=null, wkStart=iso(new Date()), toNow=true;
+var tab='cal', edit=false, hist=false, trash=false, HF={p:'',r:'week'}, armed='', pick='', msg='', S, mo=null, wkStart=iso(new Date()), toNow=true;
 function p2(n){return n<10?'0'+n:''+n;}
 function iso(d){return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
 function addDays(s,n){var d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return iso(d);}
@@ -229,7 +237,7 @@ function seed(){
   return {people:[{id:uid(),name:'Jericho',color:COLORS[0],stars:0},{id:uid(),name:'Kahoku',color:COLORS[1],stars:0}],
     chores:c.map(function(x){return {id:uid(),name:x[0],stars:x[1],doneOn:'',doneBy:''};}),
     rewards:[{id:uid(),name:'Pick the movie',cost:8},{id:uid(),name:'Treat of your choice',cost:12},{id:uid(),name:'Skip a chore',cost:15}]};}
-function norm(s){s=s||seed();s.people=s.people||[];s.chores=s.chores||[];s.rewards=s.rewards||[];s.events=s.events||[];s.tasks=s.tasks||[];s.rem=s.rem||[];s.title=s.title||DEFTITLE;s.cdone=s.cdone||{};s.slog=s.slog||[];if(!s.slogStart)s.slogStart=Date.now();s.slides=s.slides||{secs:15,shuffle:true};s.wx=s.wx||{locs:[{id:'home',name:'Home',lat:21.28,lon:-157.75},{id:'aulani',name:'Aulani',lat:21.34,lon:-158.12}],range:'today'};s.traffic=s.traffic||{drives:[]};s.pomo=s.pomo||{focus:25,short:5,long:15,rounds:4,auto:false,sound:true};if(!s.colorsV1){s.colorsV1=1;s.people.forEach(function(p){var c=CALCOL[String(p.name).toLowerCase()];if(c)p.color=c;});}return s;}
+function norm(s){s=s||seed();s.people=s.people||[];s.chores=s.chores||[];s.rewards=s.rewards||[];s.events=s.events||[];s.tasks=s.tasks||[];s.rem=s.rem||[];s.remDone=(s.remDone||[]).filter(function(r){return Date.now()-(r.doneAt||0)<30*864e5;});s.title=s.title||DEFTITLE;s.cdone=s.cdone||{};s.slog=s.slog||[];if(!s.slogStart)s.slogStart=Date.now();s.slides=s.slides||{secs:15,shuffle:true};s.wx=s.wx||{locs:[{id:'home',name:'Home',lat:21.28,lon:-157.75},{id:'aulani',name:'Aulani',lat:21.34,lon:-158.12}],range:'today'};s.traffic=s.traffic||{drives:[]};s.pomo=s.pomo||{focus:25,short:5,long:15,rounds:4,auto:false,sound:true};if(!s.colorsV1){s.colorsV1=1;s.people.forEach(function(p){var c=CALCOL[String(p.name).toLowerCase()];if(c)p.color=c;});}return s;}
 function load(){var s=null;try{s=JSON.parse(localStorage.getItem(KEY));}catch(e){}return norm(s);}
 function cache(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 function save(){cache();if(!api)return;dirty=true;clearTimeout(pushT);pushT=setTimeout(push,300);}
@@ -769,14 +777,30 @@ function ssOpen(){
 function ssClose(){lastAct=Date.now();var d=document.getElementById('ss');if(d)document.body.removeChild(d);clearTimeout(ssTimer);ssTimer=null;}
 
 // Reminders as sticky notes on a board.
+ICON.trash='<path d="M9.5 12h17l-1.6 16.5a2 2 0 0 1-2 1.8h-9.8a2 2 0 0 1-2-1.8z" fill="var(--ic)"/><path d="M5 8.5h20M12 8.5V6a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 18 6v2.5M7 8.5l1.6 17a2 2 0 0 0 2 1.8h8.8a2 2 0 0 0 2-1.8l1.6-17M12.5 13v9.5M17.5 13v9.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
 var NOTEC={yellow:'#fff3a3',pink:'#ffc9de',blue:'#c3e4ff',green:'#c8f2c2',orange:'#ffd8a8',purple:'#e2d4ff'},NF={c:'yellow',f:''};
 function nHash(id){var h=0;for(var i=0;i<id.length;i++)h=(h*31+id.charCodeAt(i))|0;return Math.abs(h);}
 function noteWhen(w){var d=new Date(w);if(isNaN(d))return w;var n=new Date(),t=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}),tm=new Date(n);tm.setDate(n.getDate()+1);
   if(d.toDateString()===n.toDateString())return 'Today '+t;if(d.toDateString()===tm.toDateString())return 'Tomorrow '+t;
   return d.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'})+(w.length>10?' · '+t:'');}
+function doneLbl(ms){var d=new Date(ms),n=new Date(),y=new Date(n);y.setDate(n.getDate()-1);var t=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+  if(d.toDateString()===n.toDateString())return 'Done today '+t;if(d.toDateString()===y.toDateString())return 'Done yesterday '+t;
+  return 'Done '+d.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'})+' · '+t;}
+function vTrash(){
+  var L=(S.remDone||[]).slice().sort(function(a,b){return (b.doneAt||0)-(a.doneAt||0);}),keys=Object.keys(NOTEC);
+  var h='<div class="top"><h1>Done notes</h1><span>'+(L.length?'<button data-a="tempty">'+(armed==='tempty'?'Tap again to empty':'Empty trash')+'</button> ':'')+'<button data-a="trash">Back to board</button></span></div>';
+  if(!L.length)return h+'<p class="hint">The trash can is empty. Checked-off notes land here for 30 days.</p>';
+  h+='<div class="board trashb">';
+  L.forEach(function(r){var hs=nHash(r.id),col=NOTEC[r.color]||NOTEC[keys[hs%keys.length]],rot=((hs%9)-4)*1.4;
+    h+='<div class="note done" style="--nc:'+col+';--rot:'+rot.toFixed(1)+'deg"><div class="ntext">'+esc(r.text)+'</div>'+
+      '<div class="ndue">'+doneLbl(r.doneAt)+'</div>'+
+      '<div class="nfoot"><button class="nback" data-a="trest" data-i="'+r.id+'">↩ Put back</button><button class="ndel" data-a="tdel2" data-i="'+r.id+'" aria-label="Delete forever">✕</button></div></div>';});
+  return h+'</div><p class="hint">Done notes are kept for 30 days.</p>';}
 function vRem(){
   var n=new Date(), nowS=iso(n)+'T'+p2(n.getHours())+':'+p2(n.getMinutes()), keys=Object.keys(NOTEC);
-  var h='<div class="top"><h1>Reminders</h1></div><div class="board">';
+  var nt=(S.remDone||[]).length;
+  if(trash)return vTrash();
+  var h='<div class="top"><h1>Reminders</h1><button class="tcan" id="tcan" data-a="trash" aria-label="Done notes">'+ico('trash',38)+(nt?'<b class="tcnt">'+nt+'</b>':'')+'</button></div><div class="board">';
   // the blank note you write on
   h+='<div class="note new" style="--nc:'+NOTEC[NF.c]+'"><textarea id="rt" rows="3" placeholder="Write a note…"></textarea>'+
      '<div class="ncol">'+keys.map(function(k){return '<button class="cdot'+(NF.c===k?' on':'')+'" style="background:'+NOTEC[k]+'" data-a="ncol" data-i="'+k+'" aria-label="'+k+'"></button>';}).join('')+'</div>'+
@@ -879,10 +903,10 @@ function openMo(e,d){mo=e?{id:e.id,title:e.title,date:e.date,time:e.time||'',end
 function act(a,t){
   var id=t.getAttribute('data-i')||'', T=today(), c, p, r, before=JSON.stringify(S);
   if(a!=='tog'&&a!=='who')msg='';
-  if(a!=='delp')armed='';
+  if(a!=='delp'&&a!=='tempty')armed='';
   var hadDD=!!dd;if(a!=='dd'&&a!=='ctog'&&a!=='call')dd='';
   if(a==='tab'&&id==='show'){ssOpen();return;}
-  if(a==='tab'){tab=id;edit=false;hist=false;pick='';WQR=null;TGR=null;toNow=(id==='cal');if(id==='tasks'||id==='chores')tasksLoad();}
+  if(a==='tab'){tab=id;edit=false;hist=false;trash=false;pick='';WQR=null;TGR=null;toNow=(id==='cal');if(id==='tasks'||id==='chores')tasksLoad();}
   else if(a==='sleep'){var s=document.createElement('div');s.className='slp';s.textContent='Tap to wake';s.onclick=function(){document.body.removeChild(s);};document.body.appendChild(s);return;}
   else if(a==='wk'){var n=parseInt(t.getAttribute('data-n'),10);if(!n){wkStart=iso(new Date());toNow=true;}
     else if(calView==='m'){var fm=new Date(firstOfMonth(wkStart)+'T12:00:00');fm.setMonth(fm.getMonth()+n);wkStart=iso(fm);}
@@ -955,7 +979,15 @@ function act(a,t){
   else if(a==='addm'){var rt=val('rt');if(rt){var nr={id:uid(),text:rt,when:val('rw'),color:NF.c,at:Date.now()};if(NF.f)nr.for=NF.f;S.rem.push(nr);NF.f='';}else{toast('Write something on the note first.');return;}}
   else if(a==='ncol'){NF.c=id;var tx=document.getElementById('rt'),keep=tx?tx.value:'',dw=val('rw');render();var t2=document.getElementById('rt');if(t2){t2.value=keep;}var w2=document.getElementById('rw');if(w2)w2.value=dw;return;}
   else if(a==='nfor'){NF.f=id;var tx2=document.getElementById('rt'),keep2=tx2?tx2.value:'',dw2=val('rw');render();var t3=document.getElementById('rt');if(t3)t3.value=keep2;var w3=document.getElementById('rw');if(w3)w3.value=dw2;return;}
-  else if(a==='delm'){S.rem=not(S.rem,id);}
+  else if(a==='delm'){var dn=find(S.rem,id);if(dn){var el=t.closest('.note'),can=document.getElementById('tcan');
+      var go=function(){S.rem=not(S.rem,id);dn.doneAt=Date.now();S.remDone=(S.remDone||[]).concat([dn]);save();render();var c2=document.getElementById('tcan');if(c2){c2.classList.remove('bump');void c2.offsetWidth;c2.classList.add('bump');}};
+      if(el&&can&&el.animate){var a1=el.getBoundingClientRect(),b1=can.getBoundingClientRect();
+        el.animate([{transform:getComputedStyle(el).transform,opacity:1},{transform:'translate('+(b1.left+b1.width/2-a1.left-a1.width/2)+'px,'+(b1.top+b1.height/2-a1.top-a1.height/2)+'px) scale(.08) rotate(200deg)',opacity:.4}],{duration:520,easing:'cubic-bezier(.5,0,.75,0)',fill:'forwards'}).onfinish=go;}
+      else go();}return;}
+  else if(a==='trash'){trash=!trash;armed='';}
+  else if(a==='trest'){var tr=find(S.remDone||[],id);if(tr){S.remDone=not(S.remDone,id);delete tr.doneAt;S.rem.push(tr);toast('Back on the board.');}}
+  else if(a==='tdel2'){S.remDone=not(S.remDone||[],id);}
+  else if(a==='tempty'){if(armed==='tempty'){S.remDone=[];armed='';}else{armed='tempty';}}
   else if(a==='edit'){edit=!edit;pick='';hist=false;}
   else if(a==='hist'){hist=!hist;edit=false;pick='';}
   else if(a==='hf'){var kv=id.split(':');HF[kv[0]]=kv[1];}
