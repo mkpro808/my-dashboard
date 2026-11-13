@@ -500,6 +500,7 @@ function GT(){return !!(TK&&TK.connected&&TK.chores&&!TK.error);}
 function parseChore(t){var m=String(t||'').match(/^(.*?)\s*\((\d+)\s*(?:\u2B50|stars?)?\)\s*$/i);return m?{name:m[1]||t,n:Math.max(1,parseInt(m[2],10))}:{name:t||'(untitled)',n:1};}
 function guessPer(t){t=String(t||'').toLowerCase();return /month/.test(t)?'m':/week/.test(t)?'w':'d';}
 var PERN={d:'Resets every morning',w:'Resets every Sunday',m:'Resets on the 1st'};
+var PSTAR={d:1,w:2,m:3};function stOf(id){return PSTAR[perOf(id)]||1;}
 function perOf(id){return (S.gcfg&&S.gcfg.per&&S.gcfg.per[id])||'d';}
 function where(id){return (S.gcfg&&S.gcfg.where[id])||'lists';}
 function tasksLoad(){
@@ -721,10 +722,10 @@ function vChores(){
     if(TK.chores.lists.length)h+='<div class="ccols" style="grid-template-columns:repeat('+Math.min(TK.chores.lists.length,4)+',minmax(0,1fr))">';
     TK.chores.lists.forEach(function(L){
     var pr=perOf(L.id), nd=L.items.filter(function(x){return x.done;}).length;
-    h+='<div class="ccol"><div class="ch"><b>'+esc(L.title)+'</b><span class="sub">'+nd+' of '+L.items.length+' done</span></div><div class="sub" style="margin:-2px 0 6px">'+PERN[pr]+'</div>';
+    h+='<div class="ccol"><div class="ch"><b>'+esc(L.title)+'</b><span class="sub">'+nd+' of '+L.items.length+' done</span></div><div class="sub" style="margin:-2px 0 6px">'+PERN[pr]+' · '+stOf(L.id)+' '+STAR+' each</div>';
     L.items.forEach(function(it){
       var c=parseChore(it.title), rec=S.cdone[it.id], by=rec?find(S.people,rec.by):null, d=it.done;
-      h+='<div class="it'+(d?' done':'')+'" style="display:block"><div style="display:flex;align-items:center;min-height:48px" data-a="gtog" data-i="'+esc(it.id)+'"><span class="chk">'+(d?'✓':'')+'</span><span class="cn">'+esc(c.name)+(d?'<span class="sub" style="display:block">'+(by?esc(by.name):'Checked off in Google Tasks')+'</span>':'')+'</span><span class="cs">+'+c.n+' '+STAR+'</span>';
+      h+='<div class="it'+(d?' done':'')+'" style="display:block"><div style="display:flex;align-items:center;min-height:48px" data-a="gtog" data-i="'+esc(it.id)+'"><span class="chk">'+(d?'✓':'')+'</span><span class="cn">'+esc(c.name)+(d?'<span class="sub" style="display:block">'+(by?esc(by.name):'Checked off in Google Tasks')+'</span>':'')+'</span><span class="cs">+'+stOf(L.id)+' '+STAR+'</span>';
       if(edit)h+='<button class="x" data-a="gdc" data-i="'+esc(it.id)+'">✕</button>';
       h+='</div>';
       if(!d&&pick===it.id){h+='<div class="who"><span class="sub">Who did it?</span><br>';
@@ -735,7 +736,7 @@ function vChores(){
     if(TK.chores.lists.length)h+='</div>';
     if(!TK.chores.lists.length)h+='<p class="hint">No chore list chosen yet. Tap Edit and set a Google Tasks list to “Chores”.</p>';
 
-    if(edit&&TK.chores.lists.length)h+='<div class="row"><input id="cn" placeholder="New chore"><input class="n" id="cs" type="number" min="1" value="1">'+(TK.chores.lists.length>1?'<select id="cl" style="flex:none;width:auto;margin-right:8px">'+TK.chores.lists.map(function(l){return '<option value="'+esc(l.id)+'">'+esc(l.title)+'</option>';}).join('')+'</select>':'')+'<button data-a="gac">Add</button></div>';
+    if(edit&&TK.chores.lists.length)h+='<div class="row"><input id="cn" placeholder="New chore">'+(TK.chores.lists.length>1?'<select id="cl" style="flex:none;width:auto;margin-right:8px">'+TK.chores.lists.map(function(l){return '<option value="'+esc(l.id)+'">'+esc(l.title)+'</option>';}).join('')+'</select>':'')+'<button data-a="gac">Add</button></div>';
     if(edit)h+=vListCfg();
   } else
   S.chores.forEach(function(c){
@@ -747,13 +748,8 @@ function vChores(){
       S.people.forEach(function(p){h+='<button class="wb" data-a="who" data-i="'+c.id+'" data-p="'+p.id+'" style="border-color:'+p.color+'">'+esc(p.name)+'</button>';});h+='</div>';}
     h+='</div>';});
   if(edit&&!GT())h+='<div class="row"><input id="cn" placeholder="New chore"><input class="n" id="cs" type="number" min="1" value="1"><button data-a="addc">Add</button></div>';
-  h+='<h3>Rewards</h3>';
-  S.rewards.forEach(function(r){
-    h+='<div class="rw"><div class="rt">'+esc(r.name)+' — '+r.cost+' '+STAR+(edit?' <button class="x" data-a="delr" data-i="'+r.id+'">✕</button>':'')+'</div>';
-    S.people.forEach(function(p){h+='<button class="wb" data-a="red" data-i="'+r.id+'" data-p="'+p.id+'" style="border-color:'+p.color+'"'+(p.stars<r.cost?' disabled':'')+'>'+esc(p.name)+'</button>';});
-    h+='</div>';});
-  if(edit){h+='<div class="row"><input id="rn" placeholder="New reward"><input class="n" id="rc" type="number" min="1" value="10"><button data-a="addr">Add</button></div><h3>Add a person</h3><div class="row"><input id="pn" placeholder="Name"><button data-a="addp">Add</button></div>';}
-  return h+'<p class="hint">Tap a finished chore to undo it.'+(GT()?' Chores come from your chore lists in Google Tasks; put the stars at the end of the name, like “Wash the dishes (2)”.':'')+'</p>';}
+  if(edit){h+='<h3>Add a person</h3><div class="row"><input id="pn" placeholder="Name"><button data-a="addp">Add</button></div>';}
+  return h+'<p class="hint">Tap a finished chore to undo it.'+(GT()?' Chores come from your chore lists in Google Tasks. Daily chores earn 1 star, weekly 2 and monthly 3.':'')+'</p>';}
 
 function render(){
   var h='',a='';
@@ -834,8 +830,8 @@ function act(a,t){
   else if(a==='gcl'){var L4=curList();if(L4){L4.items=L4.items.filter(function(x){return !x.done;});tkPost({op:'clear',list:L4.id});}}
   else if(a==='gnl'){var nl=val('nl');if(nl&&GT())tkPost({op:'newlist',title:nl},function(){tkSel='';tasksLoad();});}
   else if(a==='gtog'&&GT()){var ci=find(TK.chores.items,id);if(ci){if(ci.done){var rc=S.cdone[id];if(rc){p=find(S.people,rc.by);if(p)p.stars=Math.max(0,p.stars-rc.n);}delete S.cdone[id];ci.done=false;pick='';msg='';tkPost({op:'toggle',list:ci.list,id:id,done:false});}else pick=(pick===id?'':id);}}
-  else if(a==='gwho'&&GT()){var cw=find(TK.chores.items,id);p=find(S.people,t.getAttribute('data-p'));if(cw&&p){var pc2=parseChore(cw.title);p.stars+=pc2.n;S.cdone[id]={on:T,by:p.id,n:pc2.n};cw.done=true;pick='';msg=p.name+' earned '+pc2.n+(pc2.n===1?' star':' stars')+' for '+pc2.name+'!';tkPost({op:'toggle',list:cw.list,id:id,done:true});}}
-  else if(a==='gac'&&GT()){var cn2=val('cn'),cl2=val('cl')||TK.chores.id;if(cn2&&cl2){var st2=Math.max(1,parseInt(val('cs'),10)||1);TK.chores.items.push({id:'tmp'+uid(),title:cn2+' ('+st2+')',done:false,list:cl2});tkPost({op:'add',list:cl2,title:cn2+' ('+st2+')'});}}
+  else if(a==='gwho'&&GT()){var cw=find(TK.chores.items,id);p=find(S.people,t.getAttribute('data-p'));if(cw&&p){var pc2=parseChore(cw.title);pc2.n=stOf(cw.list);p.stars+=pc2.n;S.cdone[id]={on:T,by:p.id,n:pc2.n};cw.done=true;pick='';msg=p.name+' earned '+pc2.n+(pc2.n===1?' star':' stars')+' for '+pc2.name+'!';tkPost({op:'toggle',list:cw.list,id:id,done:true});}}
+  else if(a==='gac'&&GT()){var cn2=val('cn'),cl2=val('cl')||TK.chores.id;if(cn2&&cl2){TK.chores.items.push({id:'tmp'+uid(),title:cn2,done:false,list:cl2});tkPost({op:'add',list:cl2,title:cn2});}}
   else if(a==='gdc'&&GT()){var cd=find(TK.chores.items,id);if(cd&&id.indexOf('tmp')!==0){TK.chores.items=not(TK.chores.items,id);tkPost({op:'delete',list:cd.list,id:id});}}
   else if(a==='lper'){S.gcfg.per=S.gcfg.per||{};S.gcfg.per[id]=t.getAttribute('data-w');setTimeout(tasksLoad,0);}
   else if(a==='lcfg'){if(!S.gcfg)S.gcfg={where:{}};S.gcfg.where[id]=t.getAttribute('data-w');setTimeout(tasksLoad,0);}
