@@ -156,6 +156,7 @@ header{height:var(--hh);box-sizing:border-box}
 .hwho{display:inline-block;font-size:13px;border:2px solid;border-radius:8px;padding:0 7px;margin-right:4px}.hrow b{white-space:nowrap}.hrow b.pos{color:#15803d}.hrow b.neg{color:#b91c1c}
 .sb{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:2px 0 4px}
 .sbc{display:flex;align-items:center;flex-wrap:wrap;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 18px 7px 7px;min-width:220px;box-shadow:0 1px 0 var(--line)}
+.sbc.ohana{min-width:320px;}.sbb.gold i{background:linear-gradient(90deg,var(--acc),#f4a261)}.sbc.ohana.rec{box-shadow:0 0 0 3px #f4a26166}
 .sbc.ohana{--pc:var(--acc);background:color-mix(in srgb,var(--acc) 10%,var(--card));border-color:color-mix(in srgb,var(--acc) 45%,var(--line))}.sbt{font-size:14px;color:var(--mute);line-height:1}
 .av{position:relative;width:46px;height:46px;border-radius:50%;background:var(--pc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;flex:none}
 .sbm{flex:1;min-width:90px;display:flex;flex-direction:column;gap:5px}.sbn{font-size:18px;font-weight:700;line-height:1}
@@ -540,6 +541,8 @@ function monthCheck(){if(!S)return;var m=ym();if(!S.scoreMonth){S.scoreMonth=m;s
   S.past=[{month:S.scoreMonth,scores:sc}].concat(S.past||[]).slice(0,24);
   S.people.forEach(function(p){if(p.stars)slog([p.id],-p.stars,'Monthly reset');p.stars=0;});
   S.scoreMonth=m;msg='';save();if(tab==='chores'&&!busyUI())rr();}
+// The ohana's best month so far (family total), carried forward to beat together.
+function bestMonth(){var b=null;(S.past||[]).forEach(function(P){var t=0;Object.keys(P.scores).forEach(function(i){t+=P.scores[i].stars;});if(t>0&&(!b||t>b.t))b={t:t,month:P.month};});return b;}
 function mName(k){var a=k.split('-');return new Date(+a[0],+a[1]-1,1).toLocaleDateString([],{month:'long'});}
 function vPast(){var P=S.past&&S.past[0];if(!P)return '';var ids=Object.keys(P.scores),t=0;ids.forEach(function(i){t+=P.scores[i].stars;});
   return '<div class="past">🎉 In '+esc(mName(P.month))+' the ohana earned <b>'+t+'</b> '+STAR+' together</div>';}
@@ -783,7 +786,10 @@ function vChores(){
   // Together first: the whole ohana's stars, then each person's own (no rankings).
   var tot=0,d0=new Date();d0.setHours(0,0,0,0);S.people.forEach(function(p){tot+=p.stars;});
   var tday={};(S.slog||[]).forEach(function(e){if(e.at>=+d0&&e.what!=='Monthly reset')e.who.forEach(function(id){tday[id]=(tday[id]||0)+e.n;});});
-  h+='<div class="sbc ohana"><span class="av">'+ico('home',28)+'</span><span class="sbm"><span class="sbn">Ohana together</span><span class="sbt">this month</span></span><span class="sbs">'+tot+STAR+'</span></div>';
+  var best=bestMonth(),goal=best?best.t+1:0,note='this month',bar='';
+  if(best){if(tot>best.t)note='🎉 New ohana record! (was '+best.t+')';else note=(goal-tot)+' more to beat our best · '+best.t+' in '+esc(mName(best.month));
+    bar='<span class="sbb gold"><i style="width:'+Math.min(100,tot/goal*100).toFixed(0)+'%"></i></span>';}
+  h+='<div class="sbc ohana'+(best&&tot>best.t?' rec':'')+'"><span class="av">'+ico('home',28)+'</span><span class="sbm"><span class="sbn">Ohana together</span>'+bar+'<span class="sbt">'+note+'</span></span><span class="sbs">'+tot+STAR+'</span></div>';
   S.people.forEach(function(p){var td=tday[p.id]||0;
     h+='<div class="sbc" style="--pc:'+p.color+'"><span class="av">'+esc(String(p.name).charAt(0).toUpperCase())+'</span>'+
       '<span class="sbm"><span class="sbn">'+esc(p.name)+'</span><span class="sbt">'+(td>0?'+'+td+' today':'&nbsp;')+'</span></span><span class="sbs">'+p.stars+STAR+'</span>';
