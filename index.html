@@ -201,7 +201,9 @@ header{height:var(--hh);box-sizing:border-box}
 .it.dust1 .chk,.it.dust2 .chk{border-color:#a8977c}.it.dust1 .cs,.it.dust2 .cs{opacity:.8}
 .sub.dustl{display:block;font-size:13px;color:#8a5a2b;font-weight:600}
 .web{position:absolute;top:0;width:44px;height:44px;pointer-events:none;opacity:.75}.web svg{width:100%;height:100%;stroke:#9a8f80;stroke-width:.9;fill:none}
-.web.tl{left:0}.web.tr{right:0;transform:scaleX(-1)}.it.dust2 .web{width:58px;height:58px;opacity:.85}
+.web.tl{left:0}.web.tr{right:0;transform:scaleX(-1)}.web.bl{top:auto;bottom:0;left:0;transform:scaleY(-1)}.web.br{top:auto;bottom:0;right:0;transform:scale(-1,-1)}
+.strand{position:absolute;left:18%;top:0;width:64%;height:26px;pointer-events:none;opacity:.55}.strand path{stroke:#9a8f80;stroke-width:.8;fill:none;vector-effect:non-scaling-stroke}
+.spider.s1{right:64px}.spider.s2{right:auto;left:42%;animation-duration:4.1s;animation-delay:-1.3s;--drop:18px}.spider.s3{right:auto;left:26%;animation-duration:2.7s;animation-delay:-.6s;width:13px}.spider.s3 svg{width:13px;height:11px;margin-top:6px}.spider.s2 svg{margin-top:20px}.spider.s2::before{height:48px}.it.dust2 .web{width:58px;height:58px;opacity:.85}
 .spider{position:absolute;top:0;right:64px;width:18px;pointer-events:none;animation:bob 3.2s ease-in-out infinite;transform-origin:top center}
 .spider::before{content:"";position:absolute;left:50%;top:-40px;height:42px;border-left:1px solid #9a8f80}.spider svg{width:18px;height:15px;display:block;margin-top:14px}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
@@ -612,7 +614,7 @@ function exRow(typed,o){var c=parseChore(typed),f=c.f,pts=c.custom?c.n:(o.list||
   if(o.done)sub='<span class="sub" style="display:block">'+o.who+(f?' · back '+fqNext(f):'')+'</span>';
   else{if(o.dust)sub+='<span class="sub dustl">🕸 Not done in '+o.age+'</span>';if(f)sub+='<span class="sub fq">↻ '+fqLabel(f)+' · '+fqDue(f)+'</span>';}
   return '<div class="exr"><div class="exl"><code>'+esc(typed)+'</code><span class="sub">'+o.note+'</span></div>'+
-    '<div class="it'+(o.done?' done':'')+(o.dust?' dust'+o.dust:'')+'" style="display:block;margin:0">'+(o.dust?'<span class="web tl">'+WEB+'</span>'+(o.dust>1?'<span class="web tr">'+WEB+'</span>'+SPIDER:''):'')+
+    '<div class="it'+(o.done?' done':'')+(o.dust?' dust'+o.dust:'')+'" style="display:block;margin:0">'+dustDeco(o.dust)+
     '<div style="display:flex;align-items:center;min-height:48px"><span class="chk">'+(o.done?'✓':'')+'</span><span class="cn">'+esc(c.name)+sub+'</span><span class="cs">+'+pts+' '+STAR+'</span></div></div></div>';}
 function vExamples(){var P=S.people,j=P[0]?esc(P[0].name):'Jericho',k=P[1]?esc(P[1].name):'Kahoku';
   return '<div class="exg">'+
@@ -626,6 +628,11 @@ function vExamples(){var P=S.people,j=P[0]?esc(P[0].name):'Jericho',k=P[1]?esc(P
     exRow('Feed the fish',{list:1,dust:1,age:'2 days',note:'Skipped a whole cycle: dusty'})+
     exRow('Wipe the counters',{list:1,dust:2,age:'5 days',note:'Skipped 2+ cycles: cobwebs and a spider'})+
     '</div>';}
+// Decorations: 1 = one cobweb; 2 = webs in every corner, a strand across, and three spiders.
+var STRAND='<svg class="strand" viewBox="0 0 200 30" preserveAspectRatio="none" aria-hidden="true"><path d="M0 2Q100 26 200 4M30 8Q32 18 40 14M150 10Q148 20 158 16M90 14l4 8M110 14l-3 9"/></svg>';
+function dustDeco(l){if(!l)return '';var h='<span class="web tl">'+WEB+'</span>';if(l<2)return h;
+  h+='<span class="web tr">'+WEB+'</span><span class="web bl">'+WEB+'</span><span class="web br">'+WEB+'</span>'+STRAND;
+  return h+SPIDER.replace('class="spider"','class="spider s1"')+SPIDER.replace('class="spider"','class="spider s2"')+SPIDER.replace('class="spider"','class="spider s3"');}
 var PSTAR={d:1,w:3,m:5};function stOf(id){var v=S.gcfg&&S.gcfg.pts&&S.gcfg.pts[id];return v>0?v:(PSTAR[perOf(id)]||1);}
 function ptsOf(it){var c=parseChore(it.title);return c.custom?c.n:stOf(it.list);}
 function perOf(id){return (S.gcfg&&S.gcfg.per&&S.gcfg.per[id])||'d';}
@@ -921,7 +928,7 @@ function vChores(){
     nd.concat(L.items.filter(function(x){return x.done;})).forEach(function(it){
       var c=parseChore(it.title), rec=S.cdone[it.id], by=rec?find(S.people,rec.by):null, d=it.done;
       var dl=dustOf(it);
-      h+='<div class="it'+(d?' done':'')+(dl?' dust'+dl:'')+'" style="display:block">'+(dl?'<span class="web tl">'+WEB+'</span>'+(dl>1?'<span class="web tr">'+WEB+'</span>'+SPIDER:''):'')+'<div style="display:flex;align-items:center;min-height:48px" data-a="gtog" data-i="'+esc(it.id)+'"><span class="chk">'+(d?'✓':'')+'</span><span class="cn">'+esc(c.name)+(d?'<span class="sub" style="display:block">'+(rec&&rec.by==='team'?'Team effort':by?esc(by.name):'Checked off in Google Tasks')+doneAt(rec&&rec.at||it.completed)+(c.f?' · back '+fqNext(c.f):'')+'</span>':(dl?'<span class="sub dustl">🕸 '+dustAge(it)+'</span>':'')+(c.f?'<span class="sub fq">↻ '+fqLabel(c.f)+' · '+fqDue(c.f)+'</span>':''))+'</span><span class="cs">+'+ptsOf(it)+' '+STAR+'</span>';
+      h+='<div class="it'+(d?' done':'')+(dl?' dust'+dl:'')+'" style="display:block">'+dustDeco(dl)+'<div style="display:flex;align-items:center;min-height:48px" data-a="gtog" data-i="'+esc(it.id)+'"><span class="chk">'+(d?'✓':'')+'</span><span class="cn">'+esc(c.name)+(d?'<span class="sub" style="display:block">'+(rec&&rec.by==='team'?'Team effort':by?esc(by.name):'Checked off in Google Tasks')+doneAt(rec&&rec.at||it.completed)+(c.f?' · back '+fqNext(c.f):'')+'</span>':(dl?'<span class="sub dustl">🕸 '+dustAge(it)+'</span>':'')+(c.f?'<span class="sub fq">↻ '+fqLabel(c.f)+' · '+fqDue(c.f)+'</span>':''))+'</span><span class="cs">+'+ptsOf(it)+' '+STAR+'</span>';
       if(edit)h+='<button class="x" data-a="gdc" data-i="'+esc(it.id)+'">✕</button>';
       h+='</div>';
       if(!d&&pick===it.id){h+='<div class="who"><span class="sub">Who did it?</span><br>';
