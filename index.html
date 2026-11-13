@@ -6,6 +6,14 @@
 <title>Sombrio Ohana</title>
 <meta name="application-name" content="Sombrio Ohana">
 <meta name="apple-mobile-web-app-title" content="Sombrio Ohana">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#fdf8ef" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#15161b" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials">
+<link rel="apple-touch-icon" href="/icon-180.png">
+<link rel="icon" type="image/png" href="/icon-192.png">
 <style>
 :root{--hh:76px;--ic:#f4a261;--bg:#fff;--card:#fff;--ink:#2b2b33;--mute:#7b7f8a;--line:#e6e8ee;--ok:#16a34a;--acc:#7c5cdb;--side:#eaf1f9;--on:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15161b;--card:#1f2027;--ink:#f1f2f6;--mute:#9a9eab;--line:#31333d;--side:#101116;--on:#1f2027}}
@@ -65,7 +73,13 @@ input.n{flex:none;width:70px}
 .ar{display:flex;align-items:center;background:var(--card);border:1px solid var(--line);border-left:5px solid;border-radius:10px;padding:12px 14px;margin:6px 0;cursor:pointer}
 @media (max-height:700px) and (min-width:701px){:root{--hh:62px}#ttl{font-size:22px}#clk{font-size:38px}#clk small{font-size:16px}#wx{font-size:19px}#sun{font-size:16px}
 .nb{min-height:0;padding:7px 2px;font-size:11px}.nb b{height:26px;margin-bottom:2px}.nb svg{width:26px;height:26px}#app{padding-top:8px}.top{margin-bottom:4px}h1{font-size:21px}}
-@media (max-width:700px){header{height:auto;flex-wrap:wrap;position:static}#ttl{font-size:22px}#clk{font-size:30px}#wx{font-size:18px;margin-left:12px}#sun{font-size:14px;margin-left:10px}.ctop{position:static;height:auto;flex-wrap:wrap;margin:0 -18px;padding:8px 18px}.tbar{flex-wrap:wrap}.clab{flex-basis:100%;margin-top:6px}.dh,.tl .sp{position:static}.ar .tm{width:110px}}
+@media (max-width:700px){
+:root{padding-bottom:0}
+body{flex-direction:column-reverse}
+main{flex:1;height:auto;min-height:0}
+nav{width:100%;flex-direction:row;justify-content:space-around;padding:4px 0 calc(4px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+.nb{flex:1;min-height:52px;padding:4px 0;font-size:10px;margin-top:0!important}.nb b{height:24px;margin-bottom:2px}.nb svg{width:24px;height:24px}
+header{height:auto;flex-wrap:wrap;position:static}#app .pb button{min-width:0;margin:0 5px;padding:10px 16px}#app .pb .pgo{min-width:120px}#ttl{font-size:22px}#clk{font-size:30px}#wx{font-size:18px;margin-left:12px}#sun{font-size:14px;margin-left:10px}.ctop{position:static;height:auto;flex-wrap:wrap;margin:0 -18px;padding:8px 18px}.tbar{flex-wrap:wrap}.clab{flex-basis:100%;margin-top:6px}.dh,.tl .sp{position:static}.ar .tm{width:110px}}
 .pm{display:flex;justify-content:center;flex-wrap:wrap;margin:0 0 2px}.pm button{margin:3px;border-radius:999px;padding:6px 16px;min-height:40px;font-size:15px}.pm button.on{color:#fff}
 .pw{position:relative;width:clamp(150px,calc(100vh - var(--hh) - 320px),340px);margin:6px auto 0;container-type:inline-size}.pring{display:block;width:100%;height:auto}.pring circle{transition:stroke-dashoffset .3s linear}
 .pc{position:absolute;left:0;top:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -233,7 +247,7 @@ function dayEvents(k){
   GE.forEach(function(g){if(g.date===k&&!calHide[g.cal])a.push({id:'g:'+g.id,title:g.title,date:g.date,time:g.time,end:g.end,who:pid(g.cal),col:CALCOL[String(g.cal).toLowerCase()],g:1});});
   return a;}
 var VIEWS=[['1','Day'],['3','3 Days'],['4','4 Days'],['7','Week'],['14','2 Weeks'],['m','Month'],['a','Schedule']];
-var calView=(function(){try{var v=localStorage.getItem('calView');for(var i=0;i<VIEWS.length;i++)if(VIEWS[i][0]===v)return v;}catch(e){}return window.innerWidth<700?'1':'4';})();
+var calView=(function(){try{var v=localStorage.getItem('calView');for(var i=0;i<VIEWS.length;i++)if(VIEWS[i][0]===v)return v;}catch(e){}return window.innerWidth<700?'a':'4';})();
 function sunday(k){var d=new Date(k+'T12:00:00');return addDays(k,-d.getDay());}
 function firstOfMonth(k){return k.slice(0,8)+'01';}
 function sortEv(a){return a.slice().sort(function(x,y){if(!x.time!==!y.time)return x.time?1:-1;return (x.time||'').localeCompare(y.time||'');});}
@@ -586,7 +600,7 @@ function render(){
   document.getElementById('ttl').textContent=S.title||DEFTITLE;
   document.getElementById('app').innerHTML=tab==='cal'?vCal():tab==='tasks'?vTasks():tab==='rem'?vRem():tab==='pomo'?vPomo():vChores();
   document.getElementById('ovl').innerHTML=vModal();if(mo&&mo.ss){phStatus();if(mo.pick&&mo.uri)drawQR(mo.uri);}
-  if(tab==='cal'&&toNow){toNow=false;var m=document.getElementById('mn'),n=new Date();m.scrollTop=/^[1347]$/.test(calView)?Math.max(0,((n.getHours()-H0-1)*PX)+12):0;}
+  if(tab==='cal'&&toNow){toNow=false;var m=document.getElementById('mn'),n=new Date();m.scrollTop=(/^[1347]$/.test(calView)&&window.innerWidth>=700)?Math.max(0,((n.getHours()-H0-1)*PX)+12):0;}
 }
 
 function openMo(e,d){mo=e?{id:e.id,title:e.title,date:e.date,time:e.time||'',end:e.end||'',who:e.who||''}:{id:'',title:'',date:d,time:'',end:'',who:''};}
