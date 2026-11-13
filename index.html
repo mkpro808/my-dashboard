@@ -224,7 +224,7 @@ function sunText(){
   if(!k)return '';
   return sunIco(up)+(up?'Sunrise':'Sunset')+'<b>'+tf(k.slice(11,16))+'</b>';}
 function clock(){var d=new Date(),h=d.getHours()%12||12;document.getElementById('clk').innerHTML=h+':'+p2(d.getMinutes())+'<span class="sec">:'+p2(d.getSeconds())+'</span><small>'+(d.getHours()<12?'AM':'PM')+'</small>';var sn=sunText(),se=document.getElementById('sun');if(se.innerHTML!==sn)se.innerHTML=sn;}
-var LAT=21.3, LON=-157.8, wxT=null, WXD={}, WXP={}, WQR=null, wxSel=(function(){try{return localStorage.getItem('wxSel')||'home';}catch(e){return 'home';}})();
+var LAT=21.3, LON=-157.8, wxT=null, WXD={}, WXP={}, WXE={}, WQR=null, wxSel=(function(){try{return localStorage.getItem('wxSel')||'home';}catch(e){return 'home';}})();
 var WTXT={0:'Clear',1:'Mostly clear',2:'Partly cloudy',3:'Cloudy',45:'Fog',48:'Fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',56:'Freezing drizzle',57:'Freezing drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',66:'Freezing rain',67:'Freezing rain',71:'Light snow',73:'Snow',75:'Heavy snow',77:'Snow',80:'Light showers',81:'Showers',82:'Heavy showers',85:'Snow showers',86:'Snow showers',95:'Thunderstorm',96:'Thunderstorm',99:'Thunderstorm'};
 function wCat(c){c=+c;if(c<=1)return 'clear';if(c===2)return 'partly';if(c===3)return 'cloud';if(c===45||c===48)return 'fog';if(c>=95)return 'storm';if((c>=71&&c<=77)||c===85||c===86)return 'snow';return 'rain';}
 var WSW='stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" fill="none"', WAC='fill="var(--ic)"';
@@ -245,13 +245,16 @@ function wInner(cat,day){
 function wIco(code,day,sz){return '<svg viewBox="0 0 32 32" width="'+(sz||28)+'" height="'+(sz||28)+'" aria-hidden="true" style="vertical-align:middle">'+wInner(wCat(code),day!==0&&day!==false)+'</svg>';}
 ICON.wx=wInner('partly',true);
 function wxLocs(){return (S&&S.wx&&S.wx.locs&&S.wx.locs.length)?S.wx.locs:[{id:'home',name:'Home',lat:21.28,lon:-157.75}];}
+function wxTz(loc){if(loc.tz)return loc.tz;return (loc.lat>18&&loc.lat<23&&loc.lon>-161&&loc.lon<-154)?'Pacific/Honolulu':'';}
 function wxFetch(loc,cb){
   var c=WXD[loc.id];if(c&&Date.now()-c.t<600000){if(cb)cb(c.j);return;}
   if(WXP[loc.id])return;WXP[loc.id]=1;
-  var url=api?'/api/weather?lat='+loc.lat+'&lon='+loc.lon:'https://api.open-meteo.com/v1/forecast?latitude='+loc.lat+'&longitude='+loc.lon+'&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day&hourly=temperature_2m,precipitation_probability,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset,wind_speed_10m_max&timezone=auto&forecast_days=7&temperature_unit=fahrenheit&wind_speed_unit=mph';
-  fetch(url,{cache:'no-store',credentials:'same-origin'}).then(function(r){if(!r.ok)throw new Error('weather');return r.json();}).then(function(j){
-    WXP[loc.id]=0;if(!j||!j.current||!j.daily)throw new Error('weather');WXD[loc.id]={t:Date.now(),j:j};if(cb)cb(j);
-  }).catch(function(){WXP[loc.id]=0;if(cb)cb(null);});}
+  var direct='https://api.open-meteo.com/v1/forecast?latitude='+loc.lat+'&longitude='+loc.lon+'&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day&hourly=temperature_2m,precipitation_probability,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset,wind_speed_10m_max&timezone=auto&forecast_days=7&temperature_unit=fahrenheit&wind_speed_unit=mph';
+  var get=function(url,opt){return fetch(url,opt).then(function(r){if(!r.ok)throw new Error('weather');return r.json();}).then(function(j){if(!j||!j.current||!j.daily||!j.hourly)throw new Error('weather');return j;});};
+  // First the dashboard's own server (works on networks that block weather sites), then straight from this device.
+  var p=api?get('/api/weather?lat='+loc.lat+'&lon='+loc.lon+'&tz='+encodeURIComponent(wxTz(loc)),{cache:'no-store',credentials:'same-origin'}).catch(function(){return get(direct,{cache:'no-store'}).then(function(j){j.source='Open-Meteo';return j;});}):get(direct,{cache:'no-store'});
+  p.then(function(j){WXP[loc.id]=0;delete WXE[loc.id];WXD[loc.id]={t:Date.now(),j:j};if(cb)cb(j);})
+   .catch(function(){WXP[loc.id]=0;WXE[loc.id]=Date.now();if(cb)cb(null);});}
 function wxShow(t){var el=document.getElementById('wx');if(el&&t)el.innerHTML=t;}
 (function(){try{var c=JSON.parse(localStorage.getItem('wxCache2'));if(c&&Date.now()-c.t<3*3600e3)setTimeout(function(){wxShow(c.html);},0);}catch(e){}})();
 function wx(){
@@ -277,7 +280,9 @@ function vWeather(){
       WQR.forEach(function(r,i){h+='<div class="row"><span class="cn">'+esc(r.name)+' <span class="sub">'+esc(r.region)+'</span></span><button data-a="wadd" data-i="'+i+'">Add</button></div>';});}
     h+='</div>';}
   var c=WXD[loc.id];
-  if(!c){wxFetch(loc,function(){if(tab==='wx'&&!busyUI())rr();});return h+'<p class="hint">Loading the forecast for '+esc(loc.name)+'…</p>';}
+  if(!c){
+    if(WXE[loc.id]&&!WXP[loc.id])return h+'<div class="rw"><p style="margin:0 0 10px">Couldn\'t get the forecast for '+esc(loc.name)+' right now. The weather services may be busy, or this network may be blocking them.</p><button data-a="wretry" data-i="'+esc(loc.id)+'">Try again</button></div>';
+    wxFetch(loc,function(){if(tab==='wx'&&!busyUI())rr();});return h+'<p class="hint">Loading the forecast for '+esc(loc.name)+'…</p>';}
   var j=c.j,cu=j.current,dl=j.daily;
   h+='<div class="wcur"><div>'+wIco(cu.weather_code,cu.is_day,92)+'</div><div><div class="wt">'+Math.round(cu.temperature_2m)+'°</div><div class="wc">'+(WTXT[cu.weather_code]||'')+'</div></div>'+
      '<div class="wmeta"><span>Feels like '+Math.round(cu.apparent_temperature)+'°</span><span>Humidity '+Math.round(cu.relative_humidity_2m)+'%</span><span>Wind '+Math.round(cu.wind_speed_10m)+' mph</span></div>'+
@@ -292,7 +297,7 @@ function vWeather(){
     dl.time.forEach(function(t,i){var d=new Date(t+'T12:00:00'),lo=dl.temperature_2m_min[i],hi=dl.temperature_2m_max[i],pp=dl.precipitation_probability_max?dl.precipitation_probability_max[i]:null;
       h+='<div class="dr"><span class="dn2">'+(i===0?'Today':DN[d.getDay()])+'</span>'+wIco(dl.weather_code[i],1,32)+'<span class="pp">'+(pp!=null&&pp>=10?pp+'%':'')+'</span><span class="lo">'+Math.round(lo)+'°</span><span class="bar2"><i style="left:'+((lo-mn)/sp*100).toFixed(1)+'%;right:'+((mx-hi)/sp*100).toFixed(1)+'%"></i></span><span class="hi">'+Math.round(hi)+'°</span></div>';});
   }
-  return h+'<p class="hint">Forecast from <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a>. Updated '+new Date(c.t).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'.</p>';}
+  return h+'<p class="hint">Forecast from '+(j.source==='MET Norway'?'<a href="https://www.met.no/en" target="_blank" rel="noopener">MET Norway</a>':'<a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a>')+'. Updated '+new Date(c.t).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'.</p>';}
 // Sunrise/sunset worked out on the device (NOAA method), so it never depends on the internet.
 function sunEvent(y,m,d,rising){
   var rad=Math.PI/180,N=Math.floor((Date.UTC(y,m-1,d)-Date.UTC(y,0,0))/864e5),lh=LON/15,t=N+((rising?6:18)-lh)/24;
@@ -704,8 +709,9 @@ function act(a,t){
   else if(a==='wrange'){S.wx.range=id;}
   else if(a==='wdel'){if(S.wx.locs.length>1){S.wx.locs=S.wx.locs.filter(function(x){return x.id!==id;});if(wxSel===id)wxSel=S.wx.locs[0].id;if(S.wx.locs[0])setTimeout(wx,0);}}
   else if(a==='wsearch'){var wq=val('wq');if(wq){var u=api?'/api/weather?q='+encodeURIComponent(wq):'https://geocoding-api.open-meteo.com/v1/search?count=8&language=en&name='+encodeURIComponent(wq);
-    fetch(u,{credentials:'same-origin'}).then(function(r){return r.json();}).then(function(j){WQR=j.results?j.results.map(function(p){return p.region!==undefined?p:{name:p.name,region:[p.admin1,p.country].filter(Boolean).join(', '),lat:Math.round(p.latitude*100)/100,lon:Math.round(p.longitude*100)/100};}):[];render();}).catch(function(){WQR=[];render();});}return;}
-  else if(a==='wadd'){var pl=WQR&&WQR[+id];if(pl){var nid='w'+uid();S.wx.locs.push({id:nid,name:pl.name,lat:pl.lat,lon:pl.lon});WQR=null;wxSel=nid;try{localStorage.setItem('wxSel',nid);}catch(e){}}}
+    fetch(u,{credentials:'same-origin'}).then(function(r){return r.json();}).then(function(j){WQR=j.results?j.results.map(function(p){return p.region!==undefined?p:{name:p.name,region:[p.admin1,p.country].filter(Boolean).join(', '),lat:Math.round(p.latitude*100)/100,lon:Math.round(p.longitude*100)/100,tz:p.timezone||''};}):[];render();}).catch(function(){WQR=[];render();});}return;}
+  else if(a==='wretry'){delete WXE[id];if(id===wxLocs()[0].id){wx();}}
+  else if(a==='wadd'){var pl=WQR&&WQR[+id];if(pl){var nid='w'+uid();S.wx.locs.push({id:nid,name:pl.name,lat:pl.lat,lon:pl.lon,tz:pl.tz||''});WQR=null;wxSel=nid;try{localStorage.setItem('wxSel',nid);}catch(e){}}}
   else if(a==='cv'){calView=id;toNow=true;try{localStorage.setItem('calView',id);}catch(e){}}
   else if(a==='gday'){wkStart=t.getAttribute('data-d');calView='1';toNow=true;try{localStorage.setItem('calView','1');}catch(e){}}
   else if(a==='new'){var rg=calRange(),td=iso(new Date());openMo(null,(td>=rg.start&&td<=addDays(rg.start,rg.n-1))?td:(calView==='m'?firstOfMonth(wkStart):rg.start));}
