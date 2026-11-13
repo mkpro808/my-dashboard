@@ -860,7 +860,8 @@ function vChores(){
     TK.chores.lists.forEach(function(L){
     var pr=perOf(L.id), nd=L.items.filter(function(x){return x.done;}).length;
     h+='<div class="ccol"><div class="ch"><b>'+esc(L.title)+'</b><span class="sub">'+nd+' of '+L.items.length+' done</span></div><div class="sub" style="margin:-2px 0 6px">'+PERN[pr]+' · '+stOf(L.id)+' '+STAR+' each</div>';
-    L.items.forEach(function(it){
+    // Not done first (in their usual order), finished ones below.
+    L.items.filter(function(x){return !x.done;}).concat(L.items.filter(function(x){return x.done;})).forEach(function(it){
       var c=parseChore(it.title), rec=S.cdone[it.id], by=rec?find(S.people,rec.by):null, d=it.done;
       h+='<div class="it'+(d?' done':'')+'" style="display:block"><div style="display:flex;align-items:center;min-height:48px" data-a="gtog" data-i="'+esc(it.id)+'"><span class="chk">'+(d?'✓':'')+'</span><span class="cn">'+esc(c.name)+(d?'<span class="sub" style="display:block">'+(rec&&rec.by==='team'?'Team effort':by?esc(by.name):'Checked off in Google Tasks')+doneAt(rec&&rec.at||it.completed)+'</span>':'')+'</span><span class="cs">+'+ptsOf(it)+' '+STAR+'</span>';
       if(edit)h+='<button class="x" data-a="gdc" data-i="'+esc(it.id)+'">✕</button>';
