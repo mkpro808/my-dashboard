@@ -222,6 +222,13 @@ header{height:var(--hh);box-sizing:border-box}
 .shbtog{margin:14px 0 4px}
 @media (max-width:700px){.shopst,.shfor,.usuals{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-right:-16px;padding-right:16px}.shopst::-webkit-scrollbar,.shfor::-webkit-scrollbar,.usuals::-webkit-scrollbar{display:none}
 .shopst .wb{flex:none;min-height:40px;padding:4px 12px;font-size:15px;margin:0}.shfor .nf,.usuals .ub{flex:none;white-space:nowrap}.usuals .sub,.shfor .sub{flex:none}.ub{min-height:34px;font-size:14px}.shopadd{padding:8px 10px}.shopg{grid-template-columns:1fr}}.shbought .it{opacity:.75}
+.wxg{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;align-items:start}
+.wxc{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}.wxc.open{grid-column:1/-1;border-color:var(--acc)}
+.wxh{display:flex;align-items:center;gap:12px;padding:10px 16px 10px 10px;cursor:pointer;min-height:72px}.wxi{width:52px;height:52px;flex:none}
+.wxn{flex:1;min-width:0}.wxn b{display:block;font-size:20px}.wxn .sub{display:block;font-size:15px;margin-top:2px}
+.wxt{text-align:right;white-space:nowrap}.wxt b{display:block;font-size:36px;font-weight:800;line-height:1}.wxt .sub{font-size:14px}
+.wxb{border-top:1px solid var(--line);padding:10px 16px 14px}.wxm{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:16px;color:var(--mute);margin-bottom:8px}
+@media (max-width:700px){.wxg{grid-template-columns:1fr}.wxh{min-height:64px;gap:10px}.wxi{width:44px;height:44px}.wxi svg{width:44px;height:44px}.wxt b{font-size:30px}}
 .wb.team{border-color:var(--acc);color:var(--acc);font-weight:700}
 .tcard{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:0 0 10px;overflow:hidden}.tcard.open{border-color:var(--acc)}
 .thd{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;min-height:56px}.tnm{flex:1;min-width:0}.tnm>b{font-size:20px;display:block}.tnm .dot{margin-right:6px;vertical-align:-1px}.tcard.open .tlv2{display:none}.lrow .lt{white-space:nowrap;width:auto!important;min-width:64px}.tnm .sub{display:block;font-size:15px;margin-top:2px}
@@ -362,11 +369,30 @@ function wx(){
     if(tab==='wx'&&!busyUI())rr();
     wxT=setTimeout(wx,1800000);});}
 function hAM(t){var h=+t.slice(11,13);return (h%12||12)+' '+(h<12?'AM':'PM');}
+var wxOpen=(function(){try{return localStorage.getItem('wxOpen')||'';}catch(e){return '';}})();
+// One place as a compact card; tap to open the full forecast underneath.
+function wxCard(loc){
+  var c=WXD[loc.id],open=wxOpen===loc.id,h='<div class="wxc'+(open?' open':'')+'" id="wxc_'+esc(loc.id)+'"><div class="wxh" data-a="wsel" data-i="'+esc(loc.id)+'">';
+  if(!c){var err=WXE[loc.id]&&!WXP[loc.id];if(!err)wxFetch(loc,function(){if(tab==='wx'&&!busyUI())rr();});
+    h+='<span class="wxi"></span><span class="wxn"><b>'+esc(loc.name)+'</b><span class="sub">'+(err?'Couldn\'t get the forecast':'Loading…')+'</span></span>'+(err?'<button data-a="wretry" data-i="'+esc(loc.id)+'">Try again</button>':'')+'<span class="tchev">'+(open?'▴':'▾')+'</span></div></div>';return h;}
+  if(Date.now()-c.t>600000)wxFetch(loc,function(){if(tab==='wx'&&!busyUI())rr();});
+  var j=c.j,cu=j.current,dl=j.daily,pp=dl.precipitation_probability_max?dl.precipitation_probability_max[0]:null;
+  h+='<span class="wxi">'+wIco(cu.weather_code,cu.is_day,52)+'</span><span class="wxn"><b>'+esc(loc.name)+'</b><span class="sub">'+(WTXT[cu.weather_code]||'')+(pp!=null&&pp>=20?' · 💧'+pp+'%':'')+'</span></span>'+
+     '<span class="wxt"><b>'+Math.round(cu.temperature_2m)+'°</b><span class="sub">H '+Math.round(dl.temperature_2m_max[0])+'° · L '+Math.round(dl.temperature_2m_min[0])+'°</span></span><span class="tchev">'+(open?'▴':'▾')+'</span></div>';
+  if(open){var rg=S.wx.range==='week'?'week':'today';
+    h+='<div class="wxb"><div class="wxm"><span>Feels like '+Math.round(cu.apparent_temperature)+'°</span><span>Humidity '+Math.round(cu.relative_humidity_2m)+'%</span><span>Wind '+Math.round(cu.wind_speed_10m)+' mph</span><span>Sunrise '+tf(dl.sunrise[0].slice(11,16))+'</span><span>Sunset '+tf(dl.sunset[0].slice(11,16))+'</span></div>'+
+      '<span class="seg" style="margin:4px 0 10px"><button data-a="wrange" data-i="today" class="'+(rg==='today'?'on':'')+'">Today</button><button data-a="wrange" data-i="week" class="'+(rg==='week'?'on':'')+'">Next 7 days</button></span>';
+    if(rg==='today'){var hr=j.hourly,st=0,now=cu.time.slice(0,13);for(var i=0;i<hr.time.length;i++){if(hr.time[i].slice(0,13)>=now){st=i;break;}}
+      h+='<div class="hrs">';for(var k=st;k<Math.min(st+24,hr.time.length);k++){var hp=hr.precipitation_probability?hr.precipitation_probability[k]:null;
+        h+='<div class="hr"><div class="t">'+(k===st?'Now':hAM(hr.time[k]))+'</div>'+wIco(hr.weather_code[k],hr.is_day[k],34)+'<div class="v">'+Math.round(hr.temperature_2m[k])+'°</div><div class="p">'+(hp!=null&&hp>=10?hp+'%':'')+'</div></div>';}
+      h+='</div>';
+    } else {var mn=Math.min.apply(null,dl.temperature_2m_min),mx=Math.max.apply(null,dl.temperature_2m_max),sp=Math.max(1,mx-mn);
+      dl.time.forEach(function(t,i){var d=new Date(t+'T12:00:00'),lo=dl.temperature_2m_min[i],hi=dl.temperature_2m_max[i],dp=dl.precipitation_probability_max?dl.precipitation_probability_max[i]:null;
+        h+='<div class="dr"><span class="dn2">'+(i===0?'Today':DN[d.getDay()])+'</span>'+wIco(dl.weather_code[i],1,32)+'<span class="pp">'+(dp!=null&&dp>=10?dp+'%':'')+'</span><span class="lo">'+Math.round(lo)+'°</span><span class="bar2"><i style="left:'+((lo-mn)/sp*100).toFixed(1)+'%;right:'+((mx-hi)/sp*100).toFixed(1)+'%"></i></span><span class="hi">'+Math.round(hi)+'°</span></div>';});}
+    h+='<p class="hint" style="margin:8px 0 0">Forecast from '+(j.source==='MET Norway'?'<a href="https://www.met.no/en" target="_blank" rel="noopener">MET Norway</a>':'<a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a>')+'. Updated '+new Date(c.t).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'.</p></div>';}
+  return h+'</div>';}
 function vWeather(){
-  var L=wxLocs(),loc=L[0];L.forEach(function(x){if(x.id===wxSel)loc=x;});
-  var rg=S.wx.range==='week'?'week':'today',h='<div class="top"><h1>Weather</h1><button data-a="edit">'+(edit?'Done':'Edit')+'</button></div>';
-  h+='<div class="wloc">';L.forEach(function(x){h+='<button class="wb'+(x.id===loc.id?' on':'')+'" data-a="wsel" data-i="'+esc(x.id)+'">'+esc(x.name)+'</button>';});
-  h+='<span style="flex:1"></span><span class="seg"><button data-a="wrange" data-i="today" class="'+(rg==='today'?'on':'')+'">Today</button><button data-a="wrange" data-i="week" class="'+(rg==='week'?'on':'')+'">Next 7 days</button></span></div>';
+  var L=wxLocs(),h='<div class="top"><h1>Weather</h1><button data-a="edit">'+(edit?'Done':'Edit')+'</button></div>';
   if(edit){
     h+='<div class="rw"><div class="rt">Places</div>';
     L.forEach(function(x){h+='<div class="row"><span class="cn">'+esc(x.name)+'</span><span class="sub" style="margin-right:8px">'+x.lat.toFixed(2)+', '+x.lon.toFixed(2)+'</span><button class="x" data-a="wdel" data-i="'+esc(x.id)+'"'+(L.length<2?' disabled':'')+'>✕</button></div>';});
@@ -374,25 +400,8 @@ function vWeather(){
     if(WQR){if(!WQR.length)h+='<p class="hint">No places found. Try a nearby city name.</p>';
       WQR.forEach(function(r,i){h+='<div class="row"><span class="cn">'+esc(r.name)+' <span class="sub">'+esc(r.region)+'</span></span><button data-a="wadd" data-i="'+i+'">Add</button></div>';});}
     h+='</div>';}
-  var c=WXD[loc.id];
-  if(!c){
-    if(WXE[loc.id]&&!WXP[loc.id])return h+'<div class="rw"><p style="margin:0 0 10px">Couldn\'t get the forecast for '+esc(loc.name)+' right now. The weather services may be busy, or this network may be blocking them.</p><button data-a="wretry" data-i="'+esc(loc.id)+'">Try again</button></div>';
-    wxFetch(loc,function(){if(tab==='wx'&&!busyUI())rr();});return h+'<p class="hint">Loading the forecast for '+esc(loc.name)+'…</p>';}
-  var j=c.j,cu=j.current,dl=j.daily;
-  h+='<div class="wcur"><div>'+wIco(cu.weather_code,cu.is_day,92)+'</div><div><div class="wt">'+Math.round(cu.temperature_2m)+'°</div><div class="wc">'+(WTXT[cu.weather_code]||'')+'</div></div>'+
-     '<div class="wmeta"><span>Feels like '+Math.round(cu.apparent_temperature)+'°</span><span>Humidity '+Math.round(cu.relative_humidity_2m)+'%</span><span>Wind '+Math.round(cu.wind_speed_10m)+' mph</span></div>'+
-     '<div class="wside"><div>High <b>'+Math.round(dl.temperature_2m_max[0])+'°</b> · Low <b>'+Math.round(dl.temperature_2m_min[0])+'°</b></div><div class="sub" style="font-size:15px;margin-top:4px">Sunrise '+tf(dl.sunrise[0].slice(11,16))+' · Sunset '+tf(dl.sunset[0].slice(11,16))+'</div></div></div>';
-  if(rg==='today'){
-    var hr=j.hourly,st=0,now=cu.time.slice(0,13);for(var i=0;i<hr.time.length;i++){if(hr.time[i].slice(0,13)>=now){st=i;break;}}
-    h+='<div class="hrs">';for(var k=st;k<Math.min(st+24,hr.time.length);k++){var pp=hr.precipitation_probability?hr.precipitation_probability[k]:null;
-      h+='<div class="hr"><div class="t">'+(k===st?'Now':hAM(hr.time[k]))+'</div>'+wIco(hr.weather_code[k],hr.is_day[k],34)+'<div class="v">'+Math.round(hr.temperature_2m[k])+'°</div><div class="p">'+(pp!=null&&pp>=10?pp+'%':'')+'</div></div>';}
-    h+='</div>';
-  } else {
-    var mn=Math.min.apply(null,dl.temperature_2m_min),mx=Math.max.apply(null,dl.temperature_2m_max),sp=Math.max(1,mx-mn);
-    dl.time.forEach(function(t,i){var d=new Date(t+'T12:00:00'),lo=dl.temperature_2m_min[i],hi=dl.temperature_2m_max[i],pp=dl.precipitation_probability_max?dl.precipitation_probability_max[i]:null;
-      h+='<div class="dr"><span class="dn2">'+(i===0?'Today':DN[d.getDay()])+'</span>'+wIco(dl.weather_code[i],1,32)+'<span class="pp">'+(pp!=null&&pp>=10?pp+'%':'')+'</span><span class="lo">'+Math.round(lo)+'°</span><span class="bar2"><i style="left:'+((lo-mn)/sp*100).toFixed(1)+'%;right:'+((mx-hi)/sp*100).toFixed(1)+'%"></i></span><span class="hi">'+Math.round(hi)+'°</span></div>';});
-  }
-  return h+'<p class="hint">Forecast from '+(j.source==='MET Norway'?'<a href="https://www.met.no/en" target="_blank" rel="noopener">MET Norway</a>':'<a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a>')+'. Updated '+new Date(c.t).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'.</p>';}
+  h+='<div class="wxg">';L.forEach(function(x){h+=wxCard(x);});h+='</div>';
+  return h+'<p class="hint">Tap a place to see its full forecast.</p>';}
 // ---------- Traffic: live drive times (TomTom, through /api/traffic) and the Waze live map ----------
 var TRD={},TRP={},TRE={},TRR={},TGR=null,TF={n:'',f:'',t:'',a:''},TGS={f:0,t:0},trSel=(function(){try{return localStorage.getItem('trSel')||'';}catch(e){return '';}})();
 function trDrives(){return (S&&S.traffic&&S.traffic.drives)||[];}
@@ -1063,7 +1072,7 @@ function act(a,t){
   else if(a==='ssshuf'){S.slides.shuffle=!S.slides.shuffle;ssList=[];}
   else if(a==='ssidle'){ssIdle=parseInt(t.getAttribute('data-n'),10);try{localStorage.setItem('ssIdle',String(ssIdle));}catch(e){}}
   else if(a==='ssplay'){mo=null;render();ssOpen();return;}
-  else if(a==='wsel'){wxSel=id;try{localStorage.setItem('wxSel',id);}catch(e){}}
+  else if(a==='wsel'){if(t.closest&&t.closest('button')&&t.closest('button').getAttribute('data-a')==='wretry')return;wxOpen=wxOpen===id?'':id;try{localStorage.setItem('wxOpen',wxOpen);}catch(e){}}
   else if(a==='wrange'){S.wx.range=id;}
   else if(a==='wdel'){if(S.wx.locs.length>1){S.wx.locs=S.wx.locs.filter(function(x){return x.id!==id;});if(wxSel===id)wxSel=S.wx.locs[0].id;if(S.wx.locs[0])setTimeout(wx,0);}}
   else if(a==='wsearch'){var wq=val('wq');if(wq){var u=api?'/api/weather?q='+encodeURIComponent(wq):'https://geocoding-api.open-meteo.com/v1/search?count=8&language=en&name='+encodeURIComponent(wq);
@@ -1079,7 +1088,7 @@ function act(a,t){
     if(F&&To){var tid='d'+uid();S.traffic.drives.push({id:tid,name:TF.n||'Drive '+(S.traffic.drives.length+1),from:{label:F.label,lat:F.lat,lon:F.lon},to:{label:To.label,lat:To.lat,lon:To.lon},arrive:TF.a||undefined});
       if(!TF.a)delete S.traffic.drives[S.traffic.drives.length-1].arrive;trSel=tid;try{localStorage.setItem('trSel',tid);}catch(e){}TGR=null;TF={n:'',f:'',t:'',a:''};}}
   else if(a==='wretry'){delete WXE[id];if(id===wxLocs()[0].id){wx();}}
-  else if(a==='wadd'){var pl=WQR&&WQR[+id];if(pl){var nid='w'+uid();S.wx.locs.push({id:nid,name:pl.name,lat:pl.lat,lon:pl.lon,tz:pl.tz||''});WQR=null;wxSel=nid;try{localStorage.setItem('wxSel',nid);}catch(e){}}}
+  else if(a==='wadd'){var pl=WQR&&WQR[+id];if(pl){var nid='w'+uid();S.wx.locs.push({id:nid,name:pl.name,lat:pl.lat,lon:pl.lon,tz:pl.tz||''});WQR=null;wxOpen=nid;try{localStorage.setItem('wxOpen',nid);}catch(e){}}}
   else if(a==='cv'){calView=id;toNow=true;try{localStorage.setItem('calView',id);}catch(e){}}
   else if(a==='gday'){wkStart=t.getAttribute('data-d');calView='1';toNow=true;try{localStorage.setItem('calView','1');}catch(e){}}
   else if(a==='new'){var rg=calRange(),td=iso(new Date());openMo(null,(td>=rg.start&&td<=addDays(rg.start,rg.n-1))?td:(calView==='m'?firstOfMonth(wkStart):rg.start));}
