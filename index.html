@@ -76,6 +76,10 @@ input.n{flex:none;width:70px}
 .pbar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin:4px 0 6px}.pbar i{display:block;height:100%;width:0;background:var(--acc);transition:width .3s}
 .phqr{display:flex;justify-content:center;margin:14px 0 4px}.phqr img,.phqr canvas{background:#fff;padding:8px;border-radius:8px}
 .sbtn{background:#fff;color:#111;border:0;font-weight:600;padding:12px 22px}
+.ccols{display:grid;gap:12px;align-items:start}.ccol{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 10px 4px;min-width:0}
+.ch{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.ch b{font-size:18px}
+.ccol .it{margin:6px 0}.ccol .cn{font-size:17px}
+@media (max-width:700px){.ccols{grid-template-columns:1fr!important}}
 .pf{display:flex;align-items:center;min-height:56px;border-bottom:1px solid var(--line)}.pf:last-of-type{border-bottom:0}.pf b{min-width:48px;text-align:center;font-size:22px}.pf button{min-width:52px}.pf button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .ssw{position:fixed;left:0;top:0;right:0;bottom:0;background:#000;z-index:35;overflow:hidden;color:#fff;cursor:pointer}
 .ssl{position:absolute;left:0;top:0;right:0;bottom:0;opacity:0;transition:opacity 1.6s ease}
@@ -317,10 +321,13 @@ function vModal(){
 
 function GT(){return !!(TK&&TK.connected&&TK.chores&&!TK.error);}
 function parseChore(t){var m=String(t||'').match(/^(.*?)\s*\((\d+)\s*(?:\u2B50|stars?)?\)\s*$/i);return m?{name:m[1]||t,n:Math.max(1,parseInt(m[2],10))}:{name:t||'(untitled)',n:1};}
+function guessPer(t){t=String(t||'').toLowerCase();return /month/.test(t)?'m':/week/.test(t)?'w':'d';}
+var PERN={d:'Resets every morning',w:'Resets every Sunday',m:'Resets on the 1st'};
+function perOf(id){return (S.gcfg&&S.gcfg.per&&S.gcfg.per[id])||'d';}
 function where(id){return (S.gcfg&&S.gcfg.where[id])||'lists';}
 function tasksLoad(){
   if(!api)return;
-  var q='';if(S.gcfg){var ids=[];for(var k0 in S.gcfg.where)if(S.gcfg.where[k0]==='chores')ids.push(k0);q='?chores='+encodeURIComponent(ids.join(','));}
+  var q='';if(S.gcfg){var ids=[];for(var k0 in S.gcfg.where)if(S.gcfg.where[k0]==='chores')ids.push(k0+':'+((S.gcfg.per&&S.gcfg.per[k0])||'a'));q='?chores='+encodeURIComponent(ids.join(','));}
   getJSON('/api/tasks'+q).then(function(x){
     var j=x.j; TK=(x.s===503)?{connected:false,configured:false}:j;
     if(TK.connected&&!TK.error&&TK.lists){
@@ -328,9 +335,11 @@ function tasksLoad(){
       if(!S.gcfg){S.gcfg={where:{}};(TK.choreIds||[]).forEach(function(id){S.gcfg.where[id]='chores';});ch=true;}
       var cl=TK.lists.filter(function(l){return where(l.id)==='chores';}), items=[];
       cl.forEach(function(l){l.items.forEach(function(it){it.list=l.id;items.push(it);});});
-      TK.chores={id:cl.length?cl[0].id:'',items:items,lists:cl};
+      if(!S.gcfg.per)S.gcfg.per={};cl.forEach(function(l){if(!S.gcfg.per[l.id]){S.gcfg.per[l.id]=(TK.periods&&TK.periods[l.id])||guessPer(l.title);ch=true;}});
+      cl.sort(function(x,y){var o={d:0,w:1,m:2};return (o[perOf(x.id)]-o[perOf(y.id)])||String(x.title).localeCompare(y.title);});
+      TK.chores={id:cl.length?cl[0].id:'',items:items,lists:cl};S.gcfg.per=S.gcfg.per||{};cl.forEach(function(l){if(!S.gcfg.per[l.id]){S.gcfg.per[l.id]=(TK.periods&&TK.periods[l.id])||guessPer(l.title);ch=true;}});
       TK.shown=TK.lists.filter(function(l){return where(l.id)==='lists';}).map(function(l){return {id:l.id,title:l.title,items:l.items.filter(function(t){return !t.hidden;})};});
-      for(var k in S.cdone){if(S.cdone[k].on!==T){delete S.cdone[k];ch=true;}}
+      for(var k in S.cdone){var it0=find(items,k);if(!it0||!it0.done){delete S.cdone[k];ch=true;}}
       if(TK.created&&TK.chores.id&&items.length===0&&S.chores.length&&!S.choresMoved){S.choresMoved=true;ch=true;
         var qq=S.chores.slice(),cid=TK.chores.id;(function next(){var c=qq.shift();if(!c){tasksLoad();return;}tkPost({op:'add',list:cid,title:c.name+' ('+c.stars+')'},next);})();}
       if(ch)save();
@@ -354,11 +363,14 @@ function gNote(){
   if(TK.error)return '<p class="hint">Couldn\u2019t reach Google Tasks right now. Showing what\u2019s saved on the dashboard.</p>';
   return '';}
 function vListCfg(){
-  var h='<div class="rw"><div class="rt">Google Tasks lists</div><p class="hint" style="margin-top:0">Choose where each list shows up. Chore lists reset every morning.</p>';
+  var h='<div class="rw"><div class="rt">Google Tasks lists</div><p class="hint" style="margin-top:0">Choose where each list shows up. Each chore list resets on its own schedule; weeks start on Sunday.</p>';
   TK.lists.forEach(function(l){var w=where(l.id);
     h+='<div class="row" style="flex-wrap:wrap"><span class="cn" style="min-width:160px">'+esc(l.title)+'</span>';
     [['lists','Lists'],['chores','Chores'],['hide','Hide']].forEach(function(o){var on=w===o[0];h+='<button class="wb" data-a="lcfg" data-i="'+esc(l.id)+'" data-w="'+o[0]+'" style="'+(on?'background:var(--acc);color:#fff;border-color:var(--acc)':'')+'">'+o[1]+'</button>';});
-    h+='</div>';});
+    h+='</div>';
+    if(w==='chores'){var pr=perOf(l.id);h+='<div class="row" style="flex-wrap:wrap;margin:-4px 0 10px 12px"><span class="sub" style="min-width:148px">Resets</span>';
+      [['d','Daily'],['w','Weekly'],['m','Monthly']].forEach(function(o){var on=pr===o[0];h+='<button class="wb" data-a="lper" data-i="'+esc(l.id)+'" data-w="'+o[0]+'" style="min-height:38px;padding:5px 12px;'+(on?'background:#16a34a;color:#fff;border-color:#16a34a':'')+'">'+o[1]+'</button>';});
+      h+='</div>';}});
   h+='<div class="row"><input id="nl" placeholder="New list name, like Groceries"><button data-a="gnl">Create</button></div>';
   return h+'</div>';}
 function vGTasks(){
@@ -527,18 +539,25 @@ function vChores(){
     h+='<div class="sc" style="border-top-color:'+p.color+'"><div class="sn">'+esc(p.name)+'</div><div class="ss">'+STAR+' '+p.stars+'</div>';
     if(edit)h+='<div class="row"><button data-a="adj" data-i="'+p.id+'" data-n="-1">−1</button><button data-a="adj" data-i="'+p.id+'" data-n="1" style="margin-left:8px">+1</button></div><button data-a="delp" data-i="'+p.id+'">'+(armed===p.id?'Tap again to remove':'Remove')+'</button>';
     h+='</div>';});
-  h+='</div><div class="msg">'+esc(msg)+'</div>'+(GT()?'':gNote())+'<h3>Today’s chores — anyone can take one</h3>';
+  h+='</div><div class="msg">'+esc(msg)+'</div>'+(GT()?'':gNote())+'<h3>Chores — anyone can take one</h3>';
   if(GT()){
-    TK.chores.items.forEach(function(it){
-      var c=parseChore(it.title), rec=S.cdone[it.id], by=rec&&rec.on===T?find(S.people,rec.by):null, d=it.done;
-      h+='<div class="it'+(d?' done':'')+'" style="display:block"><div style="display:flex;align-items:center;min-height:48px" data-a="gtog" data-i="'+esc(it.id)+'"><span class="chk">'+(d?'✓':'')+'</span><span class="cn">'+esc(c.name)+(d?(by?' — '+esc(by.name):' — checked off in Google Tasks'):'')+'</span><span class="cs">+'+c.n+' '+STAR+'</span>';
+    if(TK.chores.lists.length)h+='<div class="ccols" style="grid-template-columns:repeat('+Math.min(TK.chores.lists.length,4)+',minmax(0,1fr))">';
+    TK.chores.lists.forEach(function(L){
+    var pr=perOf(L.id), nd=L.items.filter(function(x){return x.done;}).length;
+    h+='<div class="ccol"><div class="ch"><b>'+esc(L.title)+'</b><span class="sub">'+nd+' of '+L.items.length+' done</span></div><div class="sub" style="margin:-2px 0 6px">'+PERN[pr]+'</div>';
+    L.items.forEach(function(it){
+      var c=parseChore(it.title), rec=S.cdone[it.id], by=rec?find(S.people,rec.by):null, d=it.done;
+      h+='<div class="it'+(d?' done':'')+'" style="display:block"><div style="display:flex;align-items:center;min-height:48px" data-a="gtog" data-i="'+esc(it.id)+'"><span class="chk">'+(d?'✓':'')+'</span><span class="cn">'+esc(c.name)+(d?'<span class="sub" style="display:block">'+(by?esc(by.name):'Checked off in Google Tasks')+'</span>':'')+'</span><span class="cs">+'+c.n+' '+STAR+'</span>';
       if(edit)h+='<button class="x" data-a="gdc" data-i="'+esc(it.id)+'">✕</button>';
       h+='</div>';
       if(!d&&pick===it.id){h+='<div class="who"><span class="sub">Who did it?</span><br>';
         S.people.forEach(function(p){h+='<button class="wb" data-a="gwho" data-i="'+esc(it.id)+'" data-p="'+p.id+'" style="border-color:'+p.color+'">'+esc(p.name)+'</button>';});h+='</div>';}
       h+='</div>';});
+    if(!L.items.length)h+='<p class="hint">Nothing here yet.</p>';
+    h+='</div>';});
+    if(TK.chores.lists.length)h+='</div>';
     if(!TK.chores.lists.length)h+='<p class="hint">No chore list chosen yet. Tap Edit and set a Google Tasks list to “Chores”.</p>';
-    else if(!TK.chores.items.length)h+='<p class="hint">No chores yet. Add some here, or in Google Tasks.</p>';
+
     if(edit&&TK.chores.lists.length)h+='<div class="row"><input id="cn" placeholder="New chore"><input class="n" id="cs" type="number" min="1" value="1">'+(TK.chores.lists.length>1?'<select id="cl" style="flex:none;width:auto;margin-right:8px">'+TK.chores.lists.map(function(l){return '<option value="'+esc(l.id)+'">'+esc(l.title)+'</option>';}).join('')+'</select>':'')+'<button data-a="gac">Add</button></div>';
     if(edit)h+=vListCfg();
   } else
@@ -557,7 +576,7 @@ function vChores(){
     S.people.forEach(function(p){h+='<button class="wb" data-a="red" data-i="'+r.id+'" data-p="'+p.id+'" style="border-color:'+p.color+'"'+(p.stars<r.cost?' disabled':'')+'>'+esc(p.name)+'</button>';});
     h+='</div>';});
   if(edit){h+='<div class="row"><input id="rn" placeholder="New reward"><input class="n" id="rc" type="number" min="1" value="10"><button data-a="addr">Add</button></div><h3>Add a person</h3><div class="row"><input id="pn" placeholder="Name"><button data-a="addp">Add</button></div>';}
-  return h+'<p class="hint">Chores reset every morning. Tap a finished chore to undo it.'+(GT()?' Chores come from your chore lists in Google Tasks; put the stars at the end of the name, like “Wash the dishes (2)”.':'')+'</p>';}
+  return h+'<p class="hint">Tap a finished chore to undo it.'+(GT()?' Chores come from your chore lists in Google Tasks; put the stars at the end of the name, like “Wash the dishes (2)”.':'')+'</p>';}
 
 function render(){
   var h='',a='';
@@ -620,10 +639,11 @@ function act(a,t){
   else if(a==='gdl'){var L3=curList();if(L3&&id.indexOf('tmp')!==0){L3.items=not(L3.items,id);tkPost({op:'delete',list:L3.id,id:id});}}
   else if(a==='gcl'){var L4=curList();if(L4){L4.items=L4.items.filter(function(x){return !x.done;});tkPost({op:'clear',list:L4.id});}}
   else if(a==='gnl'){var nl=val('nl');if(nl&&GT())tkPost({op:'newlist',title:nl},function(){tkSel='';tasksLoad();});}
-  else if(a==='gtog'&&GT()){var ci=find(TK.chores.items,id);if(ci){if(ci.done){var rc=S.cdone[id];if(rc&&rc.on===T){p=find(S.people,rc.by);if(p)p.stars=Math.max(0,p.stars-rc.n);}delete S.cdone[id];ci.done=false;pick='';msg='';tkPost({op:'toggle',list:ci.list,id:id,done:false});}else pick=(pick===id?'':id);}}
+  else if(a==='gtog'&&GT()){var ci=find(TK.chores.items,id);if(ci){if(ci.done){var rc=S.cdone[id];if(rc){p=find(S.people,rc.by);if(p)p.stars=Math.max(0,p.stars-rc.n);}delete S.cdone[id];ci.done=false;pick='';msg='';tkPost({op:'toggle',list:ci.list,id:id,done:false});}else pick=(pick===id?'':id);}}
   else if(a==='gwho'&&GT()){var cw=find(TK.chores.items,id);p=find(S.people,t.getAttribute('data-p'));if(cw&&p){var pc2=parseChore(cw.title);p.stars+=pc2.n;S.cdone[id]={on:T,by:p.id,n:pc2.n};cw.done=true;pick='';msg=p.name+' earned '+pc2.n+(pc2.n===1?' star':' stars')+' for '+pc2.name+'!';tkPost({op:'toggle',list:cw.list,id:id,done:true});}}
   else if(a==='gac'&&GT()){var cn2=val('cn'),cl2=val('cl')||TK.chores.id;if(cn2&&cl2){var st2=Math.max(1,parseInt(val('cs'),10)||1);TK.chores.items.push({id:'tmp'+uid(),title:cn2+' ('+st2+')',done:false,list:cl2});tkPost({op:'add',list:cl2,title:cn2+' ('+st2+')'});}}
   else if(a==='gdc'&&GT()){var cd=find(TK.chores.items,id);if(cd&&id.indexOf('tmp')!==0){TK.chores.items=not(TK.chores.items,id);tkPost({op:'delete',list:cd.list,id:id});}}
+  else if(a==='lper'){S.gcfg.per=S.gcfg.per||{};S.gcfg.per[id]=t.getAttribute('data-w');setTimeout(tasksLoad,0);}
   else if(a==='lcfg'){if(!S.gcfg)S.gcfg={where:{}};S.gcfg.where[id]=t.getAttribute('data-w');setTimeout(tasksLoad,0);}
   else if(a==='addt'){var tx=val('tt');if(tx)S.tasks.push({id:uid(),text:tx,done:false});}
   else if(a==='tgt'){r=find(S.tasks,id);if(r)r.done=!r.done;}

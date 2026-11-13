@@ -1,11 +1,25 @@
 // Google Tasks for the dashboard.
-// GET  /api/tasks?chores=id1,id2 -> all lists and their items. Lists named in ?chores=
-//                     are chore lists: anything checked off on an earlier day is reset.
+// GET  /api/tasks?chores=id1:d,id2:w,id3:m -> all lists and their items. Lists named in ?chores=
+//                     are chore lists. Each resets on its own schedule: d = every morning,
+//                     w = every Sunday, m = on the 1st, a = guess from the list's name.
 //                     Without ?chores=, the list titled "Chores" is used (created if missing).
 // POST /api/tasks  -> one change: {op:'add'|'toggle'|'delete'|'clear'|'newlist', list, id, title, done}
 import { configured, accessToken, gapi, json } from "../_lib/google.js";
 
 const CHORES = "chores";
+
+function weekdayInZone(ms, tz) {
+  return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "short" }).format(new Date(ms)));
+}
+function guessPeriod(title) {
+  const t = String(title || "").toLowerCase();
+  return /month/.test(t) ? "m" : /week/.test(t) ? "w" : "d";
+}
+function periodStart(per, today, now, tz) {
+  if (per === "m") return today.slice(0, 8) + "01";
+  if (per === "w") return ymdInZone(now - weekdayInZone(now, tz) * 86400000, tz);
+  return today;
+}
 
 function ymdInZone(ms, tz) {
   const o = {};
@@ -38,22 +52,28 @@ export async function onRequestGet({ env, request }) {
     const lists = (await gapi(token, "GET", "/users/@me/lists?maxResults=100")).items || [];
     const param = new URL(request.url).searchParams.get("chores");
     let choreIds, created = false;
+    const per = {};
     if (param !== null) {
-      const want = param.split(",").filter(Boolean);
-      choreIds = lists.filter((l) => want.indexOf(l.id) >= 0).map((l) => l.id);
+      const want = {};
+      for (const part of param.split(",").filter(Boolean)) { const [id, p] = part.split(":"); want[id] = p || "a"; }
+      choreIds = lists.filter((l) => want[l.id]).map((l) => l.id);
+      for (const l of lists) if (want[l.id]) per[l.id] = /^[dwm]$/.test(want[l.id]) ? want[l.id] : guessPeriod(l.title);
     } else {
       let cl = lists.find((l) => (l.title || "").trim().toLowerCase() === CHORES);
       if (!cl) { cl = await gapi(token, "POST", "/users/@me/lists", { title: "Chores" }); lists.push(cl); created = true; }
       choreIds = [cl.id];
+      per[cl.id] = guessPeriod(cl.title);
     }
+    const now = Date.now();
     const items = await Promise.all(lists.map((l) => allItems(token, l.id)));
 
-    // Daily reset: on chore lists, anything checked off before today goes back to "not done".
+    // Reset: on each chore list, anything checked off before the current day/week/month goes back to "not done".
     const resets = [];
     lists.forEach((l, i) => {
       if (choreIds.indexOf(l.id) < 0) return;
+      const start = periodStart(per[l.id], today, now, tz);
       for (const t of items[i]) {
-        if (t.done && (!t.completed || ymdInZone(Date.parse(t.completed), tz) < today)) resets.push([l.id, t]);
+        if (t.done && (!t.completed || ymdInZone(Date.parse(t.completed), tz) < start)) resets.push([l.id, t]);
       }
     });
     await Promise.all(resets.map(([lid, t]) => gapi(token, "PATCH", "/lists/" + encodeURIComponent(lid) + "/tasks/" + encodeURIComponent(t.id), { status: "needsAction", completed: null })));
@@ -64,6 +84,7 @@ export async function onRequestGet({ env, request }) {
       today,
       created,
       choreIds,
+      periods: per,
       lists: lists.map((l, i) => ({ id: l.id, title: l.title, items: items[i] })),
     });
   } catch (e) {
