@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Sombrio Ohana</title>
-<meta name="application-name" content="Sombrio Ohana">
-<meta name="apple-mobile-web-app-title" content="Sombrio Ohana">
+<title>Sombrio ʻOhana</title>
+<meta name="application-name" content="Sombrio ʻOhana">
+<meta name="apple-mobile-web-app-title" content="Sombrio ʻOhana">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -231,6 +231,8 @@ header{height:var(--hh);box-sizing:border-box}
 @media (max-width:700px){.wxg{grid-template-columns:1fr}.wxh{min-height:64px;gap:10px}.wxi{width:44px;height:44px}.wxi svg{width:44px;height:44px}.wxt b{font-size:30px}}
 .wb.tpick{display:flex;align-items:center;gap:10px}.tpk{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
 .wb.tpick.on{background:var(--acc);color:#fff;border-color:var(--acc)}.wb.tpick.on .tpk{background:#fff;color:var(--acc);border-color:#fff}
+.okv{display:inline-block;width:.24em;height:.38em;fill:currentColor;vertical-align:.52em;margin:0 .02em 0 .04em;transform:rotate(-8deg)}
+.okr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .wb.team{border-color:var(--acc);color:var(--acc);font-weight:700}
 .trslot,.trmap{width:100%}.trmap{height:calc(100vh - var(--hh) - 150px);min-height:320px;border-radius:18px;overflow:hidden;background:var(--line);position:relative;z-index:0;isolation:isolate}
 .trtip{font-weight:700;font-size:13px}
@@ -260,8 +262,9 @@ function ico(k,sz){return '<svg viewBox="0 0 32 32" width="'+(sz||30)+'" height=
 var STAR='<svg viewBox="0 0 32 32" width="1em" height="1em" style="vertical-align:-0.12em" aria-hidden="true"><polygon points="16.0,3.5 19.3,12.0 28.4,12.5 21.3,18.2 23.6,27.0 16.0,22.1 8.4,27.0 10.7,18.2 3.6,12.5 12.7,12.0" fill="var(--ic)" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>';
 
 var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function calName(c){return String(c).replace(/(^|[^A-Za-z\u02bb])Ohana\b/g,'$1ʻOhana');}
 var CALCOL={jericho:'#3b82f6',kahoku:'#a78bfa',ohana:'#7e22ce'};
-var DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], H0=7, H1=22, PX=50, DEFTITLE='Sombrio Ohana';
+var DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], H0=7, H1=22, PX=50, DEFTITLE='Sombrio ʻOhana';
 var dd='', gLabels=[], calHide=(function(){try{return JSON.parse(localStorage.getItem('calHide')||'{}')||{};}catch(e){return {};}})(), TK=null, tkSel='', api=/^https?:$/.test(location.protocol), ver=0, busy=false, dirty=false, failed=false, pushT=null, GE=[], gErr=[], gN=-1, toastT=null;
 var tab='cal', edit=false, hist=false, trash=false, HF={p:'',r:'week'}, armed='', pick='', msg='', S, mo=null, wkStart=iso(new Date()), toNow=true;
 function p2(n){return n<10?'0'+n:''+n;}
@@ -278,7 +281,7 @@ function seed(){
   return {people:[{id:uid(),name:'Jericho',color:COLORS[0],stars:0},{id:uid(),name:'Kahoku',color:COLORS[1],stars:0}],
     chores:c.map(function(x){return {id:uid(),name:x[0],stars:x[1],doneOn:'',doneBy:''};}),
     rewards:[{id:uid(),name:'Pick the movie',cost:8},{id:uid(),name:'Treat of your choice',cost:12},{id:uid(),name:'Skip a chore',cost:15}]};}
-function norm(s){s=s||seed();s.people=s.people||[];s.chores=s.chores||[];s.rewards=s.rewards||[];s.events=s.events||[];s.tasks=s.tasks||[];s.rem=s.rem||[];s.remDone=(s.remDone||[]).filter(function(r){return Date.now()-(r.doneAt||0)<30*864e5;});s.title=s.title||DEFTITLE;s.cdone=s.cdone||{};s.slog=s.slog||[];if(!s.slogStart)s.slogStart=Date.now();s.slides=s.slides||{secs:15,shuffle:true};s.wx=s.wx||{locs:[{id:'home',name:'Home',lat:21.28,lon:-157.75},{id:'aulani',name:'Aulani',lat:21.34,lon:-158.12}],range:'today'};s.traffic=s.traffic||{drives:[]};s.pomo=s.pomo||{focus:25,short:5,long:15,rounds:4,auto:false,sound:true};if(!s.colorsV1){s.colorsV1=1;s.people.forEach(function(p){var c=CALCOL[String(p.name).toLowerCase()];if(c)p.color=c;});}return s;}
+function norm(s){s=s||seed();s.people=s.people||[];s.chores=s.chores||[];s.rewards=s.rewards||[];s.events=s.events||[];s.tasks=s.tasks||[];s.rem=s.rem||[];s.remDone=(s.remDone||[]).filter(function(r){return Date.now()-(r.doneAt||0)<30*864e5;});s.title=s.title||DEFTITLE;if(/(^|\s)Ohana\b/.test(s.title))s.title=s.title.replace(/(^|\s)Ohana\b/g,'$1ʻOhana');s.cdone=s.cdone||{};s.slog=s.slog||[];if(!s.slogStart)s.slogStart=Date.now();s.slides=s.slides||{secs:15,shuffle:true};s.wx=s.wx||{locs:[{id:'home',name:'Home',lat:21.28,lon:-157.75},{id:'aulani',name:'Aulani',lat:21.34,lon:-158.12}],range:'today'};s.traffic=s.traffic||{drives:[]};s.pomo=s.pomo||{focus:25,short:5,long:15,rounds:4,auto:false,sound:true};if(!s.colorsV1){s.colorsV1=1;s.people.forEach(function(p){var c=CALCOL[String(p.name).toLowerCase()];if(c)p.color=c;});}return s;}
 function load(){var s=null;try{s=JSON.parse(localStorage.getItem(KEY));}catch(e){}return norm(s);}
 function cache(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 function save(){cache();if(!api)return;dirty=true;clearTimeout(pushT);pushT=setTimeout(push,300);}
@@ -561,7 +564,7 @@ function vAgenda(r){
   return any?h:'<p class="hint" style="margin-top:18px">Nothing scheduled for these two weeks.</p>';}
 function vCal(){
   var r=calRange(), T=iso(new Date()), nd=new Date(), nm=nd.getHours()*60+nd.getMinutes(), h, hr, grid=(calView==='m'||calView==='14');
-  var gs=!api?'':gN===0?'Google Calendar not connected yet':gErr.length?'Couldn’t load: '+gErr.join(', '):'';
+  var gs=!api?'':gN===0?'Google Calendar not connected yet':gErr.length?'Couldn’t load: '+gErr.map(calName).join(', '):'';
   var vName='';VIEWS.forEach(function(v){if(v[0]===calView)vName=v[1];});
   var cals=gLabels.slice();if(S.events.length)cals.push('Dashboard');
   var nOn=cals.filter(function(c){return !calHide[c];}).length;
@@ -573,7 +576,7 @@ function vCal(){
   if(cals.length){
     h+='<div class="dd"><button class="ddb'+(dd==='cals'?' open':'')+'" data-a="dd" data-i="cals">Calendars'+(nOn<cals.length?' <span class="sub">&nbsp;('+nOn+' of '+cals.length+')</span>':'')+CAR+'</button>';
     if(dd==='cals'){h+='<div class="menu">';cals.forEach(function(c){var col=c==='Dashboard'?'#8b5cf6':(CALCOL[c.toLowerCase()]||pc(pid(c))),on=!calHide[c];
-      h+='<button class="mi" data-a="ctog" data-i="'+esc(c)+'"><span class="sw" style="border-color:'+col+';background:'+(on?col:'transparent')+'">'+(on?'\u2713':'')+'</span>'+esc(c)+'</button>';});
+      h+='<button class="mi" data-a="ctog" data-i="'+esc(c)+'"><span class="sw" style="border-color:'+col+';background:'+(on?col:'transparent')+'">'+(on?'\u2713':'')+'</span>'+esc(calName(c))+'</button>';});
       h+='<div class="mf"><button class="mi" data-a="call" data-i="1">Show all</button><button class="mi" data-a="call" data-i="0">Hide all</button></div></div>';}
     h+='</div>';}
   h+='</div><b class="clab">'+calLabel(r)+(gs?'<span class="gst">'+esc(gs)+'</span>':'')+'</b></div>';
@@ -603,7 +606,7 @@ function vCal(){
 function vModal(){
   if(!mo)return '';
   if(mo.ss)return vPhotos();
-  if(mo.ro){var g=mo.g;return '<div class="ov"><div class="mo"><h3>'+esc(g.title)+'</h3><p style="font-size:18px;margin:0 0 6px">'+new Date(g.date+'T12:00:00').toDateString()+'<br>'+(g.time?tf(g.time)+(g.end?' - '+tf(g.end):''):'All day')+'</p>'+(g.loc?'<p class="hint">\uD83D\uDCCD '+esc(g.loc)+'</p>':'')+'<p class="hint">From '+esc(g.cal)+'\u2019s Google Calendar. To change it, use Google Calendar on your phone.</p><div class="row"><button data-a="mcl">Close</button></div></div></div>';}
+  if(mo.ro){var g=mo.g;return '<div class="ov"><div class="mo"><h3>'+esc(g.title)+'</h3><p style="font-size:18px;margin:0 0 6px">'+new Date(g.date+'T12:00:00').toDateString()+'<br>'+(g.time?tf(g.time)+(g.end?' - '+tf(g.end):''):'All day')+'</p>'+(g.loc?'<p class="hint">\uD83D\uDCCD '+esc(g.loc)+'</p>':'')+'<p class="hint">From '+esc(calName(g.cal))+'\u2019s Google Calendar. To change it, use Google Calendar on your phone.</p><div class="row"><button data-a="mcl">Close</button></div></div></div>';}
   var h='<div class="ov"><div class="mo"><h3>'+(mo.id?'Edit event':'New event')+'</h3><div class="row"><input id="mt" placeholder="Title" value="'+esc(mo.title)+'"></div><div class="row"><input id="md" type="date" value="'+mo.date+'"></div>';
   h+='<div class="row"><input id="ms" type="time" value="'+mo.time+'"><input id="me" type="time" value="'+mo.end+'"></div><p class="hint" style="margin:0">Leave the times empty for an all-day event.</p><div class="row"><select id="mw"><option value="">Everyone</option>';
   S.people.forEach(function(p){h+='<option value="'+p.id+'"'+(mo.who===p.id?' selected':'')+'>'+esc(p.name)+'</option>';});
@@ -628,11 +631,11 @@ function monthCheck(){if(!S)return;var m=ym();if(!S.scoreMonth){S.scoreMonth=m;s
   S.past=[{month:S.scoreMonth,scores:sc}].concat(S.past||[]).slice(0,24);
   S.people.forEach(function(p){if(p.stars)slog([p.id],-p.stars,'Monthly reset');p.stars=0;});
   S.scoreMonth=m;msg='';save();if(tab==='chores'&&!busyUI())rr();}
-// The ohana's best month so far (family total), carried forward to beat together.
+// The ʻohana's best month so far (family total), carried forward to beat together.
 function bestMonth(){var b=null;(S.past||[]).forEach(function(P){var t=0;Object.keys(P.scores).forEach(function(i){t+=P.scores[i].stars;});if(t>0&&(!b||t>b.t))b={t:t,month:P.month};});return b;}
 function mName(k){var a=k.split('-');return new Date(+a[0],+a[1]-1,1).toLocaleDateString([],{month:'long'});}
 function vPast(){var P=S.past&&S.past[0];if(!P)return '';var ids=Object.keys(P.scores),t=0;ids.forEach(function(i){t+=P.scores[i].stars;});
-  return '<div class="past">🎉 In '+esc(mName(P.month))+' the ohana earned <b>'+t+'</b> '+STAR+' together</div>';}
+  return '<div class="past">🎉 In '+esc(mName(P.month))+' the ʻohana earned <b>'+t+'</b> '+STAR+' together</div>';}
 ICON.home='<path d="M5 15L16 6l11 9" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M8 13v12h16V13" stroke="#fff" stroke-width="2.6" stroke-linejoin="round" fill="none"/><path d="M16 22.5c-3-2-4.5-3.4-4.5-5a2.2 2.2 0 0 1 4.5-.6 2.2 2.2 0 0 1 4.5.6c0 1.6-1.5 3-4.5 5z" fill="#fff"/>';
 // Same cycle math as the server: counted from Sunday, Jan 4, 2026.
 function fqLabel(f){var w={d:['day','days'],w:['week','weeks'],m:['month','months']}[f.u];return f.n===1?'Every '+w[0]:'Every '+f.n+' '+w[1];}
@@ -996,13 +999,13 @@ function vHist(){
 function vChores(){
   if(hist)return vHist();
   var T=today(), h='<div class="top"><h1>Chore Stars</h1><span><button data-a="hist">History</button> <button data-a="edit">'+(edit?'Done':'Edit')+'</button></span></div><div class="sb">';
-  // Together first: the whole ohana's stars, then each person's own (no rankings).
+  // Together first: the whole ʻohana's stars, then each person's own (no rankings).
   var tot=0,d0=new Date();d0.setHours(0,0,0,0);S.people.forEach(function(p){tot+=p.stars;});
   var tday={};(S.slog||[]).forEach(function(e){if(e.at>=+d0&&e.what!=='Monthly reset')e.who.forEach(function(id){tday[id]=(tday[id]||0)+e.n;});});
   var best=bestMonth(),goal=best?best.t+1:0,note='this month',bar='';
-  if(best){if(tot>best.t)note='🎉 New ohana record! (was '+best.t+')';else note=(goal-tot)+' more to beat our best · '+best.t+' in '+esc(mName(best.month));
+  if(best){if(tot>best.t)note='🎉 New ʻohana record! (was '+best.t+')';else note=(goal-tot)+' more to beat our best · '+best.t+' in '+esc(mName(best.month));
     bar='<span class="sbb gold"><i style="width:'+Math.min(100,tot/goal*100).toFixed(0)+'%"></i></span>';}
-  h+='<div class="sbc ohana'+(best&&tot>best.t?' rec':'')+'"><span class="av">'+ico('home',28)+'</span><span class="sbm"><span class="sbn">Ohana together</span>'+bar+'<span class="sbt">'+note+'</span></span><span class="sbs">'+tot+STAR+'</span></div>';
+  h+='<div class="sbc ohana'+(best&&tot>best.t?' rec':'')+'"><span class="av">'+ico('home',28)+'</span><span class="sbm"><span class="sbn">ʻOhana together</span>'+bar+'<span class="sbt">'+note+'</span></span><span class="sbs">'+tot+STAR+'</span></div>';
   S.people.forEach(function(p){var td=tday[p.id]||0;
     h+='<div class="sbc" style="--pc:'+p.color+'"><span class="av">'+esc(String(p.name).charAt(0).toUpperCase())+'</span>'+
       '<span class="sbm"><span class="sbn">'+esc(p.name)+'</span><span class="sbt">'+(td>0?'+'+td+' today':'&nbsp;')+'</span></span><span class="sbs">'+p.stars+STAR+'</span>';
@@ -1058,7 +1061,8 @@ function render(){
   TABS.forEach(function(t){h+='<button class="nb'+(t[0]===tab?' on':'')+'" data-a="tab" data-i="'+t[0]+'"><b>'+ico(t[0])+'</b>'+(t[0]==='pomo'?'<span id="pnav">'+(P.running?mmss(pLeft()):t[1])+'</span>':(SHORT[t[0]]?'<span class="lf">'+t[1]+'</span><span class="ls">'+SHORT[t[0]]+'</span>':t[1]))+'</button>';});
   h+='<button class="nb" data-a="sleep" style="margin-top:auto"><b>'+ico('sleep')+'</b>Sleep</button>';
   document.getElementById('nav').innerHTML=h;
-  document.getElementById('ttl').textContent=S.title||DEFTITLE;
+  // The script font has no ʻokina, so draw one (a small filled 6 shape); the real ʻokina stays for screen readers and copying.
+  var tt=S.title||DEFTITLE,te=document.getElementById('ttl'),th=esc(tt).replace(/\u02bb/g,'<span class="okr">\u02bb</span><svg class="okv" viewBox="0 0 10 16" aria-hidden="true"><circle cx="5.2" cy="11.6" r="3.4"/><path d="M2.1 10.6C1.7 6.3 3.6 2.7 7.9.7l.8 1.3C6 3.9 4.8 6.6 5.1 9.6z"/></svg>');if(te.innerHTML!==th)te.innerHTML=th;
   document.getElementById('app').innerHTML=tab==='cal'?vCal():tab==='wx'?vWeather():tab==='traffic'?vTraffic():tab==='tasks'?vTasks():tab==='rem'?vRem():tab==='pomo'?vPomo():vChores();
   if(tab==='traffic')trMount();
   document.getElementById('ovl').innerHTML=vModal();if(mo&&mo.ss){phStatus();if(mo.pick&&mo.uri)drawQR(mo.uri);}
