@@ -803,9 +803,10 @@ function vShopEdit(){shopInit();var h='<div class="rw"><div class="rt">Stores</d
 function vGTasks(){
   var L=curList(), h='<div class="top"><h1>Lists</h1><div>'+(L&&!edit&&!isShop(L)?'<button data-a="gcl">Clear done</button> ':'')+'<button data-a="edit">'+(edit?'Done':'Edit')+'</button></div></div>';
   if(edit)h+=vListCfg();
-  h+='<div class="row" style="flex-wrap:wrap">';
-  TK.shown.forEach(function(l){var on=L&&l.id===L.id;h+='<button class="wb" data-a="tsel" data-i="'+esc(l.id)+'" style="'+(on?'background:var(--acc);color:#fff;border-color:var(--acc)':'')+'">'+esc(l.title)+'</button>';});
-  h+='</div>';
+  // List buttons only when there's more than one list to switch between.
+  if(TK.shown.length>1){h+='<div class="row" style="flex-wrap:wrap">';
+    TK.shown.forEach(function(l){var on=L&&l.id===L.id;h+='<button class="wb" data-a="tsel" data-i="'+esc(l.id)+'" style="'+(on?'background:var(--acc);color:#fff;border-color:var(--acc)':'')+'">'+esc(l.title)+'</button>';});
+    h+='</div>';}
   if(L){
     if(isShop(L)){if(edit)h+=vShopEdit();return h+vShop(L)+'<p class="hint">Synced with Google Tasks. Changes on your phone show up here within a minute.</p>';}
     h+='<div class="row"><input id="tt" placeholder="Add to '+esc(L.title)+'"><button data-a="gad">Add</button></div>';
