@@ -239,6 +239,7 @@ header{height:var(--hh);box-sizing:border-box}
 @media (max-width:700px){.trmap{height:380px}}
 .tswap{margin:0;min-height:40px;width:44px;padding:0;border-radius:50%;font-size:20px;font-weight:700;flex:none}.tswap.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 @media (max-width:700px){#app .thd{gap:8px;padding:10px 12px}#app .tmin2{font-size:26px}#app .tswap{width:36px;min-height:36px;font-size:16px}#app .tnm>b{font-size:17px}#app .tnm .sub{font-size:13px}#app .thd .tchev{display:none}}
+.tgo{display:inline-block;margin:0 .35em;color:var(--mute);font-weight:600}
 .tret{display:inline-block;vertical-align:2px;margin-left:6px;font-size:12px;font-weight:700;color:var(--acc);border:2px solid var(--acc);border-radius:9px;padding:0 7px}
 .tcard{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:0 0 10px;overflow:hidden}.tcard.open{border-color:var(--acc)}
 .thd{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;min-height:56px}.tnm{flex:1;min-width:0}.tnm>b{font-size:20px;display:block}.tnm .dot{margin-right:6px;vertical-align:-1px}.tcard.open .tlv2{display:none}.lrow .lt{white-space:nowrap;width:auto!important;min-width:64px}.tnm .sub{display:block;font-size:15px;margin-top:2px}
@@ -418,6 +419,8 @@ var TRD={},TRP={},TRE={},TRR={},TGR=null,TF={n:'',f:'',t:'',a:''},TGS={f:0,t:0},
 function trDrives(){return (S&&S.traffic&&S.traffic.drives)||[];}
 // Each drive can be flipped to show the trip back (remembered on this device). Its times are kept apart under id+'~r'.
 var TREV=(function(){try{return JSON.parse(localStorage.getItem('trRev')||'{}')||{};}catch(e){return {};}})();
+function trStart(d){return d.fromName||'Home';}
+function trRoute(d,v){var a=esc(trStart(d)),b=esc(d.name);return v.rev?b+'<span class="tgo">\u203a</span>'+a:a+'<span class="tgo">\u203a</span>'+b;}
 function trV(d){var r=!!TREV[d.id]&&trReady(d);return r?{from:d.to,to:d.from,arrive:d.arriveBack||'',k:d.id+'~r',rev:true}:{from:d.from,to:d.to,arrive:d.arrive||'',k:d.id,rev:false};}
 function trCur(){var L=trDrives(),d=L[0];L.forEach(function(x){if(x.id===trSel)d=x;});return d;}
 function trAll(){trDrives().forEach(function(x){if(trReady(x))trFetch(x);});}
@@ -454,7 +457,7 @@ function trCard(d){
   else if(TRE[K])sub=esc(TRE[K]);
   else{trFetch(d);sub='Checking traffic…';}
   if(n&&j.leave)sub+='<span class="tlv2">Leave by <b>'+trT(j.leave.depart)+'</b> to arrive '+trT(j.leave.by)+'</span>';
-  var h='<div class="tcard'+(open?' open':'')+'" id="trc_'+esc(d.id)+'"><div class="thd" data-a="trsel" data-i="'+esc(d.id)+'"><div class="tnm"><b>'+esc(d.name)+(v.rev?' <span class="tret">Trip back</span>':'')+'</b><span class="sub">'+sub+'</span></div>'+right+(trReady(d)?'<button class="tswap'+(v.rev?' on':'')+'" data-a="trrev" data-i="'+esc(d.id)+'" aria-label="'+(v.rev?'Show the drive there':'Show the trip back')+'" title="'+(v.rev?'Show the drive there':'Show the trip back')+'">\u21c4</button>':'')+'<span class="tchev">'+(open?'▴':'▾')+'</span></div>';
+  var h='<div class="tcard'+(open?' open':'')+'" id="trc_'+esc(d.id)+'"><div class="thd" data-a="trsel" data-i="'+esc(d.id)+'"><div class="tnm"><b>'+trRoute(d,v)+'</b><span class="sub">'+sub+'</span></div>'+right+(trReady(d)?'<button class="tswap'+(v.rev?' on':'')+'" data-a="trrev" data-i="'+esc(d.id)+'" aria-label="Swap direction" title="Swap direction">\u21c4</button>':'')+'<span class="tchev">'+(open?'▴':'▾')+'</span></div>';
   if(open){h+='<div class="tbody">';
     if(TRE[K]&&!n)h+='<button data-a="tretry" data-i="'+esc(d.id)+'">Try again</button>';
     if(n){h+='<div class="tln">'+n.miles+' mi · usually '+trMin(n.usual)+(n.delay>0?' · <b class="'+lv[0]+'">+'+n.delay+' min</b> from traffic right now':' · no traffic delays')+'</div>';
@@ -491,8 +494,8 @@ function trMapUpdate(){if(!TMAP||!TLAY)return;var md=trMapDrive();if(!md||!trRea
   var key=v.k+'|'+(pts?pts.length+'|'+pts[0]+'|'+pts[pts.length-1]:'none')+'|'+col;if(key===TMAPKEY){TMAP.invalidateSize();return;}TMAPKEY=key;TLAY.clearLayers();var W=window.L;
   var A=[v.from.lat,v.from.lon],B=[v.to.lat,v.to.lon];
   if(pts&&pts.length>1){W.polyline(pts,{color:'#fff',weight:10,opacity:.95}).addTo(TLAY);W.polyline(pts,{color:col,weight:6,opacity:1}).addTo(TLAY);}
-  W.circleMarker(A,{radius:9,color:'#fff',weight:3,fillColor:'#2563eb',fillOpacity:1}).bindTooltip('Start',{direction:'top'}).addTo(TLAY);
-  W.circleMarker(B,{radius:9,color:'#fff',weight:3,fillColor:col,fillOpacity:1}).bindTooltip(esc(md.name)+(v.rev?' · trip back':''),{direction:'top',permanent:true,className:'trtip'}).addTo(TLAY);
+  W.circleMarker(A,{radius:9,color:'#fff',weight:3,fillColor:'#2563eb',fillOpacity:1}).bindTooltip(esc(v.rev?md.name:trStart(md)),{direction:'top'}).addTo(TLAY);
+  W.circleMarker(B,{radius:9,color:'#fff',weight:3,fillColor:col,fillOpacity:1}).bindTooltip(esc(v.rev?trStart(md):md.name),{direction:'top',permanent:true,className:'trtip'}).addTo(TLAY);
   TMAP.fitBounds(W.latLngBounds(pts&&pts.length>1?pts:[A,B]),{padding:[36,36]});}
 function vTraffic(){
   var L=trDrives(),d=trCur(),h='<div class="top"><h1>Traffic</h1><button data-a="edit">'+(edit?'Done':'Edit')+'</button></div>';
@@ -500,7 +503,7 @@ function vTraffic(){
     h+='<div class="rw"><div class="rt">Drives</div>';
     if(!L.length)h+='<p class="hint" style="margin:4px 0">No drives yet.</p>';
     L.forEach(function(x){h+='<div class="row trow"><span class="cn">'+esc(x.name)+'<span class="sub tft">'+esc((x.from.label||x.from.q||'')+' → '+(x.to.label||x.to.q||''))+'</span></span>'+
-      '<label class="sub" style="white-space:nowrap">Arrive by <input type="time" id="ta_'+esc(x.id)+'" value="'+esc(x.arrive||'')+'" style="width:auto"></label><button data-a="tarr" data-i="'+esc(x.id)+'">Set</button><button class="x" data-a="tdel" data-i="'+esc(x.id)+'">✕</button></div>';});
+      '<label class="sub" style="white-space:nowrap">Start name <input id="tsn_'+esc(x.id)+'" value="'+esc(trStart(x))+'" style="width:110px"></label><label class="sub" style="white-space:nowrap">Arrive by <input type="time" id="ta_'+esc(x.id)+'" value="'+esc(x.arrive||'')+'" style="width:auto"></label><button data-a="tarr" data-i="'+esc(x.id)+'">Save</button><button class="x" data-a="tdel" data-i="'+esc(x.id)+'">✕</button></div>';});
     h+='<div class="rt" style="margin-top:14px">Add a drive</div>'+
       '<div class="row"><input id="tn" placeholder="Name, like Work or Grandma\'s" value="'+esc(TF.n)+'"></div>'+
       '<div class="row"><input id="tf" placeholder="From: address or place" value="'+esc(TF.f)+'"></div>'+
@@ -1116,7 +1119,7 @@ function act(a,t){
   else if(a==='tretry'){delete TRE[id];delete TRE[id+'~r'];TRR[id]=0;}
   else if(a==='trrev'){TREV[id]=!TREV[id];if(!TREV[id])delete TREV[id];try{localStorage.setItem('trRev',JSON.stringify(TREV));}catch(e){}var dr=null;trDrives().forEach(function(x){if(x.id===id)dr=x;});if(dr)setTimeout(function(){trFetch(dr);trMapUpdate();},0);}
   else if(a==='tdel'){S.traffic.drives=S.traffic.drives.filter(function(x){return x.id!==id;});}
-  else if(a==='tarr'){var tv=val('ta_'+id);S.traffic.drives.forEach(function(x){if(x.id===id){if(tv)x.arrive=tv;else delete x.arrive;}});delete TRD[id];}
+  else if(a==='tarr'){var tv=val('ta_'+id),sn=val('tsn_'+id);S.traffic.drives.forEach(function(x){if(x.id===id){if(tv)x.arrive=tv;else delete x.arrive;if(sn&&sn!=='Home')x.fromName=sn.slice(0,40);else delete x.fromName;}});delete TRD[id];}
   else if(a==='tfind'){TF={n:val('tn'),f:val('tf'),t:val('tt'),a:val('ta')};if(!TF.f||!TF.t){toast('Type where the drive starts and ends.');return;}
     toast('Looking up addresses…',0);Promise.all([trGeo(TF.f),trGeo(TF.t)]).then(function(r){document.getElementById('toast').style.display='none';TGR={f:r[0],t:r[1]};TGS={f:0,t:0};render();}).catch(function(){toast('Address search isn\'t working right now. Try again in a minute.');});return;}
   else if(a==='tpick'){TF={n:val('tn'),f:val('tf'),t:val('tt'),a:val('ta')};TGS[id.charAt(0)]=+id.slice(1);}
