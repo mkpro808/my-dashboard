@@ -237,6 +237,9 @@ header{height:var(--hh);box-sizing:border-box}
 .trslot,.trmap{width:100%}.trmap{height:calc(100vh - var(--hh) - 150px);min-height:320px;border-radius:18px;overflow:hidden;background:var(--line);position:relative;z-index:0;isolation:isolate}
 .trtip{font-weight:700;font-size:13px}
 @media (max-width:700px){.trmap{height:380px}}
+.tswap{margin:0;min-height:40px;width:44px;padding:0;border-radius:50%;font-size:20px;font-weight:700;flex:none}.tswap.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+@media (max-width:700px){#app .thd{gap:8px;padding:10px 12px}#app .tmin2{font-size:26px}#app .tswap{width:36px;min-height:36px;font-size:16px}#app .tnm>b{font-size:17px}#app .tnm .sub{font-size:13px}#app .thd .tchev{display:none}}
+.tret{display:inline-block;vertical-align:2px;margin-left:6px;font-size:12px;font-weight:700;color:var(--acc);border:2px solid var(--acc);border-radius:9px;padding:0 7px}
 .tcard{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:0 0 10px;overflow:hidden}.tcard.open{border-color:var(--acc)}
 .thd{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;min-height:56px}.tnm{flex:1;min-width:0}.tnm>b{font-size:20px;display:block}.tnm .dot{margin-right:6px;vertical-align:-1px}.tcard.open .tlv2{display:none}.lrow .lt{white-space:nowrap;width:auto!important;min-width:64px}.tnm .sub{display:block;font-size:15px;margin-top:2px}
 .tmin2{font-size:34px;font-weight:800;white-space:nowrap}.tmin2.tg{color:#15803d}.tmin2.ty{color:#b45309}.tmin2.tr{color:#b91c1c}.tchev{color:var(--mute);font-size:18px}.tlv2{display:block;margin-top:2px;color:var(--acc)}
@@ -413,6 +416,9 @@ function vWeather(){
 // ---------- Traffic: live drive times (TomTom, through /api/traffic) and the Waze live map ----------
 var TRD={},TRP={},TRE={},TRR={},TGR=null,TF={n:'',f:'',t:'',a:''},TGS={f:0,t:0},trSel=(function(){try{return localStorage.getItem('trSel')||'';}catch(e){return '';}})();
 function trDrives(){return (S&&S.traffic&&S.traffic.drives)||[];}
+// Each drive can be flipped to show the trip back (remembered on this device). Its times are kept apart under id+'~r'.
+var TREV=(function(){try{return JSON.parse(localStorage.getItem('trRev')||'{}')||{};}catch(e){return {};}})();
+function trV(d){var r=!!TREV[d.id]&&trReady(d);return r?{from:d.to,to:d.from,arrive:d.arriveBack||'',k:d.id+'~r',rev:true}:{from:d.from,to:d.to,arrive:d.arrive||'',k:d.id,rev:false};}
 function trCur(){var L=trDrives(),d=L[0];L.forEach(function(x){if(x.id===trSel)d=x;});return d;}
 function trAll(){trDrives().forEach(function(x){if(trReady(x))trFetch(x);});}
 function trReady(d){return d&&d.from&&d.to&&d.from.lat!=null&&d.to.lat!=null;}
@@ -427,30 +433,30 @@ function trResolve(d){if(TRR[d.id]||!api)return;TRR[d.id]=1;
     save();if(tab==='traffic'&&!busyUI())rr();
   }).catch(function(){TRR[d.id]=0;TRE[d.id]='Couldn\'t look up the addresses right now.';if(tab==='traffic')rr();});}
 function trFetch(d,force){
-  if(!trReady(d)||!api)return;var c=TRD[d.id];var op=trSel===d.id;if(!force&&c&&Date.now()-c.t<240000&&(!op||c.j.configured===false||c.j.later&&c.j.later.length))return;
-  if(TRP[d.id]&&Date.now()-TRP[d.id]<30000)return;TRP[d.id]=Date.now();
+  if(!trReady(d)||!api)return;var v=trV(d),K=v.k,c=TRD[K],op=trSel===d.id;if(!force&&c&&Date.now()-c.t<240000&&(!op||c.j.configured===false||c.j.later&&c.j.later.length))return;
+  if(TRP[K]&&Date.now()-TRP[K]<30000)return;TRP[K]=Date.now();
   var ac=window.AbortController?new AbortController():null,tm=ac?setTimeout(function(){ac.abort();},25000):0;
-  fetch('/api/traffic?from='+d.from.lat+','+d.from.lon+'&to='+d.to.lat+','+d.to.lon+(d.arrive?'&arrive='+d.arrive:'')+(op?'&plan=1':''),{cache:'no-store',credentials:'same-origin',signal:ac?ac.signal:undefined})
-  .then(function(r){return r.json();}).then(function(j){clearTimeout(tm);TRP[d.id]=0;
-    if(j.configured===false){TRD[d.id]={t:Date.now(),j:j};delete TRE[d.id];}
-    else if(j.now){TRD[d.id]={t:Date.now(),j:j};delete TRE[d.id];}
-    else TRE[d.id]=j.paused?'Live times are paused for today to stay inside the free traffic allowance.':'Couldn\'t get live traffic right now.';
+  fetch('/api/traffic?from='+v.from.lat+','+v.from.lon+'&to='+v.to.lat+','+v.to.lon+(v.arrive?'&arrive='+v.arrive:'')+(op?'&plan=1':''),{cache:'no-store',credentials:'same-origin',signal:ac?ac.signal:undefined})
+  .then(function(r){return r.json();}).then(function(j){clearTimeout(tm);TRP[K]=0;
+    if(j.configured===false){TRD[K]={t:Date.now(),j:j};delete TRE[K];}
+    else if(j.now){TRD[K]={t:Date.now(),j:j};delete TRE[K];}
+    else TRE[K]=j.paused?'Live times are paused for today to stay inside the free traffic allowance.':'Couldn\'t get live traffic right now.';
     trPaint(d);
-  }).catch(function(){clearTimeout(tm);TRP[d.id]=0;TRE[d.id]='Couldn\'t get live traffic right now.';trPaint(d);});}
+  }).catch(function(){clearTimeout(tm);TRP[K]=0;TRE[K]='Couldn\'t get live traffic right now.';trPaint(d);});}
 function trPaint(d){if(tab!=='traffic'||busyUI())return;var el=document.getElementById('trc_'+d.id);if(el)el.outerHTML=trCard(d);trMapUpdate();}
 function trLv(n){var ratio=n.usual?n.min/n.usual:1;return ratio<=1.1?['tg','Light traffic']:ratio<=1.3?['ty','Moderate traffic']:['tr','Heavy traffic'];}
 // One drive as a compact card; tapping it opens the details underneath.
 function trCard(d){
-  var open=trSel===d.id,c=TRD[d.id],j=c&&c.j,n=j&&j.now,lv=n?trLv(n):null,right='',sub='';
+  var v=trV(d),K=v.k,open=trSel===d.id,c=TRD[K],j=c&&c.j,n=j&&j.now,lv=n?trLv(n):null,right='',sub='';
   if(!trReady(d)){trResolve(d);sub=TRE[d.id]?esc(TRE[d.id]):'Finding the addresses…';}
   else if(n){right='<span class="tmin2 '+lv[0]+'">'+trMin(n.min)+'</span>';sub='<i class="dot '+lv[0]+'"></i>'+lv[1]+' · arrive '+trT(Date.parse(n.arrive))+(n.delay>0?' · <b class="'+lv[0]+'">+'+n.delay+' min</b>':'');}
   else if(j&&j.configured===false)sub='Live times need a TomTom key.';
-  else if(TRE[d.id])sub=esc(TRE[d.id]);
+  else if(TRE[K])sub=esc(TRE[K]);
   else{trFetch(d);sub='Checking traffic…';}
   if(n&&j.leave)sub+='<span class="tlv2">Leave by <b>'+trT(j.leave.depart)+'</b> to arrive '+trT(j.leave.by)+'</span>';
-  var h='<div class="tcard'+(open?' open':'')+'" id="trc_'+esc(d.id)+'"><div class="thd" data-a="trsel" data-i="'+esc(d.id)+'"><div class="tnm"><b>'+esc(d.name)+'</b><span class="sub">'+sub+'</span></div>'+right+'<span class="tchev">'+(open?'▴':'▾')+'</span></div>';
+  var h='<div class="tcard'+(open?' open':'')+'" id="trc_'+esc(d.id)+'"><div class="thd" data-a="trsel" data-i="'+esc(d.id)+'"><div class="tnm"><b>'+esc(d.name)+(v.rev?' <span class="tret">Trip back</span>':'')+'</b><span class="sub">'+sub+'</span></div>'+right+(trReady(d)?'<button class="tswap'+(v.rev?' on':'')+'" data-a="trrev" data-i="'+esc(d.id)+'" aria-label="'+(v.rev?'Show the drive there':'Show the trip back')+'" title="'+(v.rev?'Show the drive there':'Show the trip back')+'">\u21c4</button>':'')+'<span class="tchev">'+(open?'▴':'▾')+'</span></div>';
   if(open){h+='<div class="tbody">';
-    if(TRE[d.id]&&!n)h+='<button data-a="tretry" data-i="'+esc(d.id)+'">Try again</button>';
+    if(TRE[K]&&!n)h+='<button data-a="tretry" data-i="'+esc(d.id)+'">Try again</button>';
     if(n){h+='<div class="tln">'+n.miles+' mi · usually '+trMin(n.usual)+(n.delay>0?' · <b class="'+lv[0]+'">+'+n.delay+' min</b> from traffic right now':' · no traffic delays')+'</div>';
       if(j.leave){var tomorrow=new Date(j.leave.by).toDateString()!==new Date().toDateString();
         h+='<div class="tleave">To arrive by <b>'+trT(j.leave.by)+'</b>'+(tomorrow?' tomorrow':'')+', leave by <b class="big">'+trT(j.leave.depart)+'</b></div>';}
@@ -462,7 +468,7 @@ function trCard(d){
       else h+='<p class="hint">Loading times for leaving later…</p>';
       h+='<p class="hint" style="margin:8px 0 0">Live times from <a href="https://www.tomtom.com" target="_blank" rel="noopener">TomTom</a>. Updated '+trT(j.updated)+'.'+(j.paused?' Paused for today to stay inside the free allowance.':'')+'</p>';}
     else if(j&&j.configured===false)h+='<p style="margin:0">Add a <code>TOMTOM_KEY</code> secret in Cloudflare to see live minutes.</p>';
-    if(trReady(d))h+='<div class="tbtn"><a class="btnl" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&origin='+d.from.lat+','+d.from.lon+'&destination='+d.to.lat+','+d.to.lon+'&travelmode=driving">Open in Google Maps</a><a class="btnl" target="_blank" rel="noopener" href="https://waze.com/ul?ll='+d.to.lat+','+d.to.lon+'&navigate=yes">Open in Waze</a></div>';
+    if(trReady(d))h+='<div class="tbtn"><a class="btnl" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&origin='+v.from.lat+','+v.from.lon+'&destination='+v.to.lat+','+v.to.lon+'&travelmode=driving">Open in Google Maps</a><a class="btnl" target="_blank" rel="noopener" href="https://waze.com/ul?ll='+v.to.lat+','+v.to.lon+'&navigate=yes">Open in Waze</a></div>';
     h+='</div>';}
   return h+'</div>';}
 // Live map with the drive drawn on it (Leaflet + TomTom tiles through /api/tile). The map element is kept
@@ -481,12 +487,12 @@ function trMount(){var slot=document.getElementById('trmapslot');if(!slot)return
       TLAY=window.L.layerGroup().addTo(TMAP);TMAPKEY='';}
     TMAP.invalidateSize();trMapUpdate();});}
 function trMapUpdate(){if(!TMAP||!TLAY)return;var md=trMapDrive();if(!md||!trReady(md))return;
-  var c=TRD[md.id],n=c&&c.j&&c.j.now,pts=n&&n.pts,col=n?{tg:'#16a34a',ty:'#d97706',tr:'#dc2626'}[trLv(n)[0]]:'#7c5cdb';
-  var key=md.id+'|'+(pts?pts.length+'|'+pts[0]+'|'+pts[pts.length-1]:'none')+'|'+col;if(key===TMAPKEY){TMAP.invalidateSize();return;}TMAPKEY=key;TLAY.clearLayers();var W=window.L;
-  var A=[md.from.lat,md.from.lon],B=[md.to.lat,md.to.lon];
+  var v=trV(md),c=TRD[v.k],n=c&&c.j&&c.j.now,pts=n&&n.pts,col=n?{tg:'#16a34a',ty:'#d97706',tr:'#dc2626'}[trLv(n)[0]]:'#7c5cdb';
+  var key=v.k+'|'+(pts?pts.length+'|'+pts[0]+'|'+pts[pts.length-1]:'none')+'|'+col;if(key===TMAPKEY){TMAP.invalidateSize();return;}TMAPKEY=key;TLAY.clearLayers();var W=window.L;
+  var A=[v.from.lat,v.from.lon],B=[v.to.lat,v.to.lon];
   if(pts&&pts.length>1){W.polyline(pts,{color:'#fff',weight:10,opacity:.95}).addTo(TLAY);W.polyline(pts,{color:col,weight:6,opacity:1}).addTo(TLAY);}
   W.circleMarker(A,{radius:9,color:'#fff',weight:3,fillColor:'#2563eb',fillOpacity:1}).bindTooltip('Start',{direction:'top'}).addTo(TLAY);
-  W.circleMarker(B,{radius:9,color:'#fff',weight:3,fillColor:col,fillOpacity:1}).bindTooltip(esc(md.name),{direction:'top',permanent:true,className:'trtip'}).addTo(TLAY);
+  W.circleMarker(B,{radius:9,color:'#fff',weight:3,fillColor:col,fillOpacity:1}).bindTooltip(esc(md.name)+(v.rev?' · trip back':''),{direction:'top',permanent:true,className:'trtip'}).addTo(TLAY);
   TMAP.fitBounds(W.latLngBounds(pts&&pts.length>1?pts:[A,B]),{padding:[36,36]});}
 function vTraffic(){
   var L=trDrives(),d=trCur(),h='<div class="top"><h1>Traffic</h1><button data-a="edit">'+(edit?'Done':'Edit')+'</button></div>';
@@ -1107,7 +1113,8 @@ function act(a,t){
   else if(a==='wsearch'){var wq=val('wq');if(wq){var u=api?'/api/weather?q='+encodeURIComponent(wq):'https://geocoding-api.open-meteo.com/v1/search?count=8&language=en&name='+encodeURIComponent(wq);
     fetch(u,{credentials:'same-origin'}).then(function(r){return r.json();}).then(function(j){WQR=j.results?j.results.map(function(p){return p.region!==undefined?p:{name:p.name,region:[p.admin1,p.country].filter(Boolean).join(', '),lat:Math.round(p.latitude*100)/100,lon:Math.round(p.longitude*100)/100,tz:p.timezone||''};}):[];render();}).catch(function(){WQR=[];render();});}return;}
   else if(a==='trsel'){trSel=trSel===id?'':id;var dd2=null;trDrives().forEach(function(x){if(x.id===id)dd2=x;});if(trSel&&dd2)setTimeout(function(){trFetch(dd2);},0);try{localStorage.setItem('trSel',id);}catch(e){}}
-  else if(a==='tretry'){delete TRE[id];TRR[id]=0;}
+  else if(a==='tretry'){delete TRE[id];delete TRE[id+'~r'];TRR[id]=0;}
+  else if(a==='trrev'){TREV[id]=!TREV[id];if(!TREV[id])delete TREV[id];try{localStorage.setItem('trRev',JSON.stringify(TREV));}catch(e){}var dr=null;trDrives().forEach(function(x){if(x.id===id)dr=x;});if(dr)setTimeout(function(){trFetch(dr);trMapUpdate();},0);}
   else if(a==='tdel'){S.traffic.drives=S.traffic.drives.filter(function(x){return x.id!==id;});}
   else if(a==='tarr'){var tv=val('ta_'+id);S.traffic.drives.forEach(function(x){if(x.id===id){if(tv)x.arrive=tv;else delete x.arrive;}});delete TRD[id];}
   else if(a==='tfind'){TF={n:val('tn'),f:val('tf'),t:val('tt'),a:val('ta')};if(!TF.f||!TF.t){toast('Type where the drive starts and ends.');return;}
