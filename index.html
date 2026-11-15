@@ -235,6 +235,10 @@ header{height:var(--hh);box-sizing:border-box}
 .wb.tpick.on{background:var(--acc);color:#fff;border-color:var(--acc)}.wb.tpick.on .tpk{background:#fff;color:var(--acc);border-color:#fff}
 .okv{display:inline-block;width:.24em;height:.38em;fill:currentColor;vertical-align:.52em;margin:0 .02em 0 .04em;transform:rotate(-8deg)}
 .okr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.board .note[data-id]:not(.new){cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.note.ph{opacity:.25;outline:3px dashed rgba(0,0,0,.25);outline-offset:-3px;box-shadow:none}
+.note.ghost{transform:rotate(3deg) scale(1.05)!important;box-shadow:0 22px 36px -12px rgba(0,0,0,.45)!important;cursor:grabbing;transition:none}
+.note.editing{border-style:solid;border-color:rgba(0,0,0,.25)}.note.editing .nrow button{min-height:40px}
 .wb.team{border-color:var(--acc);color:var(--acc);font-weight:700}
 .trslot,.trmap{width:100%}.trmap{height:calc(100vh - var(--hh) - 150px);min-height:320px;border-radius:18px;overflow:hidden;background:var(--line);position:relative;z-index:0;isolation:isolate}
 .trtip{font-weight:700;font-size:13px}
@@ -293,7 +297,7 @@ function cache(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 function save(){cache();if(!api)return;dirty=true;clearTimeout(pushT);pushT=setTimeout(push,300);}
 function toast(t,ms){var el=document.getElementById('toast');el.textContent=t;el.style.display='block';clearTimeout(toastT);if(ms!==0)toastT=setTimeout(function(){el.style.display='none';},ms||4000);}
 function getJSON(u){return fetch(u,{cache:'no-store',credentials:'same-origin'}).then(function(r){var ct=r.headers.get('content-type')||'';if(r.redirected||ct.indexOf('json')<0)throw new Error('auth');return r.json().then(function(j){return {s:r.status,j:j};});});}
-function busyUI(){var a=document.activeElement;return !!(mo||pick||(a&&/INPUT|SELECT|TEXTAREA/.test(a.tagName)));}
+function busyUI(){var a=document.activeElement;return !!(mo||pick||(remDrag&&remDrag.live)||remEdit||(a&&/INPUT|SELECT|TEXTAREA/.test(a.tagName)));}
 function rr(){var m=document.getElementById('mn'),y=m.scrollTop;render();m.scrollTop=y;}
 function push(){
   if(!api)return; if(busy){return;} busy=true; dirty=false;
@@ -981,16 +985,56 @@ function vRem(){
      '<div class="ncol">'+keys.map(function(k){return '<button class="cdot'+(NF.c===k?' on':'')+'" style="background:'+NOTEC[k]+'" data-a="ncol" data-i="'+k+'" aria-label="'+k+'"></button>';}).join('')+'</div>'+
      '<div class="nfor"><button class="nf'+(!NF.f?' on':'')+'" data-a="nfor" data-i="">Everyone</button>'+S.people.map(function(p){return '<button class="nf'+(NF.f===p.id?' on':'')+'" data-a="nfor" data-i="'+p.id+'" style="--pc:'+p.color+'">'+esc(p.name)+'</button>';}).join('')+'</div>'+
      '<div class="nrow"><input id="rw" type="datetime-local" aria-label="Due (optional)"><button class="pri" data-a="addm">Stick it</button></div></div>';
-  var L=S.rem.slice().sort(function(a,b){if(!!a.when!==!!b.when)return a.when?-1:1;return a.when?a.when.localeCompare(b.when):(b.at||0)-(a.at||0);});
+  // Notes keep the order you drag them into. The first time, start from the old order (due soonest first).
+  if(!S.remOrd){S.rem.sort(function(a,b){if(!!a.when!==!!b.when)return a.when?-1:1;return a.when?a.when.localeCompare(b.when):(b.at||0)-(a.at||0);});S.remOrd=1;setTimeout(save,0);}
+  var L=S.rem;
   L.forEach(function(r){var hs=nHash(r.id),col=NOTEC[r.color]||NOTEC[keys[hs%keys.length]],rot=((hs%7)-3)*0.8,late=r.when&&r.when<nowS,who=r.for?find(S.people,r.for):null;
-    h+='<div class="note" style="--nc:'+col+';--rot:'+rot.toFixed(1)+'deg"><span class="tape"></span>'+
+    if(remEdit===r.id){h+=noteEditor(r,col);return;}
+    h+='<div class="note" data-id="'+esc(r.id)+'" style="--nc:'+col+';--rot:'+rot.toFixed(1)+'deg"><span class="tape"></span>'+
        (who?'<span class="nwho" style="--pc:'+who.color+'">For '+esc(who.name)+'</span>':'')+
        '<div class="ntext">'+esc(r.text)+'</div>'+
        '<div class="nfoot">'+(r.when?'<span class="ndue'+(late?' late':'')+'">'+(late?'⏰ ':'')+noteWhen(r.when)+'</span>':'<span></span>')+
        '<button class="ndone" data-a="delm" data-i="'+r.id+'" aria-label="Done">✓</button></div></div>';});
   h+='</div>';
   if(!S.rem.length)h+='<p class="hint">No notes yet. Write one on the blank note above.</p>';
+  else h+='<p class="hint">Tap a note to edit it. Drag a note to move it (on a touch screen, press and hold first).</p>';
   return h;}
+// Editing a note in place.
+var remEdit='',REF={c:'',f:''};
+function noteEditor(r,col){var keys=Object.keys(NOTEC),c=REF.c||r.color||'yellow',f=REF.f;
+  return '<div class="note new editing" data-id="'+esc(r.id)+'" style="--nc:'+(NOTEC[c]||col)+'"><textarea id="re_t" rows="3">'+esc(r.text)+'</textarea>'+
+    '<div class="ncol">'+keys.map(function(k){return '<button class="cdot'+(c===k?' on':'')+'" style="background:'+NOTEC[k]+'" data-a="recol" data-i="'+k+'" aria-label="'+k+'"></button>';}).join('')+'</div>'+
+    '<div class="nfor"><button class="nf'+(!f?' on':'')+'" data-a="refor" data-i="">Everyone</button>'+S.people.map(function(p){return '<button class="nf'+(f===p.id?' on':'')+'" data-a="refor" data-i="'+p.id+'" style="--pc:'+p.color+'">'+esc(p.name)+'</button>';}).join('')+'</div>'+
+    '<div class="nrow"><input id="re_w" type="datetime-local" value="'+esc(r.when||'')+'" aria-label="Due (optional)"><button data-a="recancel">Cancel</button><button class="pri" data-a="resave" data-i="'+esc(r.id)+'">Save</button></div></div>';}
+function reKeep(fn){var t=document.getElementById('re_t'),w=document.getElementById('re_w'),tv=t?t.value:null,wv=w?w.value:null;fn();render();var t2=document.getElementById('re_t'),w2=document.getElementById('re_w');if(t2&&tv!==null)t2.value=tv;if(w2&&wv!==null)w2.value=wv;}
+// Drag to reorder: mouse drags right away; touch needs a short press-and-hold so swipes still scroll.
+var remDrag=null;
+function remDown(e){if(tab!=='rem'||trash||remEdit)return;var n=e.target.closest&&e.target.closest('.board .note[data-id]:not(.new)');if(!n||e.target.closest('button,textarea,input,a'))return;
+  var st={el:n,id:n.getAttribute('data-id'),x:e.clientX,y:e.clientY,pid:e.pointerId,touch:e.pointerType!=='mouse',live:false,moved:false,timer:0};
+  if(st.touch)st.timer=setTimeout(function(){if(!st.moved)remLift(st);},350);
+  remDrag=st;}
+function remLift(st){var r=st.el.getBoundingClientRect(),g=st.el.cloneNode(true);st.live=true;st.dx=st.x-r.left;st.dy=st.y-r.top;
+  g.className+=' ghost';g.style.cssText+=';position:fixed;left:'+r.left+'px;top:'+r.top+'px;width:'+r.width+'px;height:'+r.height+'px;margin:0;z-index:60;pointer-events:none';
+  document.body.appendChild(g);st.g=g;st.el.classList.add('ph');try{navigator.vibrate&&navigator.vibrate(15);}catch(x){}}
+function remMove(e){var st=remDrag;if(!st||e.pointerId!==st.pid)return;var dx=e.clientX-st.x,dy=e.clientY-st.y;
+  if(!st.live){if(Math.abs(dx)+Math.abs(dy)>8){st.moved=true;if(st.touch){clearTimeout(st.timer);remDrag=null;return;}remLift(st);}else return;}
+  e.preventDefault();st.g.style.left=(e.clientX-st.dx)+'px';st.g.style.top=(e.clientY-st.dy)+'px';
+  var m=document.getElementById('mn'),mr=m.getBoundingClientRect();if(e.clientY<mr.top+70)m.scrollTop-=12;else if(e.clientY>mr.bottom-70)m.scrollTop+=12;
+  var over=document.elementFromPoint(e.clientX,e.clientY),t=over&&over.closest&&over.closest('.board .note[data-id]:not(.new)');
+  if(t&&t!==st.el){var all=[].slice.call(t.parentNode.children),bi=all.indexOf(st.el),ti=all.indexOf(t);t.parentNode.insertBefore(st.el,bi<ti?t.nextSibling:t);}}
+function remUp(e){var st=remDrag;if(!st||e.pointerId!==st.pid)return;clearTimeout(st.timer);remDrag=null;
+  if(st.live){if(st.g)st.g.remove();st.el.classList.remove('ph');
+    var ids=[].slice.call(document.querySelectorAll('.board .note[data-id]:not(.new)')).map(function(x){return x.getAttribute('data-id');});
+    var by={};S.rem.forEach(function(r){by[r.id]=r;});var nl=ids.map(function(i){return by[i];}).filter(Boolean);S.rem.forEach(function(r){if(nl.indexOf(r)<0)nl.push(r);});
+    S.rem=nl;save();render();st.dragged=true;remJustDragged=Date.now();return;}
+  if(!st.moved&&!e.target.closest('button,textarea,input,a')){remEdit=st.id;var r0=find(S.rem,st.id);REF={c:r0&&r0.color||'',f:r0&&r0.for||''};render();var ta=document.getElementById('re_t');if(ta){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);}}}
+var remJustDragged=0;
+document.addEventListener('pointerdown',remDown);
+document.addEventListener('pointermove',remMove,{passive:false});
+document.addEventListener('pointerup',remUp);
+document.addEventListener('pointercancel',function(e){var st=remDrag;if(!st)return;clearTimeout(st.timer);remDrag=null;if(st.g)st.g.remove();if(st.el)st.el.classList.remove('ph');});
+document.addEventListener('touchmove',function(e){if(remDrag&&remDrag.live)e.preventDefault();},{passive:false});
+document.addEventListener('contextmenu',function(e){if(remDrag&&remDrag.touch)e.preventDefault();});
 function vHist(){
   var L=S.slog||[],now=new Date(),from=0;
   if(HF.r==='week'){var w=new Date(now);w.setHours(0,0,0,0);w.setDate(w.getDate()-w.getDay());from=+w;}
@@ -1092,7 +1136,7 @@ function act(a,t){
   if(a!=='delp'&&a!=='tempty')armed='';
   var hadDD=!!dd;if(a!=='dd'&&a!=='ctog'&&a!=='call')dd='';
   if(a==='tab'&&id==='show'){ssOpen();return;}
-  if(a==='tab'){tab=id;edit=false;hist=false;trash=false;pick='';WQR=null;TGR=null;toNow=(id==='cal');if(id==='tasks'||id==='chores')tasksLoad();}
+  if(a==='tab'){tab=id;edit=false;hist=false;trash=false;remEdit='';pick='';WQR=null;TGR=null;toNow=(id==='cal');if(id==='tasks'||id==='chores')tasksLoad();}
   else if(a==='sleep'){var s=document.createElement('div');s.className='slp';s.textContent='Tap to wake';s.onclick=function(){document.body.removeChild(s);};document.body.appendChild(s);return;}
   else if(a==='wk'){var n=parseInt(t.getAttribute('data-n'),10);if(!n){wkStart=iso(new Date());toNow=true;}
     else if(calView==='m'){var fm=new Date(firstOfMonth(wkStart)+'T12:00:00');fm.setMonth(fm.getMonth()+n);wkStart=iso(fm);}
@@ -1175,7 +1219,7 @@ function act(a,t){
   else if(a==='tgt'){r=find(S.tasks,id);if(r)r.done=!r.done;}
   else if(a==='delt'){S.tasks=not(S.tasks,id);}
   else if(a==='clrt'){S.tasks=S.tasks.filter(function(x){return !x.done;});}
-  else if(a==='addm'){var rt=val('rt');if(rt){var nr={id:uid(),text:rt,when:val('rw'),color:NF.c,at:Date.now()};if(NF.f)nr.for=NF.f;S.rem.push(nr);NF.f='';}else{toast('Write something on the note first.');return;}}
+  else if(a==='addm'){var rt=val('rt');if(rt){var nr={id:uid(),text:rt,when:val('rw'),color:NF.c,at:Date.now()};if(NF.f)nr.for=NF.f;S.rem.unshift(nr);NF.f='';}else{toast('Write something on the note first.');return;}}
   else if(a==='ncol'){NF.c=id;var tx=document.getElementById('rt'),keep=tx?tx.value:'',dw=val('rw');render();var t2=document.getElementById('rt');if(t2){t2.value=keep;}var w2=document.getElementById('rw');if(w2)w2.value=dw;return;}
   else if(a==='nfor'){NF.f=id;var tx2=document.getElementById('rt'),keep2=tx2?tx2.value:'',dw2=val('rw');render();var t3=document.getElementById('rt');if(t3)t3.value=keep2;var w3=document.getElementById('rw');if(w3)w3.value=dw2;return;}
   else if(a==='delm'){var dn=find(S.rem,id);if(dn){var el=t.closest('.note'),can=document.getElementById('tcan');
@@ -1186,7 +1230,11 @@ function act(a,t){
   else if(a==='lpts'){if(!S.gcfg)S.gcfg={where:{}};S.gcfg.pts=S.gcfg.pts||{};S.gcfg.pts[id]=Math.max(1,Math.min(20,stOf(id)+parseInt(t.getAttribute('data-n'),10)));}
   else if(a==='exopen'){exOpen=!exOpen;}
   else if(a==='trash'){trash=!trash;armed='';}
-  else if(a==='trest'){var tr=find(S.remDone||[],id);if(tr){S.remDone=not(S.remDone,id);delete tr.doneAt;S.rem.push(tr);toast('Back on the board.');}}
+  else if(a==='recol'){reKeep(function(){REF.c=id;});return;}
+  else if(a==='refor'){reKeep(function(){REF.f=id;});return;}
+  else if(a==='recancel'){remEdit='';REF={c:'',f:''};}
+  else if(a==='resave'){var re=find(S.rem,id),rtx=val('re_t');if(re){if(!rtx){toast('A note needs some words. To remove it, tap ✓ instead.');return;}re.text=rtx;re.when=val('re_w');if(REF.c)re.color=REF.c;if(REF.f)re.for=REF.f;else delete re.for;}remEdit='';REF={c:'',f:''};}
+  else if(a==='trest'){var tr=find(S.remDone||[],id);if(tr){S.remDone=not(S.remDone,id);delete tr.doneAt;S.rem.unshift(tr);toast('Back on the board.');}}
   else if(a==='tdel2'){S.remDone=not(S.remDone||[],id);}
   else if(a==='tempty'){if(armed==='tempty'){S.remDone=[];armed='';}else{armed='tempty';}}
   else if(a==='edit'){edit=!edit;pick='';hist=false;}
