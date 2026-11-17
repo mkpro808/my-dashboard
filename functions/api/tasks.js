@@ -3,7 +3,7 @@
 //                     are chore lists. Each resets on its own schedule: d = every morning,
 //                     w = every Sunday, m = on the 1st, a = guess from the list's name.
 //                     Without ?chores=, the list titled "Chores" is used (created if missing).
-// POST /api/tasks  -> one change: {op:'add'|'toggle'|'delete'|'clear'|'newlist', list, id, title, done}
+// POST /api/tasks  -> one change: {op:'add'|'toggle'|'rename'|'move'|'delete'|'clear'|'newlist', list, id, title, done, previous}
 import { configured, accessToken, gapi, json } from "../_lib/google.js";
 
 const CHORES = "chores";
@@ -129,6 +129,11 @@ export async function onRequestPost({ env, request }) {
     }
     if (b.op === "rename" && b.list && b.id && title) {
       await gapi(token, "PATCH", L(b.list) + "/tasks/" + encodeURIComponent(b.id), { title });
+      return json({ ok: true });
+    }
+    if (b.op === "move" && b.list && b.id) {
+      const q = b.previous ? "?previous=" + encodeURIComponent(String(b.previous)) : "";
+      await gapi(token, "POST", L(b.list) + "/tasks/" + encodeURIComponent(b.id) + "/move" + q);
       return json({ ok: true });
     }
     if (b.op === "delete" && b.list && b.id) {
