@@ -565,6 +565,7 @@ function vTraffic(){
     h+='</div>';}
   if(!d){return h+(edit?'':'<div class="rw"><p style="margin:0">Add a drive with <b>Edit</b> to see live traffic and the best time to leave.</p></div>');}
   var md=null;L.forEach(function(x){if(x.id===trSel)md=x;});md=md||L[0];
+  if(L.length>1&&!edit)h+='<p class="hint" style="margin:-6px 0 10px">Drag a drive to reorder (on a touch screen, press and hold first). Tap \u21c4 to flip its direction.</p>';
   return h+'<div class="tgrid"><div>'+L.map(trCard).join('')+'</div><div class="tmap">'+(md&&trReady(md)?trMap(md):'')+'</div></div>';}
 // Sunrise/sunset worked out on the device (NOAA method), so it never depends on the internet.
 function sunEvent(y,m,d,rising){
