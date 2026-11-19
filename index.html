@@ -260,6 +260,7 @@ header{height:var(--hh);box-sizing:border-box}
 .tgrid .tcard{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}.tgrid .thd{cursor:grab}
 .tcard.trph{opacity:.3;outline:2px dashed var(--acc);outline-offset:-2px}.tcard.trghost{box-shadow:0 18px 32px -10px rgba(0,0,0,.4);transform:rotate(1deg) scale(1.02);cursor:grabbing}
 
+.tarow{display:flex;gap:6px;align-items:center}.tarow input{flex:1;min-width:0}.tarow button{margin:0;min-height:40px;padding:4px 12px;font-size:14px;flex:none}
 .teadr{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.teadr button{margin:0;min-height:36px;padding:4px 12px;font-size:14px}.teadr button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 12%,var(--card))}
 .tabox{margin-top:8px;padding:10px;border:1px dashed var(--line);border-radius:12px}.tabox .tpick{margin-top:6px}
 .tret{display:inline-block;vertical-align:2px;margin-left:6px;font-size:12px;font-weight:700;color:var(--acc);border:2px solid var(--acc);border-radius:9px;padding:0 7px}
@@ -560,7 +561,7 @@ function vTraffic(){
       '<div class="teadr"><button data-a="taddr" data-i="'+esc(x.id)+'" data-w="f"'+(TAE.id===x.id&&TAE.w==='f'?' class="on"':'')+'>Change start</button><button data-a="taddr" data-i="'+esc(x.id)+'" data-w="t"'+(TAE.id===x.id&&TAE.w==='t'?' class="on"':'')+'>Change destination</button></div>'+trAddrBox(x)+
       '<div class="tegrid"><label class="sub">Start name<input id="tsn_'+esc(x.id)+'" value="'+esc(trStart(x))+'"></label>'+
       '<label class="sub">Destination name<input id="tdn_'+esc(x.id)+'" value="'+esc(x.name)+'"></label>'+
-      '<label class="sub">Arrive by<input type="time" id="ta_'+esc(x.id)+'" value="'+esc(x.arrive||'')+'"></label>'+
+      '<label class="sub">Arrive by<span class="tarow"><input type="time" id="ta_'+esc(x.id)+'" value="'+esc(x.arrive||'')+'">'+(x.arrive?'<button data-a="tarrclr" data-i="'+esc(x.id)+'">Clear</button>':'')+'</span></label>'+
       '<span class="tebtn"><button class="pri" data-a="tarr" data-i="'+esc(x.id)+'">Save</button><button data-a="tdup" data-i="'+esc(x.id)+'">Duplicate</button><button class="x" data-a="tdel" data-i="'+esc(x.id)+'" aria-label="Delete drive">✕</button></span></div></div>';});
     h+='<div class="rt" style="margin-top:14px">Add a drive</div>'+
       '<div class="row"><input id="tn" placeholder="Name, like Work or Grandma\'s" value="'+esc(TF.n)+'"></div>'+
@@ -1289,6 +1290,7 @@ function act(a,t){
   else if(a==='trsel'){trSel=trSel===id?'':id;var dd2=null;trDrives().forEach(function(x){if(x.id===id)dd2=x;});if(trSel&&dd2)setTimeout(function(){trFetch(dd2);},0);try{localStorage.setItem('trSel',id);}catch(e){}}
   else if(a==='tretry'){delete TRE[id];delete TRE[id+'~r'];TRR[id]=0;}
   else if(a==='trrev'){TREV[id]=!TREV[id];if(!TREV[id])delete TREV[id];try{localStorage.setItem('trRev',JSON.stringify(TREV));}catch(e){}var dr=null;trDrives().forEach(function(x){if(x.id===id)dr=x;});if(dr)setTimeout(function(){trFetch(dr);trMapUpdate();},0);}
+  else if(a==='tarrclr'){S.traffic.drives.forEach(function(x){if(x.id===id)delete x.arrive;});delete TRD[id];toast('Arrive-by time removed.');}
   else if(a==='taddr'){var w=t.getAttribute('data-w');if(TAE.id===id&&TAE.w===w)TAE={id:'',w:'',res:null,q:''};else TAE={id:id,w:w,res:null,q:''};}
   else if(a==='tacancel'){TAE={id:'',w:'',res:null,q:''};}
   else if(a==='tafind'){var aq=val('taq');if(!aq){toast('Type an address or place first.');return;}TAE.q=aq;toast('Looking up the address\u2026',0);
