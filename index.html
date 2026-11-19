@@ -256,10 +256,12 @@ header{height:var(--hh);box-sizing:border-box}
 .tedit{border-bottom:1px solid var(--line);padding:10px 0 12px}.tedit:last-of-type{border-bottom:0}.tehd b{font-size:18px}.tehd .tft{display:block;margin-top:2px}
 .tegrid{display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px 12px;align-items:end;margin-top:8px}.tegrid label{display:flex;flex-direction:column;gap:3px;font-size:13px}.tegrid input{width:100%;box-sizing:border-box;margin:0}
 .tebtn{display:flex;gap:8px}.tebtn button{margin:0}
-@media (max-width:700px){.tegrid{grid-template-columns:1fr 1fr}.tebtn{justify-content:flex-end}}
+@media (max-width:700px){.tegrid{grid-template-columns:1fr 1fr}.tegrid label:nth-child(3){grid-column:1/-1}.tebtn{grid-column:1/-1;justify-content:flex-end;flex-wrap:nowrap}}
 .tgrid .tcard{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}.tgrid .thd{cursor:grab}
 .tcard.trph{opacity:.3;outline:2px dashed var(--acc);outline-offset:-2px}.tcard.trghost{box-shadow:0 18px 32px -10px rgba(0,0,0,.4);transform:rotate(1deg) scale(1.02);cursor:grabbing}
-@media (max-width:700px){.tebtn{flex-wrap:wrap}}
+
+.teadr{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.teadr button{margin:0;min-height:36px;padding:4px 12px;font-size:14px}.teadr button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 12%,var(--card))}
+.tabox{margin-top:8px;padding:10px;border:1px dashed var(--line);border-radius:12px}.tabox .tpick{margin-top:6px}
 .tret{display:inline-block;vertical-align:2px;margin-left:6px;font-size:12px;font-weight:700;color:var(--acc);border:2px solid var(--acc);border-radius:9px;padding:0 7px}
 .tcard{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:0 0 10px;overflow:hidden}.tcard.open{border-color:var(--acc)}
 .thd{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;min-height:56px}.tnm{flex:1;min-width:0}.tnm>b{font-size:20px;display:block}.tnm .dot{margin-right:6px;vertical-align:-1px}.tcard.open .tlv2{display:none}.lrow .lt{white-space:nowrap;width:auto!important;min-width:64px}.tnm .sub{display:block;font-size:15px;margin-top:2px}
@@ -492,6 +494,13 @@ document.addEventListener('pointerup',trUp);
 document.addEventListener('pointercancel',function(){var st=trDrag;if(!st)return;clearTimeout(st.timer);trDrag=null;if(st.g){st.g.remove();render();}});
 document.addEventListener('touchmove',function(e){if(trDrag&&trDrag.live)e.preventDefault();},{passive:false});
 document.addEventListener('contextmenu',function(e){if(trDrag&&trDrag.touch)e.preventDefault();});
+// Changing one end of a drive's address (handy after Duplicate).
+var TAE={id:'',w:'',res:null,q:''};
+function trAddrBox(x){if(TAE.id!==x.id)return '';var cur=TAE.w==='f'?x.from:x.to,h='<div class="tabox"><div class="sub" style="margin-bottom:4px">New '+(TAE.w==='f'?'start':'destination')+' (now: '+esc(cur.label||cur.q||'')+')</div>'+
+  '<div class="row" style="margin:0"><input id="taq" placeholder="Address or place, like Ala Moana Center" value="'+esc(TAE.q)+'"><button class="pri" data-a="tafind" data-i="'+esc(x.id)+'">Find</button><button data-a="tacancel">Cancel</button></div>';
+  if(TAE.res){if(!TAE.res.length)h+='<p class="hint" style="margin:6px 0 0">No match. Try adding the city, like "Kapolei, HI".</p>';
+    TAE.res.forEach(function(r,i){h+='<button class="wb tpick" data-a="tapick" data-i="'+esc(x.id)+'" data-n="'+i+'"><span class="tpk"></span>'+esc(r.label)+'</button>';});}
+  return h+'</div>';}
 function trLv(n){var ratio=n.usual?n.min/n.usual:1;return ratio<=1.1?['tg','Light traffic']:ratio<=1.3?['ty','Moderate traffic']:['tr','Heavy traffic'];}
 // One drive as a compact card; tapping it opens the details underneath.
 function trCard(d){
@@ -548,6 +557,7 @@ function vTraffic(){
     h+='<div class="rw"><div class="rt">Drives</div>';
     if(!L.length)h+='<p class="hint" style="margin:4px 0">No drives yet.</p>';
     L.forEach(function(x){h+='<div class="tedit"><div class="tehd"><b>'+esc(trStart(x))+'<span class="tgo">›</span>'+esc(x.name)+'</b><span class="sub tft">'+esc((x.from.label||x.from.q||'')+' → '+(x.to.label||x.to.q||''))+'</span></div>'+
+      '<div class="teadr"><button data-a="taddr" data-i="'+esc(x.id)+'" data-w="f"'+(TAE.id===x.id&&TAE.w==='f'?' class="on"':'')+'>Change start</button><button data-a="taddr" data-i="'+esc(x.id)+'" data-w="t"'+(TAE.id===x.id&&TAE.w==='t'?' class="on"':'')+'>Change destination</button></div>'+trAddrBox(x)+
       '<div class="tegrid"><label class="sub">Start name<input id="tsn_'+esc(x.id)+'" value="'+esc(trStart(x))+'"></label>'+
       '<label class="sub">Destination name<input id="tdn_'+esc(x.id)+'" value="'+esc(x.name)+'"></label>'+
       '<label class="sub">Arrive by<input type="time" id="ta_'+esc(x.id)+'" value="'+esc(x.arrive||'')+'"></label>'+
@@ -1246,7 +1256,7 @@ function act(a,t){
   if(a!=='delp'&&a!=='tempty'&&a!=='shclr')armed='';
   var hadDD=!!dd;if(a!=='dd'&&a!=='ctog'&&a!=='call')dd='';
   if(a==='tab'&&id==='show'){ssOpen();return;}
-  if(a==='tab'){tab=id;edit=false;hist=false;trash=false;remEdit='';pick='';WQR=null;TGR=null;toNow=(id==='cal');if(id==='tasks'||id==='chores')tasksLoad();}
+  if(a==='tab'){tab=id;edit=false;hist=false;trash=false;remEdit='';TAE={id:'',w:'',res:null,q:''};pick='';WQR=null;TGR=null;toNow=(id==='cal');if(id==='tasks'||id==='chores')tasksLoad();}
   else if(a==='sleep'){var s=document.createElement('div');s.className='slp';s.textContent='Tap to wake';s.onclick=function(){document.body.removeChild(s);};document.body.appendChild(s);return;}
   else if(a==='wk'){var n=parseInt(t.getAttribute('data-n'),10);if(!n){wkStart=iso(new Date());toNow=true;}
     else if(calView==='m'){var fm=new Date(firstOfMonth(wkStart)+'T12:00:00');fm.setMonth(fm.getMonth()+n);wkStart=iso(fm);}
@@ -1279,6 +1289,12 @@ function act(a,t){
   else if(a==='trsel'){trSel=trSel===id?'':id;var dd2=null;trDrives().forEach(function(x){if(x.id===id)dd2=x;});if(trSel&&dd2)setTimeout(function(){trFetch(dd2);},0);try{localStorage.setItem('trSel',id);}catch(e){}}
   else if(a==='tretry'){delete TRE[id];delete TRE[id+'~r'];TRR[id]=0;}
   else if(a==='trrev'){TREV[id]=!TREV[id];if(!TREV[id])delete TREV[id];try{localStorage.setItem('trRev',JSON.stringify(TREV));}catch(e){}var dr=null;trDrives().forEach(function(x){if(x.id===id)dr=x;});if(dr)setTimeout(function(){trFetch(dr);trMapUpdate();},0);}
+  else if(a==='taddr'){var w=t.getAttribute('data-w');if(TAE.id===id&&TAE.w===w)TAE={id:'',w:'',res:null,q:''};else TAE={id:id,w:w,res:null,q:''};}
+  else if(a==='tacancel'){TAE={id:'',w:'',res:null,q:''};}
+  else if(a==='tafind'){var aq=val('taq');if(!aq){toast('Type an address or place first.');return;}TAE.q=aq;toast('Looking up the address\u2026',0);
+    trGeo(aq).then(function(r){document.getElementById('toast').style.display='none';TAE.res=r;render();var qi=document.getElementById('taq');if(qi)qi.value=TAE.q;}).catch(function(){toast('Address search isn\u2019t working right now. Try again in a minute.');});return;}
+  else if(a==='tapick'){var pk=TAE.res&&TAE.res[+t.getAttribute('data-n')];if(pk){S.traffic.drives.forEach(function(x){if(x.id===id){var v2={label:pk.label,lat:pk.lat,lon:pk.lon};if(TAE.w==='f')x.from=v2;else x.to=v2;}});
+      delete TRD[id];delete TRD[id+'~r'];delete TRE[id];delete TRE[id+'~r'];TMAPKEY='';toast('Address updated.');}TAE={id:'',w:'',res:null,q:''};}
   else if(a==='tdup'){var di=-1;S.traffic.drives.forEach(function(x,i){if(x.id===id)di=i;});if(di>=0){var cp=JSON.parse(JSON.stringify(S.traffic.drives[di]));cp.id='d'+uid();cp.name=(cp.name+' (copy)').slice(0,40);S.traffic.drives.splice(di+1,0,cp);toast('Copied. Rename it below.');}}
   else if(a==='tdel'){S.traffic.drives=S.traffic.drives.filter(function(x){return x.id!==id;});}
   else if(a==='tarr'){var tv=val('ta_'+id),sn=val('tsn_'+id),dn=val('tdn_'+id);S.traffic.drives.forEach(function(x){if(x.id===id){if(tv)x.arrive=tv;else delete x.arrive;if(sn&&sn!=='Home')x.fromName=sn.slice(0,40);else delete x.fromName;if(dn)x.name=dn.slice(0,40);}});delete TRD[id];toast('Saved.');}
