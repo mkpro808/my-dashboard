@@ -99,6 +99,36 @@ def describe(d, host, parent=None):
     return it
 
 
+def feat(d, name):
+    try:
+        f = d.features.get(name)
+        return None if f is None else f.value
+    except Exception:
+        return None
+
+
+def sensor_of(d, host, parent=None):
+    """Temperature/humidity/door sensors (Tapo hub children). None if not a sensor."""
+    t, h, o = feat(d, "temperature"), feat(d, "humidity"), feat(d, "is_open")
+    if t is None and h is None and o is None:
+        return None
+    it = {"id": ident(d), "name": d.alias or getattr(d, "model", "Sensor"),
+          "model": getattr(d, "model", ""), "kind": "sensor", "ok": host not in BAD}
+    if t is not None:
+        it["temp"] = round(float(t), 1)
+        unit = str(feat(d, "temperature_unit") or "celsius").lower()
+        it["unit"] = "F" if unit.startswith("f") else "C"
+    if h is not None:
+        it["hum"] = int(h)
+    if o is not None:
+        it["open"] = bool(o)
+    if feat(d, "battery_low"):
+        it["low"] = True
+    if parent is not None:
+        it["group"] = parent.alias or parent.model
+    return it
+
+
 def rebuild():
     items, out = {}, []
     for host, d in DEVS.items():
@@ -109,8 +139,18 @@ def rebuild():
         try:
             if kids:
                 for c in kids:
-                    items[ident(c)] = (c, host)
-                    out.append(describe(c, host, d))
+                    try:
+                        sn = sensor_of(c, host, d)
+                        if sn is not None:
+                            out.append(sn)
+                            continue
+                        if not hasattr(c, "turn_on"):
+                            continue
+                        it = describe(c, host, d)
+                        items[ident(c)] = (c, host)
+                        out.append(it)
+                    except Exception as e:
+                        log("skipping", getattr(c, "alias", "?"), type(e).__name__)
             else:
                 items[ident(d)] = (d, host)
                 out.append(describe(d, host))
@@ -141,7 +181,7 @@ async def discover():
     UNSUPPORTED.clear()
 
     async def unsupported(e):
-        UNSUPPORTED.append(str(e)[:80])
+        UNSUPPORTED.append(str(e)[:160])
 
     try:
         found = await Discover.discover(username=user, password=pw, discovery_timeout=6,
@@ -235,9 +275,14 @@ async def main():
     log("ʻOhana hub starting", "(with Kasa login)" if user else "(no Kasa login set)")
     await discover()
     for x in STATE["devices"]:
-        log("  ", x["name"], "-", x["model"], "on" if x["on"] else "off", "" if x["ok"] else "(not responding)")
-    if UNSUPPORTED:
-        log("  plus", len(UNSUPPORTED), "unsupported device(s), skipped")
+        if x["kind"] == "sensor":
+            bits = [("%s°%s" % (x["temp"], x["unit"])) if "temp" in x else "", ("%s%%" % x["hum"]) if "hum" in x else "",
+                    ("open" if x.get("open") else "closed") if "open" in x else ""]
+            log("  ", x["name"], "- sensor", " ".join(b for b in bits if b))
+        else:
+            log("  ", x["name"], "-", x["model"], "on" if x["on"] else "off", "" if x["ok"] else "(not responding)")
+    for u in UNSUPPORTED:
+        log("   skipped (not supported):", u)
     app = web.Application(middlewares=[guard])
     app.router.add_get("/", home)
     app.router.add_get("/state", state)
