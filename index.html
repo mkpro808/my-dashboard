@@ -276,7 +276,7 @@ header{height:var(--hh);box-sizing:border-box}
 @media (max-width:700px){.tgrid{grid-template-columns:1fr}.tmap iframe{height:380px}.tmin{font-size:48px}.lrow .lt{width:64px}}
 
 nav{overflow-y:auto}@media (max-height:820px) and (min-width:701px){.nb{min-height:66px;padding:8px 2px}}
-.hsec{font-size:15px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.04em}.hrhd{display:flex;align-items:center;gap:10px;margin:18px 2px 8px}.hrhd .hsec{color:var(--ink);font-size:17px}.hrhd .sub{font-size:14px}.hall{min-height:40px;padding:6px 16px;margin:0}.hroom{width:auto;min-width:150px;max-width:50%}.hrname{flex:1}
+.hsec{font-size:15px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.04em}.hroomp{background:var(--rcb);border:1px solid var(--rcl);border-left:6px solid var(--rc);border-radius:20px;padding:12px 14px 14px;margin:0 0 16px}.hrhd{display:flex;align-items:center;gap:10px;margin:0 2px 12px}.hrdot{width:14px;height:14px;border-radius:50%;background:var(--rc);flex:none}.hrnm{font-size:24px;font-weight:800;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hrcnt,.hall{white-space:nowrap;flex:none}.hrcnt{font-size:15px;color:var(--mute);background:var(--card);border-radius:12px;padding:3px 10px}.hall{min-height:42px;padding:6px 18px;margin:0;border-radius:21px;background:var(--card);border:2px solid var(--rc);color:var(--ink);font-weight:700;font-size:16px}@media (max-width:700px){.hroomp{padding:10px 10px 12px;border-left-width:5px}.hrnm{font-size:20px}.hrcnt{font-size:13px;padding:2px 8px}.hall{padding:6px 14px;font-size:15px;min-height:38px}.hrhd{gap:8px}}.hroom{width:auto;min-width:150px;max-width:50%}.hrname{flex:1}
 .hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
 .hcard{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:border-color .2s,background .2s}
 .hcard.on{border-color:#f4a261;background:linear-gradient(160deg,rgba(244,162,97,.18),var(--card) 70%)}
@@ -1312,9 +1312,10 @@ function hSetMany(L,on){if(!L.length)return;var n=Date.now();L.forEach(function(
     .catch(function(){L.forEach(function(d){delete HPEND[d.id];});toast('Couldn’t send that. Try again.',5000);hRedraw();});}
 function hRooms(){if(!Array.isArray(S.hrooms))S.hrooms=[];if(!S.hroomOf||typeof S.hroomOf!=='object')S.hroomOf={};return S.hrooms;}
 function hOnOf(d){var p=HPEND[d.id];return p&&p.on!=null?p.on:d.on;}
-function hSection(title,L,rid){var on=L.filter(hOnOf).length,any=on>0;
-  return '<div class="hrhd"><span class="hsec">'+esc(title)+'</span><span class="sub">'+on+' of '+L.length+' on</span><span style="flex:1"></span>'+
-    '<button class="hall'+(any?'':' pri')+'" data-a="hall" data-i="'+esc(rid)+'" data-on="'+(any?0:1)+'">'+(any?'All off':'All on')+'</button></div><div class="hgrid">'+L.map(hCard).join('')+'</div>';}
+var HRC=['#0ea5e9','#8b5cf6','#10b981','#ec4899','#6366f1','#14b8a6','#e11d48','#84cc16'];
+function hSection(title,L,rid,ci){var on=L.filter(hOnOf).length,any=on>0,c=ci<0?'#94a3b8':HRC[ci%HRC.length];
+  return '<section class="hroomp" style="--rc:'+c+';--rcb:'+c+'14;--rcl:'+c+'55"><div class="hrhd"><span class="hrdot"></span><span class="hrnm">'+esc(title)+'</span><span class="hrcnt">'+(on?on+' of '+L.length+' on':'All off')+'</span><span style="flex:1"></span>'+
+    '<button class="hall" data-a="hall" data-i="'+esc(rid)+'" data-on="'+(any?0:1)+'">'+(any?'All off':'All on')+'</button></div><div class="hgrid">'+L.map(hCard).join('')+'</div></section>';}
 function hGroups(D){var R=hRooms(),M=S.hroomOf,out=[];
   if(!R.length){var Lt=D.filter(function(d){return d.kind==='bulb'||d.bri!=null;}),Pl=D.filter(function(d){return !(d.kind==='bulb'||d.bri!=null);});
     if(Lt.length)out.push({t:'Lights',L:Lt,id:'_l'});if(Pl.length)out.push({t:'Plugs',L:Pl,id:'_p'});return out;}
@@ -1344,7 +1345,7 @@ function vHome(){
   var age=HLOC?0:Math.max(0,HNOW-(HS.seen||0)),on=D.filter(function(d){return d.on;}).length;
   h+='<p class="hstat'+(age>120000?' warn':'')+'">'+(HLOC?'This tablet is the hub':age>120000?'The tablet last checked in '+hAgo(age)+'. Is the dashboard open on it, and the helper running?':'Connected through the tablet at home')+' · '+on+' of '+D.length+' on</p>';
   if(edit)return h+vHomeEdit(D);
-  hGroups(D).forEach(function(g){h+=hSection(g.t,g.L,g.id);});
+  hGroups(D).forEach(function(g,i){h+=hSection(g.t,g.L,g.id,g.id==='_o'?-1:i);});
   if(!D.length)h+='<p class="hint">The helper is running but hasn’t found any devices yet.</p>';
   return h;}
 document.addEventListener('input',function(e){var t=e.target;if(t&&t.classList&&t.classList.contains('hrname')){var r=hRooms().filter(function(x){return x.id===t.getAttribute('data-i');})[0];if(r){r.name=t.value.slice(0,40)||'Room';save();}return;}
