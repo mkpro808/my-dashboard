@@ -292,7 +292,7 @@ nav{overflow-y:auto}@media (max-height:820px) and (min-width:701px){.nb{min-heig
 .hbr{display:flex;align-items:center;gap:10px;padding:0 16px 14px}#app .hbr input{flex:1;-webkit-appearance:none;appearance:none;height:8px;min-height:0;padding:0;border:0;box-sizing:border-box;border-radius:4px;margin:10px 0;background:linear-gradient(to right,#f4a261 var(--v,50%),var(--line) var(--v,50%))}.hbr input::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid #f4a261;box-shadow:0 1px 4px rgba(0,0,0,.3)}.hbr input::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:2px solid #f4a261}.hbr input:disabled{opacity:.5}.hbr span{font-size:14px;color:var(--mute);min-width:40px;text-align:right}
 .hstat{font-size:15px;color:var(--mute);margin:2px 2px 6px}.hstat.warn{color:#d97706}
 @media (max-width:700px){.hgrid{grid-template-columns:1fr 1fr;gap:10px}.hbtn{gap:8px;padding:12px;min-height:0}.hic{width:38px;height:38px}.hnm b{font-size:18px}.hnm .sub{font-size:14px}.hbr{padding:0 12px 12px}}
-@media (max-width:700px) and (orientation:portrait){nav{display:grid!important;grid-template-columns:repeat(5,1fr);row-gap:2px}#nav .nb{min-height:56px;font-size:11px;padding:5px 0}#nav .nb b{height:26px}#nav .nb .lf{display:inline}#nav .nb .ls{display:none}}
+@media (max-width:700px){nav#nav{justify-content:flex-start;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;scrollbar-width:none}nav#nav::-webkit-scrollbar{display:none}#nav .nb{flex:0 0 18.5vw;scroll-snap-align:start;font-size:11px}#nav .nb .lf{display:inline}#nav .nb .ls{display:none}}
 </style>
 </head>
 <body>
@@ -1265,6 +1265,7 @@ function render(){
   var tt=S.title||DEFTITLE,te=document.getElementById('ttl'),th=esc(tt).replace(/\u02bb/g,'<span class="okr">\u02bb</span><svg class="okv" viewBox="0 0 10 16" aria-hidden="true"><circle cx="5.2" cy="11.6" r="3.4"/><path d="M2.1 10.6C1.7 6.3 3.6 2.7 7.9.7l.8 1.3C6 3.9 4.8 6.6 5.1 9.6z"/></svg>');if(te.innerHTML!==th)te.innerHTML=th;
   document.getElementById('app').innerHTML=tab==='cal'?vCal():tab==='wx'?vWeather():tab==='traffic'?vTraffic():tab==='home'?vHome():tab==='tasks'?vTasks():tab==='rem'?vRem():tab==='pomo'?vPomo():vChores();
   if(tab==='traffic')trMount();
+  (function(){var n=document.querySelector('#nav .nb.on'),nv=document.getElementById('nav');if(n&&nv&&nv.scrollWidth>nv.clientWidth){var l=n.offsetLeft,r=l+n.offsetWidth;if(l<nv.scrollLeft||r>nv.scrollLeft+nv.clientWidth)nv.scrollLeft=l-(nv.clientWidth-n.offsetWidth)/2;}})();
   document.getElementById('ovl').innerHTML=vModal();if(mo&&mo.ss){phStatus();if(mo.pick&&mo.uri)drawQR(mo.uri);}
   if(tab==='cal'&&toNow){toNow=false;var m=document.getElementById('mn'),n=new Date();m.scrollTop=(/^[1347]$/.test(calView)&&window.innerWidth>=700)?Math.max(0,((n.getHours()-H0-1)*PX)+12):0;}
 }
