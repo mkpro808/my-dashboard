@@ -1,7 +1,8 @@
 // Google Photos for the slideshow, using Google's Photos Picker.
 // The family picks photos (or an album's photos) in Google Photos; the dashboard copies
 // them into the private R2 bucket bound as PHOTOS, then plays them from there.
-// Choosing again replaces the previous set once the new copy is finished.
+// "Replace" swaps the whole set once the new copy is finished; "Add" copies the new
+// picks into the current set and keeps everything already there.
 //
 // GET  /api/photos              -> {ready, photos:[{id,url,w,h}], importing:{total,remaining}|null}
 // POST /api/photos {op:'start'}  -> {uri}            open this to pick in Google Photos
@@ -68,7 +69,7 @@ export async function onRequestPost({ env, request }) {
         const scope = r.status === 403 || /scope|permission/i.test((j.error && j.error.message) || "");
         return json({ error: (j.error && j.error.message) || "Couldn't start Google Photos", code: scope ? "scope" : "google" }, r.status);
       }
-      await kvSet(env.DB, "photos_session", JSON.stringify({ id: j.id, started: Date.now() }));
+      await kvSet(env.DB, "photos_session", JSON.stringify({ id: j.id, started: Date.now(), add: b.mode === "add" }));
       return json({ uri: j.pickerUri.replace(/\/$/, "") + "/autoclose" });
     }
 
@@ -81,17 +82,24 @@ export async function onRequestPost({ env, request }) {
         const ms = s.pollingConfig && s.pollingConfig.pollInterval ? Math.round(parseFloat(s.pollingConfig.pollInterval) * 1000) : 3000;
         return json({ waiting: true, pollMs: Math.min(Math.max(ms, 2000), 10000) });
       }
-      // Picked: queue every photo for copying into a new set.
-      const gen = (await curGen(env.DB)) + 1;
+      // Picked: queue every photo for copying (into a new set, or added to the current one).
+      const add = !!sess.add, cur = await curGen(env.DB);
+      const gen = add ? cur : cur + 1;
       await env.DB.prepare("DELETE FROM photo_queue").run();
       let page = "", ord = 0, stmts = [];
+      const have = new Set();
+      if (add) {
+        const ex = (await env.DB.prepare("SELECT id, ord FROM photos WHERE gen = ?").bind(gen).all()).results || [];
+        ex.forEach((r) => { have.add(r.id); if (r.ord >= ord) ord = r.ord + 1; });
+      }
+      const first = ord;
       for (let i = 0; i < 25; i++) {
         const j = await pfetch(token, "GET", "/mediaItems?sessionId=" + encodeURIComponent(sess.id) + "&pageSize=100" + (page ? "&pageToken=" + encodeURIComponent(page) : ""));
         for (const it of j.mediaItems || []) {
           if (it.type && it.type !== "PHOTO") continue;
           const f = it.mediaFile || {};
           const md = f.mediaFileMetadata || {};
-          if (!f.baseUrl) continue;
+          if (!f.baseUrl || have.has(safeId(it.id))) continue;
           stmts.push(env.DB.prepare("INSERT OR IGNORE INTO photo_queue (id, gen, ord, url, mime, w, h) VALUES (?, ?, ?, ?, ?, ?, ?)")
             .bind(safeId(it.id), gen, ord++, f.baseUrl, f.mimeType || "image/jpeg", md.width || null, md.height || null));
         }
@@ -99,9 +107,9 @@ export async function onRequestPost({ env, request }) {
         page = j.nextPageToken;
       }
       for (let i = 0; i < stmts.length; i += 50) await env.DB.batch(stmts.slice(i, i + 50));
-      await kvSet(env.DB, "photos_import", JSON.stringify({ gen, total: ord, session: sess.id }));
+      await kvSet(env.DB, "photos_import", JSON.stringify({ gen, total: ord - first, session: sess.id, add }));
       await kvDel(env.DB, "photos_session");
-      return json({ total: ord });
+      return json({ total: ord - first, add });
     }
 
     if (b.op === "import") {
@@ -124,7 +132,10 @@ export async function onRequestPost({ env, request }) {
       }));
       const left = await env.DB.prepare("SELECT COUNT(*) AS n FROM photo_queue WHERE gen = ?").bind(imp.gen).first();
       const remaining = left ? left.n : 0;
-      if (remaining === 0) {
+      if (remaining === 0 && imp.add) {
+        await kvDel(env.DB, "photos_import");
+        try { await pfetch(token, "DELETE", "/sessions/" + encodeURIComponent(imp.session)); } catch (e) {}
+      } else if (remaining === 0) {
         // Switch the slideshow to the new set, then remove the old photos.
         await kvSet(env.DB, "photos_gen", String(imp.gen));
         await kvDel(env.DB, "photos_import");

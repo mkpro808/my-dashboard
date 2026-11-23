@@ -1057,10 +1057,11 @@ function vPhotos(){
   if(PHS.importing)h+='<div class="pbar"><i id="phbar"></i></div><p class="hint">You can close this; copying continues while the dashboard is open.</p>';
   if(mo.err==='scope')h+='<div class="rw"><div class="rt">Allow Google Photos</div><p class="hint" style="margin-top:0">Reconnect Google once so the dashboard can use the photos you choose.</p><button data-a="gconnect" style="background:var(--acc);color:#fff;border-color:var(--acc)">Reconnect Google</button></div>';
   else if(mo.pick){
-    h+='<div class="rw" style="text-align:center"><div class="rt">Choose your album’s photos</div><p class="hint" style="margin-top:0">In Google Photos, open <b>Albums</b>, pick your album, select its photos, then tap <b>Done</b>. Choosing again later replaces this set.</p>'+
+    h+='<div class="rw" style="text-align:center"><div class="rt">Choose your album’s photos</div><p class="hint" style="margin-top:0">In Google Photos, open <b>Albums</b>, pick your album, select its photos, then tap <b>Done</b>. '+(mo.add?'These are added to the photos already in the slideshow.':'These replace every photo in the slideshow.')+'</p>'+
        '<button data-a="phopen" style="background:var(--acc);color:#fff;border-color:var(--acc)">Open Google Photos</button><div id="phqr" class="phqr"></div><p class="hint">Or scan this with your phone to choose there.</p><p class="hint">Waiting for your selection…</p><button data-a="phcancel">Cancel</button></div>';
   } else if(PHS.ready!==false&&!PHS.importing){
-    h+='<button data-a="phpick" style="width:100%;background:var(--acc);color:#fff;border-color:var(--acc);margin:6px 0 10px">'+(PH.length?'Choose new photos from Google Photos':'Choose photos from Google Photos')+'</button>';
+    if(PH.length)h+='<div style="display:flex;gap:8px;margin:6px 0 4px"><button data-a="phpick" data-m="add" style="flex:1;background:var(--acc);color:#fff;border-color:var(--acc);margin:0">+ Add photos</button><button data-a="phpick" data-m="replace" style="flex:1;margin:0">Replace all</button></div><p class="hint" style="margin:0 0 10px">Add keeps the '+PH.length+' photos you have. Replace all swaps them for your new picks.</p>';
+    else h+='<button data-a="phpick" style="width:100%;background:var(--acc);color:#fff;border-color:var(--acc);margin:6px 0 10px">Choose photos from Google Photos</button>';
   }
   h+='<div class="pf"><span class="cn">Seconds per photo</span><button data-a="sssec" data-n="-5">−</button><b>'+c.secs+'</b><button data-a="sssec" data-n="5">+</button></div>';
   h+='<div class="pf" style="flex-wrap:wrap"><span class="cn">Start the slideshow when no one has touched the screen for</span>';
@@ -1424,7 +1425,7 @@ function act(a,t){
     S.pomo[id]=Math.max(lim[0],Math.min(lim[1],nv2));if(!P.running){P.left=pDur(P.mode);}if(P.round>S.pomo.rounds)P.round=1;pSave();}
   else if(a==='ptog'){S.pomo[id]=!S.pomo[id];}
   else if(a==='ptest'){var was2=S.pomo.sound;S.pomo.sound=true;chime();S.pomo.sound=was2;return;}
-  else if(a==='phpick'){mo.err='';phPost({op:'start'}).then(function(j){if(!mo)return;mo.pick=true;mo.uri=j.uri;render();drawQR(j.uri);setTimeout(phPoll,4000);}).catch(phErr);return;}
+  else if(a==='phpick'){mo.err='';mo.add=t.getAttribute('data-m')==='add';phPost({op:'start',mode:mo.add?'add':'replace'}).then(function(j){if(!mo)return;mo.pick=true;mo.uri=j.uri;render();drawQR(j.uri);setTimeout(phPoll,4000);}).catch(phErr);return;}
   else if(a==='phopen'){if(mo&&mo.uri)window.open(mo.uri,'_blank');return;}
   else if(a==='phcancel'){mo.pick=false;}
   else if(a==='sssec'){S.slides.secs=Math.max(5,Math.min(300,S.slides.secs+parseInt(t.getAttribute('data-n'),10)));}
