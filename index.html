@@ -297,6 +297,7 @@ nav{overflow-y:auto}@media (max-height:820px) and (min-width:701px){.nb{min-heig
 .hszr{display:flex;gap:8px}.hszr button{flex:1;max-width:140px;margin:0}#app .hs-m{grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:10px}#app .hs-m .hbtn{padding:10px 12px;gap:8px 10px;min-height:0}#app .hs-m .hic{width:34px;height:34px}#app .hs-m .hic svg{width:20px;height:20px}#app .hs-m .hnm b{font-size:17px}#app .hs-m .hnm .sub{font-size:13px;margin-top:1px}#app .hs-m .hsw{width:44px;height:26px;border-radius:13px}#app .hs-m .hsw:after{width:20px;height:20px}#app .hs-m .on .hsw:after{left:21px}#app .hs-m .hbr{padding:0 12px 10px}#app .hs-s{grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px}#app .hs-s .hcard{border-radius:14px}#app .hs-s .hbtn{padding:8px 10px;gap:6px 8px;min-height:0}#app .hs-s .hnm b{font-size:15px}#app .hs-s .hnm .sub{font-size:12px;margin-top:0}#app .hs-s .hic{width:28px;height:28px}#app .hs-s .hic svg{width:16px;height:16px}#app .hs-s .hsw{width:38px;height:22px;border-radius:11px}#app .hs-s .hsw:after{width:16px;height:16px}#app .hs-s .on .hsw:after{left:19px}#app .hs-s .hbr{padding:0 10px 8px;gap:6px}#app .hs-s .hbr span{font-size:12px;min-width:32px}#app .hs-s .hbr input::-webkit-slider-thumb{width:20px;height:20px}#app .hs-m .hbr input::-webkit-slider-thumb{width:22px;height:22px}
 .hsens .hbtn{cursor:default;box-sizing:border-box}.hval{font-size:30px;font-weight:800;letter-spacing:-.02em;margin-left:auto;color:var(--ink)}.hopen{border-color:#e07a5f}.hopen .hval{color:#e07a5f}.hlow{color:#d97706!important}.hrtmp{display:inline-flex;align-items:center;gap:3px;font-size:16px;font-weight:700;color:var(--ink);background:var(--card);border-radius:12px;padding:3px 10px 3px 6px;white-space:nowrap}.hrtmp svg{width:18px;height:18px;color:var(--rc)}#app .hs-m .hval{font-size:24px}#app .hs-s .hval{font-size:19px}@media (max-width:700px){.hval{font-size:24px}.hrtmp{font-size:14px}}
 @media (max-width:700px){#app .hgrid.hs-m,#app .hgrid.hs-s{grid-template-columns:1fr 1fr}.hrhd{flex-wrap:wrap;row-gap:6px}.hrnm{flex-shrink:0;max-width:100%}}
+#app .shopg{display:block;columns:3 300px;column-gap:12px}#app .shsec{break-inside:avoid;-webkit-column-break-inside:avoid;margin:0 0 12px;display:block}#app .shopst,#app .shfor,#app .usuals{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}#app .shopst::-webkit-scrollbar,#app .shfor::-webkit-scrollbar,#app .usuals::-webkit-scrollbar{display:none}#app .shopst{gap:8px;margin-bottom:10px}#app .shopst .wb{flex:none;min-height:40px;padding:4px 14px;font-size:16px;margin:0}#app .usuals{margin:0 0 8px;gap:6px}#app .usuals .ub,#app .shfor .nf{flex:none;min-height:34px;padding:3px 12px;font-size:14px;margin:0}#app .shfor{margin-top:6px}.batog b{font-size:12px;background:rgba(0,0,0,.08);border-radius:9px;padding:0 6px;margin-left:2px}.batog.on{border-color:var(--acc)}#app .shopit{min-height:44px;padding-top:4px;padding-bottom:4px}#app .shopit .cn{font-size:17px}#app .shopit .chk{width:26px;height:26px}#app .smv{min-height:28px;padding:2px 9px;font-size:12px;border-radius:14px;gap:5px;margin-right:4px}#app .shopit .x{min-height:30px;min-width:30px;width:30px;height:30px;padding:0;font-size:14px;opacity:.6}#app .shsec{padding:6px 8px}#app .shh{margin:2px 4px 4px}
 </style>
 </head>
 <body>
@@ -833,7 +834,7 @@ function vListCfg(){
 var DEFSTORES=[{id:'costco',name:'Costco',color:'#d23b3b',alias:['costco']},{id:'foodland',name:'Foodland',color:'#e8890c',alias:['foodland']},
   {id:'wholefoods',name:'Whole Foods',color:'#1f7a4d',alias:['wholefoods','wf']},{id:'downtoearth',name:'Down to Earth',color:'#7a9a2e',alias:['downtoearth','dte','d2e']}];
 var DEFUSUALS=['Rice','Eggs','Milk','Bread','Bananas','Toilet paper @costco','Paper towels @costco'];
-var shopStore='',shopAdd='',shopBought=false;
+var shopStore='',shopAdd='',shopBought=false,shopBA=false;
 function stores(){return (S.shop&&S.shop.stores)||DEFSTORES;}
 function usuals(){return (S.shop&&S.shop.usuals)||DEFUSUALS;}
 function shopInit(){if(!S.shop)S.shop={stores:DEFSTORES.slice(),usuals:DEFUSUALS.slice()};}
@@ -915,11 +916,13 @@ function vShop(L){
   h+='<div class="shopadd"><div class="row" style="margin:0"><input id="tt" placeholder="Add an item, like Milk or Poke @foodland" value="'+esc(shopAdd)+'"><button class="pri" data-a="shadd">Add</button></div>'+
      '<div class="usuals sugg" id="shsug"></div><div class="shfor"><span class="sub">Add to:</span><button class="nf'+(!shopStore?' on':'')+'" data-a="shst" data-i="">Anywhere</button>'+S0.map(function(st){return '<button class="nf'+(shopStore===st.id?' on':'')+'" data-a="shst" data-i="'+st.id+'" style="--pc:'+st.color+'">'+esc(st.name)+'</button>';}).join('')+'</div></div>';
   // usuals
-  var U=usuals();if(U.length){h+='<div class="usuals"><span class="sub">Usuals:</span>';
+  var stn=shopStore?(storeOf(shopStore)||{name:shopStore}).name:'',BA=shopHistList(L,function(e){return e.c>0&&(!shopStore||e.s===shopStore);},shopStore?16:10);
+  var baBtn=BA.length?'<button class="ub batog'+(shopBA?' on':'')+'" data-a="shba" aria-expanded="'+shopBA+'">'+(shopBA?'\u25be':'\u25b8')+' '+(shopStore?'Bought here before':'Buy again')+' <b>'+BA.length+'</b></button>':'';
+  var U=usuals();if(U.length){h+='<div class="usuals">'+baBtn+'<span class="sub">Usuals:</span>';baBtn='';
     U.forEach(function(u,i){var p=parseShop(u),has=onList(L,p.name);h+='<button class="ub'+(has?' has':'')+'" data-a="shusual" data-i="'+i+'"'+(has?' disabled':'')+'>'+(has?'\u2713 ':'+ ')+esc(p.name)+'</button>';});h+='</div>';}
   // buy again: past purchases (from the chosen store, or from anywhere) that aren't on the list
-  var stn=shopStore?(storeOf(shopStore)||{name:shopStore}).name:'',BA=shopHistList(L,function(e){return e.c>0&&(!shopStore||e.s===shopStore);},shopStore?16:10);
-  if(BA.length)h+='<div class="usuals buyag"><span class="sub">'+(shopStore?'Bought at '+esc(stn)+' before:':'Buy again:')+'</span>'+BA.map(function(e){return shopChip(e,'shbuy');}).join('')+'</div>';
+  if(BA.length){if(baBtn)h+='<div class="usuals">'+baBtn+'</div>';
+    if(shopBA)h+='<div class="usuals buyag">'+BA.map(function(e){return shopChip(e,'shbuy');}).join('')+'</div>';}
   // sections
   var show=order.slice().sort(function(a,b){var ia=S0.findIndex(function(x){return x.id===a;}),ib=S0.findIndex(function(x){return x.id===b;});if(!a)return 1;if(!b)return -1;return (ia<0?99:ia)-(ib<0?99:ib);});
   if(shopStore)show=show.filter(function(k){return k===shopStore||k==='';});
@@ -1454,6 +1457,7 @@ function act(a,t){
   else if(a==='shst'){shopAdd=val('tt');shopStore=id;}
   else if(a==='shmv'){shopMove=shopMove===id?'':id;shopAdd=val('tt');}
   else if(a==='shto'){var Lm=curList(),it=Lm&&find(Lm.items,id),sid=t.getAttribute('data-s');if(it){var pn=parseShop(it.title).name,nt=pn+(sid?' @'+sid:'');if(nt!==it.title){it.title=nt;tkPost({op:'rename',list:Lm.id,id:id,title:nt});}var stn=sid?(storeOf(sid)||{name:sid}).name:'Anywhere';toast('Moved '+pn+' to '+stn+'.');}shopMove='';shopAdd=val('tt');}
+  else if(a==='shba'){shopBA=!shopBA;shopAdd=val('tt');}
   else if(a==='shbought'){shopBought=!shopBought;shopAdd=val('tt');}
   else if(a==='shadd'){var Ls=curList(),txt=val('tt');if(Ls&&txt){var ps=parseShop(txt),title=txt;if(!/@\S/.test(txt)&&shopStore)title=txt+' @'+shopStore;
       var dup=onList(Ls,ps.name);if(dup){toast(ps.name+' is already on the list.');shopAdd='';}else{Ls.items.unshift({id:'tmp'+uid(),title:title,done:false});tkPost({op:'add',list:Ls.id,title:title});shopRec(title,false);shopAdd='';}}}
