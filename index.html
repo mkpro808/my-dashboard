@@ -276,7 +276,7 @@ header{height:var(--hh);box-sizing:border-box}
 @media (max-width:700px){.tgrid{grid-template-columns:1fr}.tmap iframe{height:380px}.tmin{font-size:48px}.lrow .lt{width:64px}}
 
 nav{overflow-y:auto}@media (max-height:820px) and (min-width:701px){.nb{min-height:66px;padding:8px 2px}}
-.hsec{font-size:15px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.04em}.hroomp{background:var(--rcb);border:1px solid var(--rcl);border-left:6px solid var(--rc);border-radius:20px;padding:12px 14px 14px;margin:0 0 16px}.hrhd{display:flex;align-items:center;gap:10px;margin:0 2px 12px}.hrdot{width:14px;height:14px;border-radius:50%;background:var(--rc);flex:none}.hrnm{font-size:24px;font-weight:800;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hrcnt,.hall{white-space:nowrap;flex:none}.hrcnt{font-size:15px;color:var(--mute);background:var(--card);border-radius:12px;padding:3px 10px}.hall{min-height:42px;padding:6px 18px;margin:0;border-radius:21px;background:var(--card);border:2px solid var(--rc);color:var(--ink);font-weight:700;font-size:16px}@media (max-width:700px){.hroomp{padding:10px 10px 12px;border-left-width:5px}.hrnm{font-size:20px}.hrcnt{font-size:13px;padding:2px 8px}.hall{padding:6px 14px;font-size:15px;min-height:38px}.hrhd{gap:8px}}.hroom{width:auto;min-width:150px;max-width:50%}.hrname{flex:1}
+.hsec{font-size:15px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.04em}.hroomp{background:var(--rcb);border:1px solid var(--rcl);border-left:6px solid var(--rc);border-radius:20px;padding:12px 14px 14px;margin:0 0 16px}.hrhd{display:flex;align-items:center;gap:10px;margin:0 2px 12px}.hrdot{width:14px;height:14px;border-radius:50%;background:var(--rc);flex:none}.hrnm{font-size:24px;font-weight:800;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hrcnt,.hall{white-space:nowrap;flex:none}.hsw8{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:2px 0 14px}.hsww{width:34px;height:34px;min-height:0;border-radius:50%;padding:0;margin:0;border:3px solid var(--card);box-shadow:0 0 0 1px var(--line)}.hsww.on{box-shadow:0 0 0 3px var(--ink)}.hswc{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--mute);margin-left:4px;cursor:pointer}#app .hswc input{width:34px;height:34px;min-height:0;padding:0;border:0;border-radius:50%;background:none;cursor:pointer}.hrcnt{font-size:15px;color:var(--mute);background:var(--card);border-radius:12px;padding:3px 10px}.hall{min-height:42px;padding:6px 18px;margin:0;border-radius:21px;background:var(--card);border:2px solid var(--rc);color:var(--ink);font-weight:700;font-size:16px}@media (max-width:700px){.hroomp{padding:10px 10px 12px;border-left-width:5px}.hrnm{font-size:20px}.hrcnt{font-size:13px;padding:2px 8px}.hall{padding:6px 14px;font-size:15px;min-height:38px}.hrhd{gap:8px}}.hroom{width:auto;min-width:150px;max-width:50%}.hrname{flex:1}
 .hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
 .hcard{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:border-color .2s,background .2s}
 .hcard.on{border-color:#f4a261;background:linear-gradient(160deg,rgba(244,162,97,.18),var(--card) 70%)}
@@ -1312,18 +1312,21 @@ function hSetMany(L,on){if(!L.length)return;var n=Date.now();L.forEach(function(
     .catch(function(){L.forEach(function(d){delete HPEND[d.id];});toast('Couldn’t send that. Try again.',5000);hRedraw();});}
 function hRooms(){if(!Array.isArray(S.hrooms))S.hrooms=[];if(!S.hroomOf||typeof S.hroomOf!=='object')S.hroomOf={};return S.hrooms;}
 function hOnOf(d){var p=HPEND[d.id];return p&&p.on!=null?p.on:d.on;}
-var HRC=['#0ea5e9','#8b5cf6','#10b981','#ec4899','#6366f1','#14b8a6','#e11d48','#84cc16'];
-function hSection(title,L,rid,ci){var on=L.filter(hOnOf).length,any=on>0,c=ci<0?'#94a3b8':HRC[ci%HRC.length];
+var HRC=['#3a86a8','#6b9e78','#9a86c9','#c97b8e','#c2a878','#2a9d8f','#e07a5f','#3d5a80','#7d5a8c','#64748b'];
+function hRoomCol(r,i){return /^#[0-9a-f]{6}$/i.test(r.c||'')?r.c:HRC[i%HRC.length];}
+function hSection(title,L,rid,c){var on=L.filter(hOnOf).length,any=on>0;
   return '<section class="hroomp" style="--rc:'+c+';--rcb:'+c+'14;--rcl:'+c+'55"><div class="hrhd"><span class="hrdot"></span><span class="hrnm">'+esc(title)+'</span><span class="hrcnt">'+(on?on+' of '+L.length+' on':'All off')+'</span><span style="flex:1"></span>'+
     '<button class="hall" data-a="hall" data-i="'+esc(rid)+'" data-on="'+(any?0:1)+'">'+(any?'All off':'All on')+'</button></div><div class="hgrid">'+L.map(hCard).join('')+'</div></section>';}
 function hGroups(D){var R=hRooms(),M=S.hroomOf,out=[];
   if(!R.length){var Lt=D.filter(function(d){return d.kind==='bulb'||d.bri!=null;}),Pl=D.filter(function(d){return !(d.kind==='bulb'||d.bri!=null);});
     if(Lt.length)out.push({t:'Lights',L:Lt,id:'_l'});if(Pl.length)out.push({t:'Plugs',L:Pl,id:'_p'});return out;}
-  R.forEach(function(r){var L=D.filter(function(d){return M[d.id]===r.id;});if(L.length)out.push({t:r.name,L:L,id:r.id});});
+  R.forEach(function(r,i){var L=D.filter(function(d){return M[d.id]===r.id;});if(L.length)out.push({t:r.name,L:L,id:r.id,c:hRoomCol(r,i)});});
   var O=D.filter(function(d){return !R.some(function(r){return M[d.id]===r.id;});});if(O.length)out.push({t:'Other',L:O,id:'_o'});return out;}
 function vHomeEdit(D){var R=hRooms(),h='<div class="rw"><div class="rt">Rooms</div>';
   if(!R.length)h+='<p class="hint" style="margin:4px 0 8px">No rooms yet. Add one, then pick a room for each device below.</p>';
-  R.forEach(function(r,i){h+='<div class="row"><input class="hrname" data-i="'+esc(r.id)+'" value="'+esc(r.name)+'" aria-label="Room name"><button data-a="hrup" data-i="'+esc(r.id)+'"'+(i?'':' disabled')+' aria-label="Move up">↑</button><button class="x" data-a="hrdel" data-i="'+esc(r.id)+'" aria-label="Delete room">✕</button></div>';});
+  R.forEach(function(r,i){h+='<div class="row"><input class="hrname" data-i="'+esc(r.id)+'" value="'+esc(r.name)+'" aria-label="Room name"><button data-a="hrup" data-i="'+esc(r.id)+'"'+(i?'':' disabled')+' aria-label="Move up">↑</button><button class="x" data-a="hrdel" data-i="'+esc(r.id)+'" aria-label="Delete room">✕</button></div>'+
+    '<div class="hsw8">'+HRC.map(function(c){var on=hRoomCol(r,i).toLowerCase()===c;return '<button class="hsww'+(on?' on':'')+'" style="background:'+c+'" data-a="hrcol" data-i="'+esc(r.id)+'" data-c="'+c+'" aria-label="Color '+c+'" aria-pressed="'+on+'"></button>';}).join('')+
+    '<label class="hswc" title="Pick any color"><input type="color" class="hrcolor" data-i="'+esc(r.id)+'" value="'+hRoomCol(r,i)+'">Custom</label></div>';});
   h+='<div class="row"><input id="hrn" placeholder="New room, like Garage or Koa’s Room"><button class="pri" data-a="hradd">Add room</button></div>';
   h+='<div class="rt" style="margin-top:16px">Devices</div>';
   if(!D.length)h+='<p class="hint">No devices yet.</p>';
@@ -1345,12 +1348,13 @@ function vHome(){
   var age=HLOC?0:Math.max(0,HNOW-(HS.seen||0)),on=D.filter(function(d){return d.on;}).length;
   h+='<p class="hstat'+(age>120000?' warn':'')+'">'+(HLOC?'This tablet is the hub':age>120000?'The tablet last checked in '+hAgo(age)+'. Is the dashboard open on it, and the helper running?':'Connected through the tablet at home')+' · '+on+' of '+D.length+' on</p>';
   if(edit)return h+vHomeEdit(D);
-  hGroups(D).forEach(function(g,i){h+=hSection(g.t,g.L,g.id,g.id==='_o'?-1:i);});
+  hGroups(D).forEach(function(g,i){h+=hSection(g.t,g.L,g.id,g.c||(g.id==='_o'?'#94a3b8':HRC[i%HRC.length]));});
   if(!D.length)h+='<p class="hint">The helper is running but hasn’t found any devices yet.</p>';
   return h;}
 document.addEventListener('input',function(e){var t=e.target;if(t&&t.classList&&t.classList.contains('hrname')){var r=hRooms().filter(function(x){return x.id===t.getAttribute('data-i');})[0];if(r){r.name=t.value.slice(0,40)||'Room';save();}return;}
   if(t&&t.classList&&t.classList.contains('hbri')){var s=t.parentNode.querySelector('span');if(s)s.textContent=t.value+'%';t.style.setProperty('--v',t.value+'%');}});
-document.addEventListener('change',function(e){var t=e.target;if(t&&t.classList&&t.classList.contains('hroom')){hRooms();var v=t.value,i=t.getAttribute('data-i');if(v)S.hroomOf[i]=v;else delete S.hroomOf[i];save();t.blur();return;}
+document.addEventListener('change',function(e){var t=e.target;if(t&&t.classList&&t.classList.contains('hrcolor')){var rc=hRooms().filter(function(x){return x.id===t.getAttribute('data-i');})[0];if(rc&&/^#[0-9a-f]{6}$/i.test(t.value)){rc.c=t.value;save();t.blur();rr();}return;}
+  if(t&&t.classList&&t.classList.contains('hroom')){hRooms();var v=t.value,i=t.getAttribute('data-i');if(v)S.hroomOf[i]=v;else delete S.hroomOf[i];save();t.blur();return;}
   if(t&&t.classList&&t.classList.contains('hbri')){var id=t.getAttribute('data-i'),v=+t.value;t.blur();hSet(id,{bri:v});}});
 function act(a,t){
   var id=t.getAttribute('data-i')||'', T=today(), c, p, r, before=JSON.stringify(S);
@@ -1363,6 +1367,7 @@ function act(a,t){
   else if(a==='hall'){var on=t.getAttribute('data-on')==='1',g=hGroups((HS&&HS.devices)||[]).filter(function(x){return x.id===id;})[0];if(g)hSetMany(g.L.filter(function(d){return d.ok&&hOnOf(d)!==on;}),on);return;}
   else if(a==='hradd'){var nm=((document.getElementById('hrn')||{}).value||'').trim().slice(0,40);if(!nm){toast('Type a room name first.');return;}hRooms().push({id:'r'+Date.now().toString(36),name:nm});}
   else if(a==='hrdel'){hRooms();if(armed!=='hrdel'+id){armed='hrdel'+id;toast('Tap ✕ again to delete this room. Its devices move to Other.');return;}armed='';S.hrooms=S.hrooms.filter(function(r){return r.id!==id;});Object.keys(S.hroomOf).forEach(function(k){if(S.hroomOf[k]===id)delete S.hroomOf[k];});}
+  else if(a==='hrcol'){var rc=hRooms().filter(function(x){return x.id===id;})[0];if(rc)rc.c=t.getAttribute('data-c');}
   else if(a==='hrup'){var R=hRooms(),i=R.map(function(r){return r.id;}).indexOf(id);if(i>0){var x=R[i];R[i]=R[i-1];R[i-1]=x;}}
   else if(a==='sleep'){var s=document.createElement('div');s.className='slp';s.textContent='Tap to wake';s.onclick=function(){document.body.removeChild(s);};document.body.appendChild(s);return;}
   else if(a==='wk'){var n=parseInt(t.getAttribute('data-n'),10);if(!n){wkStart=iso(new Date());toNow=true;}
