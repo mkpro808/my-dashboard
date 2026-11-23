@@ -316,7 +316,7 @@ var STAR='<svg viewBox="0 0 32 32" width="1em" height="1em" style="vertical-alig
 
 var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
 function calName(c){return String(c).replace(/(^|[^A-Za-z\u02bb])Ohana\b/g,'$1ʻOhana');}
-var CALCOL={jericho:'#3b82f6',kahoku:'#a78bfa',ohana:'#7e22ce'};
+var CALCOL={jericho:'#3b82f6',kahoku:'#a78bfa',ohana:'#7e22ce',ekena:'#14b8a6'};
 var DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], H0=7, H1=22, PX=50, DEFTITLE='Sombrio ʻOhana';
 var dd='', gLabels=[], calHide=(function(){try{return JSON.parse(localStorage.getItem('calHide')||'{}')||{};}catch(e){return {};}})(), TK=null, tkSel='', api=/^https?:$/.test(location.protocol), ver=0, busy=false, dirty=false, failed=false, pushT=null, GE=[], gErr=[], gN=-1, toastT=null;
 var NAVX=false, tab='cal', edit=false, hist=false, trash=false, HF={p:'',r:'week'}, armed='', pick='', msg='', S, mo=null, wkStart=iso(new Date()), toNow=true;
