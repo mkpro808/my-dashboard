@@ -55,6 +55,15 @@ export async function onRequestPost({ env, request }) {
   if (!env.PHOTOS) return json({ error: "Photo storage isn't connected yet", code: "storage" }, 503);
   let b;
   try { b = await request.json(); } catch (e) { return json({ error: "Bad JSON" }, 400); }
+  if (b.op === "remove") {
+    const gen = await curGen(env.DB);
+    const ids = (Array.isArray(b.ids) ? b.ids : []).map(safeId).filter(Boolean).slice(0, 500);
+    if (!ids.length) return json({ error: "Nothing to remove" }, 400);
+    await env.PHOTOS.delete(ids.map((id) => "p/" + gen + "/" + id));
+    const stmts = ids.map((id) => env.DB.prepare("DELETE FROM photos WHERE gen = ? AND id = ?").bind(gen, id));
+    for (let i = 0; i < stmts.length; i += 50) await env.DB.batch(stmts.slice(i, i + 50));
+    return json(await status(env));
+  }
   const token = await accessToken(env);
   if (!token) return json({ error: "Connect Google first", code: "connect" }, 401);
   try {
