@@ -27,6 +27,7 @@ LOCKS = {}          # host -> asyncio.Lock
 BAD = set()         # hosts that failed their last check
 ITEMS = {}          # id -> (thing to switch, host of the device it lives on)
 UNSUPPORTED = []
+SKIPPED = set()      # hosts already reported as skipped (log once)
 STATE = {"devices": [], "ts": 0}
 
 
@@ -155,7 +156,13 @@ def rebuild():
                 items[ident(d)] = (d, host)
                 out.append(describe(d, host))
         except Exception as e:  # never checked yet, or login failed
-            log("skipping", host, type(e).__name__)
+            if host not in SKIPPED:
+                SKIPPED.add(host)
+                try:
+                    model = d.model
+                except Exception:
+                    model = "?"
+                log("skipping", host, model, "-", type(e).__name__, str(e)[:140])
     out.sort(key=lambda x: x["name"].lower())
     ITEMS.clear()
     ITEMS.update(items)
