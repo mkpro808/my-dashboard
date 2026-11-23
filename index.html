@@ -274,6 +274,24 @@ header{height:var(--hh);box-sizing:border-box}
 .tbtn{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.btnl{display:inline-block;padding:10px 14px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:inherit;text-decoration:none;font-weight:600}
 .trow{flex-wrap:wrap;gap:6px}.tft{display:block;font-size:13px;margin-top:2px}.tpick{display:block;text-align:left;margin:4px 0;width:100%;font-size:15px}.tset code{font-size:14px}
 @media (max-width:700px){.tgrid{grid-template-columns:1fr}.tmap iframe{height:380px}.tmin{font-size:48px}.lrow .lt{width:64px}}
+
+nav{overflow-y:auto}@media (max-height:820px) and (min-width:701px){.nb{min-height:66px;padding:8px 2px}}
+.hsec{font-size:15px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.04em;margin:14px 2px 8px}
+.hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.hcard{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:border-color .2s,background .2s}
+.hcard.on{border-color:#f4a261;background:linear-gradient(160deg,rgba(244,162,97,.18),var(--card) 70%)}
+.hcard.dead{opacity:.55}
+.hbtn{display:flex;align-items:center;gap:12px;width:100%;background:none;border:0;border-radius:0;margin:0;padding:14px 16px;min-height:74px;color:var(--ink);text-align:left;cursor:pointer;font:inherit}
+.hic{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--bg);color:var(--mute)}
+.hcard.on .hic{background:#f4a261;color:#fff;box-shadow:0 0 18px rgba(244,162,97,.55)}
+.hnm{flex:1;min-width:0}.hnm b{display:block;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hnm .sub{display:block;font-size:14px;margin-top:2px}
+.hsw{flex:none;width:52px;height:30px;border-radius:15px;background:var(--line);position:relative;transition:background .2s}
+.hsw:after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .2s}
+.hcard.on .hsw{background:#f4a261}.hcard.on .hsw:after{left:25px}
+.hcard.pend .hsw{opacity:.6}
+.hbr{display:flex;align-items:center;gap:10px;padding:0 16px 14px}#app .hbr input{flex:1;-webkit-appearance:none;appearance:none;height:8px;min-height:0;padding:0;border:0;box-sizing:border-box;border-radius:4px;margin:10px 0;background:linear-gradient(to right,#f4a261 var(--v,50%),var(--line) var(--v,50%))}.hbr input::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid #f4a261;box-shadow:0 1px 4px rgba(0,0,0,.3)}.hbr input::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:2px solid #f4a261}.hbr input:disabled{opacity:.5}.hbr span{font-size:14px;color:var(--mute);min-width:40px;text-align:right}
+.hstat{font-size:15px;color:var(--mute);margin:2px 2px 6px}.hstat.warn{color:#d97706}
+@media (max-width:700px){.hgrid{grid-template-columns:1fr 1fr;gap:10px}.hbtn{flex-wrap:wrap;gap:8px;padding:12px;min-height:0}.hic{width:38px;height:38px}.hnm{flex-basis:100%;order:3}.hnm b{font-size:17px}.hsw{margin-left:auto}.hbr{padding:0 12px 12px}}
 </style>
 </head>
 <body>
@@ -283,8 +301,8 @@ header{height:var(--hh);box-sizing:border-box}
 <script>
 var KEY='chorestars.v2', COLORS=['#f59e0b','#3b82f6','#ec4899','#10b981','#8b5cf6','#ef4444'];
 var SHORT={show:'Photos',cal:'Calendar',rem:'Remind'};
-var TABS=[['show','Slideshow'],['cal','Calendar'],['wx','Weather'],['traffic','Traffic'],['chores','Chores'],['tasks','Lists'],['rem','Reminders'],['pomo','Pomodoro']];
-var ICON={show:'<rect x="7" y="8.5" width="22" height="18" rx="3" fill="var(--ic)"/><rect x="4" y="6" width="22" height="18" rx="3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M4.5 20l6-6 4.5 4.5 3-3 7.5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="19.5" cy="11.5" r="2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',pomo:'<ellipse cx="17.5" cy="20" rx="11" ry="9.5" fill="var(--ic)"/><ellipse cx="15.5" cy="18" rx="11" ry="9.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M15.5 8.5c-1.6-2.2-4.2-2.6-6.2-2M15.5 8.5c1.6-2.2 4.2-2.6 6.2-2M15.5 8.5V4.5M15.5 13.5v4.5l3 2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',cal:'<rect x="7.5" y="9.5" width="21" height="19" rx="4" fill="var(--ic)"/><rect x="4.5" y="7" width="21" height="19.5" rx="4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M4.5 13h21M10 4.5v5M20 4.5v5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M10 18.5h.1M15 18.5h.1M20 18.5h.1M10 22.5h.1M15 22.5h.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-width="2.8"/>',chores:'<polygon points="17.5,6.0 20.6,13.8 28.9,14.3 22.4,19.6 24.6,27.7 17.5,23.2 10.4,27.7 12.6,19.6 6.1,14.3 14.4,13.8" fill="var(--ic)"/><polygon points="15.5,4.0 18.6,11.8 26.9,12.3 20.4,17.6 22.6,25.7 15.5,21.2 8.4,25.7 10.6,17.6 4.1,12.3 12.4,11.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',tasks:'<rect x="8.5" y="8.5" width="19" height="21" rx="3.5" fill="var(--ic)"/><rect x="5.5" y="6" width="19" height="21.5" rx="3.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M11 4.5h8v4h-8z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M9.5 14.5l2 2 3.5-3.5M9.5 21.5l2 2 3.5-3.5M18 15.5h3M18 22.5h3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',rem:'<path d="M18 7.5c4.6 0 7.5 3.4 7.5 8v4.5l2.5 4H8l2.5-4V15.5c0-4.6 2.9-8 7.5-8z" fill="var(--ic)"/><path d="M15.5 5.5c4.6 0 7.5 3.4 7.5 8V18l2.5 4H5.5L8 18v-4.5c0-4.6 2.9-8 7.5-8zM12.5 25.5a3 3 0 0 0 6 0M15.5 3v2.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',sleep:'<path d="M23.5 21.5A10 10 0 0 1 13 7.5a10 10 0 1 0 12.5 12.6" fill="var(--ic)" transform="translate(2.5 2)"/><path d="M23.5 21.5A10 10 0 0 1 13 7.5a10 10 0 1 0 12.5 12.6z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M23 5v4M21 7h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-width="1.8"/>'};
+var TABS=[['show','Slideshow'],['cal','Calendar'],['wx','Weather'],['traffic','Traffic'],['home','Home'],['chores','Chores'],['tasks','Lists'],['rem','Reminders'],['pomo','Pomodoro']];
+var ICON={hub:'<path d="M18 6.5a8 8 0 0 1 5 14.2c-1 .8-1.5 1.8-1.5 3v1.3h-7v-1.3c0-1.2-.5-2.2-1.5-3a8 8 0 0 1 5-14.2z" fill="var(--ic)"/><path d="M15.5 4a8 8 0 0 1 5 14.2c-1 .8-1.5 1.8-1.5 3v1.3h-7v-1.3c0-1.2-.5-2.2-1.5-3a8 8 0 0 1 5-14.2zM12 26.5h7M13.5 29.5h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',show:'<rect x="7" y="8.5" width="22" height="18" rx="3" fill="var(--ic)"/><rect x="4" y="6" width="22" height="18" rx="3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M4.5 20l6-6 4.5 4.5 3-3 7.5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="19.5" cy="11.5" r="2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',pomo:'<ellipse cx="17.5" cy="20" rx="11" ry="9.5" fill="var(--ic)"/><ellipse cx="15.5" cy="18" rx="11" ry="9.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M15.5 8.5c-1.6-2.2-4.2-2.6-6.2-2M15.5 8.5c1.6-2.2 4.2-2.6 6.2-2M15.5 8.5V4.5M15.5 13.5v4.5l3 2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',cal:'<rect x="7.5" y="9.5" width="21" height="19" rx="4" fill="var(--ic)"/><rect x="4.5" y="7" width="21" height="19.5" rx="4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M4.5 13h21M10 4.5v5M20 4.5v5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M10 18.5h.1M15 18.5h.1M20 18.5h.1M10 22.5h.1M15 22.5h.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-width="2.8"/>',chores:'<polygon points="17.5,6.0 20.6,13.8 28.9,14.3 22.4,19.6 24.6,27.7 17.5,23.2 10.4,27.7 12.6,19.6 6.1,14.3 14.4,13.8" fill="var(--ic)"/><polygon points="15.5,4.0 18.6,11.8 26.9,12.3 20.4,17.6 22.6,25.7 15.5,21.2 8.4,25.7 10.6,17.6 4.1,12.3 12.4,11.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',tasks:'<rect x="8.5" y="8.5" width="19" height="21" rx="3.5" fill="var(--ic)"/><rect x="5.5" y="6" width="19" height="21.5" rx="3.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M11 4.5h8v4h-8z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M9.5 14.5l2 2 3.5-3.5M9.5 21.5l2 2 3.5-3.5M18 15.5h3M18 22.5h3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',rem:'<path d="M18 7.5c4.6 0 7.5 3.4 7.5 8v4.5l2.5 4H8l2.5-4V15.5c0-4.6 2.9-8 7.5-8z" fill="var(--ic)"/><path d="M15.5 5.5c4.6 0 7.5 3.4 7.5 8V18l2.5 4H5.5L8 18v-4.5c0-4.6 2.9-8 7.5-8zM12.5 25.5a3 3 0 0 0 6 0M15.5 3v2.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',sleep:'<path d="M23.5 21.5A10 10 0 0 1 13 7.5a10 10 0 1 0 12.5 12.6" fill="var(--ic)" transform="translate(2.5 2)"/><path d="M23.5 21.5A10 10 0 0 1 13 7.5a10 10 0 1 0 12.5 12.6z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M23 5v4M21 7h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-width="1.8"/>'};
 function ico(k,sz){return '<svg viewBox="0 0 32 32" width="'+(sz||30)+'" height="'+(sz||30)+'" aria-hidden="true">'+ICON[k]+'</svg>';}
 var STAR='<svg viewBox="0 0 32 32" width="1em" height="1em" style="vertical-align:-0.12em" aria-hidden="true"><polygon points="16.0,3.5 19.3,12.0 28.4,12.5 21.3,18.2 23.6,27.0 16.0,22.1 8.4,27.0 10.7,18.2 3.6,12.5 12.7,12.0" fill="var(--ic)" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>';
 
@@ -1239,25 +1257,83 @@ function vChores(){
 
 function render(){
   var h='',a='';
-  TABS.forEach(function(t){h+='<button class="nb'+(t[0]===tab?' on':'')+'" data-a="tab" data-i="'+t[0]+'"><b>'+ico(t[0])+'</b>'+(t[0]==='pomo'?'<span id="pnav">'+(P.running?mmss(pLeft()):t[1])+'</span>':(SHORT[t[0]]?'<span class="lf">'+t[1]+'</span><span class="ls">'+SHORT[t[0]]+'</span>':t[1]))+'</button>';});
+  TABS.forEach(function(t){h+='<button class="nb'+(t[0]===tab?' on':'')+'" data-a="tab" data-i="'+t[0]+'"><b>'+ico(t[0]==='home'?'hub':t[0])+'</b>'+(t[0]==='pomo'?'<span id="pnav">'+(P.running?mmss(pLeft()):t[1])+'</span>':(SHORT[t[0]]?'<span class="lf">'+t[1]+'</span><span class="ls">'+SHORT[t[0]]+'</span>':t[1]))+'</button>';});
   h+='<button class="nb" data-a="sleep" style="margin-top:auto"><b>'+ico('sleep')+'</b>Sleep</button>';
   document.getElementById('nav').innerHTML=h;
   // The script font has no ʻokina, so draw one (a small filled 6 shape); the real ʻokina stays for screen readers and copying.
   var tt=S.title||DEFTITLE,te=document.getElementById('ttl'),th=esc(tt).replace(/\u02bb/g,'<span class="okr">\u02bb</span><svg class="okv" viewBox="0 0 10 16" aria-hidden="true"><circle cx="5.2" cy="11.6" r="3.4"/><path d="M2.1 10.6C1.7 6.3 3.6 2.7 7.9.7l.8 1.3C6 3.9 4.8 6.6 5.1 9.6z"/></svg>');if(te.innerHTML!==th)te.innerHTML=th;
-  document.getElementById('app').innerHTML=tab==='cal'?vCal():tab==='wx'?vWeather():tab==='traffic'?vTraffic():tab==='tasks'?vTasks():tab==='rem'?vRem():tab==='pomo'?vPomo():vChores();
+  document.getElementById('app').innerHTML=tab==='cal'?vCal():tab==='wx'?vWeather():tab==='traffic'?vTraffic():tab==='home'?vHome():tab==='tasks'?vTasks():tab==='rem'?vRem():tab==='pomo'?vPomo():vChores();
   if(tab==='traffic')trMount();
   document.getElementById('ovl').innerHTML=vModal();if(mo&&mo.ss){phStatus();if(mo.pick&&mo.uri)drawQR(mo.uri);}
   if(tab==='cal'&&toNow){toNow=false;var m=document.getElementById('mn'),n=new Date();m.scrollTop=(/^[1347]$/.test(calView)&&window.innerWidth>=700)?Math.max(0,((n.getHours()-H0-1)*PX)+12):0;}
 }
 
 function openMo(e,d){mo=e?{id:e.id,title:e.title,date:e.date,time:e.time||'',end:e.end||'',who:e.who||''}:{id:'',title:'',date:d,time:'',end:'',who:''};}
+
+// ---- Home tab: Kasa devices via the tablet's helper (hub/kasa_hub.py) ----
+var HUBU='http://127.0.0.1:8738', HS=null, HNOW=0, HLOC=false, HFAIL=0, HPEND={}, HDONE=0, HSIG='', HPUSH=0, HBUSY=false, HPROBE=0;
+var HICON={bulb:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 1 3.8 10.6c-.7.6-1.1 1.4-1.1 2.3V16H9.3v-.1c0-.9-.4-1.7-1.1-2.3A6 6 0 0 1 12 3z"/></svg>',
+  plug:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4"/></svg>',
+  switch:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="3"/><path d="M12 7v5"/></svg>'};
+function hubF(p,b){return fetch(HUBU+p,{method:b?'POST':'GET',cache:'no-store',headers:b?{'X-Ohana':'1','Content-Type':'application/json'}:{'X-Ohana':'1'},body:b?JSON.stringify(b):undefined})
+  .then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||'hub');return j;});});}
+function homeAPI(b){return fetch('/api/home',{method:'POST',cache:'no-store',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(function(r){return r.json();});}
+function hRedraw(){if(tab==='home'&&!busyUI()&&!document.getElementById('ss'))rr();}
+function hubHere(){var u=navigator.userAgent;try{if(localStorage.getItem('hubHere')==='0')return false;}catch(e){}return /Android/.test(u)&&!/Mobile/.test(u);}
+function hProbe(){if(!api||HLOC||!hubHere())return;HPROBE=Date.now();hubF('/state').then(function(s){HLOC=true;HFAIL=0;HS=s;HNOW=Date.now();hRedraw();}).catch(function(){});}
+function hubTick(){
+  if(!HLOC||HBUSY)return;HBUSY=true;
+  hubF('/state').then(function(s){
+    HFAIL=0;HS=s;HNOW=Date.now();
+    var sig=JSON.stringify(s.devices),push=sig!==HSIG||Date.now()-HPUSH>60000,b={done:HDONE};
+    if(push)b.state=s;
+    hClear();hRedraw();
+    return homeAPI(b).then(function(j){if(push){HSIG=sig;HPUSH=Date.now();}
+      var todo=(j.cmds||[]).filter(function(c){return c.n>HDONE;}).sort(function(a,b){return a.n-b.n;});
+      return todo.reduce(function(pr,c){return pr.then(function(){HDONE=Math.max(HDONE,c.n);var o={id:c.id};if(c.on!=null)o.on=c.on;if(c.bri!=null)o.bri=c.bri;
+        return hubF('/set',o).then(function(s2){HS=s2;HNOW=Date.now();}).catch(function(){});});},Promise.resolve()).then(function(){if(todo.length)hRedraw();});});
+  }).catch(function(){if(++HFAIL>=3){HLOC=false;hRedraw();}}).then(function(){HBUSY=false;});}
+function homeLoad(){
+  if(!api)return;
+  if(HLOC){hubTick();return;}
+  getJSON('/api/home').then(function(x){if(x.s!==200)return;HS=x.j.state;HNOW=x.j.now;hClear();hRedraw();}).catch(function(){});}
+function hClear(){var D=(HS&&HS.devices)||[],n=Date.now();Object.keys(HPEND).forEach(function(id){var p=HPEND[id],d=D.filter(function(x){return x.id===id;})[0];
+  var done=d&&(p.on==null||d.on===p.on)&&(p.bri==null||d.bri===p.bri);
+  if(done)delete HPEND[id];else if(n-p.t>25000){delete HPEND[id];toast('“'+(d?d.name:'That device')+'” didn’t respond. Check the tablet at home.',6000);}});}
+function hSet(id,o){var p=HPEND[id]||{};p.t=Date.now();if(o.on!=null)p.on=o.on;if(o.bri!=null)p.bri=o.bri;HPEND[id]=p;rr();
+  var b={id:id};if(o.on!=null)b.on=o.on;if(o.bri!=null)b.bri=o.bri;
+  if(HLOC){hubF('/set',b).then(function(s){HS=s;HNOW=Date.now();delete HPEND[id];hRedraw();HSIG='';})
+    .catch(function(e){delete HPEND[id];toast('That device didn’t respond.',5000);hRedraw();});return;}
+  homeAPI({cmd:b}).then(function(j){if(!j||!j.ok){delete HPEND[id];toast('Couldn’t send that. Try again.',5000);hRedraw();}else setTimeout(homeLoad,1500);})
+    .catch(function(){delete HPEND[id];toast('Couldn’t send that. Try again.',5000);hRedraw();});}
+function hAgo(ms){var s=Math.round(ms/1000);return s<90?'just now':s<5400?Math.round(s/60)+' min ago':Math.round(s/3600)+' hr ago';}
+function hCard(d){var p=HPEND[d.id],on=p&&p.on!=null?p.on:d.on,bri=p&&p.bri!=null?p.bri:d.bri,k=HICON[d.kind]?d.kind:'plug';
+  var grp=d.group&&!/^TP-LINK/i.test(d.group)?d.group:'';var sub=!d.ok?'Not responding':(grp?esc(grp):'')+(bri!=null&&on?(grp?' · ':'')+bri+'%':'')||(on?'On':'Off');
+  var h='<div class="hcard'+(on?' on':'')+(d.ok?'':' dead')+(p?' pend':'')+'"><button class="hbtn" data-a="hon" data-i="'+esc(d.id)+'" aria-pressed="'+!!on+'"><span class="hic">'+HICON[k]+'</span><span class="hnm"><b>'+esc(d.name)+'</b><span class="sub">'+sub+'</span></span><span class="hsw"></span></button>';
+  if(bri!=null)h+='<div class="hbr"><input type="range" class="hbri" min="1" max="100" value="'+bri+'" style="--v:'+bri+'%" data-i="'+esc(d.id)+'" aria-label="Brightness for '+esc(d.name)+'"'+(on&&d.ok?'':' disabled')+'><span>'+bri+'%</span></div>';
+  return h+'</div>';}
+function vHome(){
+  var h='<div class="top"><h1>Home</h1></div>',D=(HS&&HS.devices)||[];
+  if(!api)return h+'<p class="hint">Open the dashboard from its web address to control devices.</p>';
+  if(!HS){
+    return h+'<div class="rw"><p style="margin:0 0 8px"><b>Waiting for the tablet at home.</b></p><p class="hint" style="margin:0">The tablet runs a small helper (in the Termux app) that switches your Kasa devices. Once it’s running and this dashboard is open on the tablet, your devices appear here, on every phone too.</p></div>';}
+  var age=HLOC?0:Math.max(0,HNOW-(HS.seen||0)),on=D.filter(function(d){return d.on;}).length;
+  h+='<p class="hstat'+(age>120000?' warn':'')+'">'+(HLOC?'This tablet is the hub':age>120000?'The tablet last checked in '+hAgo(age)+'. Is the dashboard open on it, and the helper running?':'Connected through the tablet at home')+' · '+on+' of '+D.length+' on</p>';
+  var L=D.filter(function(d){return d.kind==='bulb'||d.bri!=null;}),P=D.filter(function(d){return !(d.kind==='bulb'||d.bri!=null);});
+  if(L.length)h+='<div class="hsec">Lights</div><div class="hgrid">'+L.map(hCard).join('')+'</div>';
+  if(P.length)h+='<div class="hsec">Plugs</div><div class="hgrid">'+P.map(hCard).join('')+'</div>';
+  if(!D.length)h+='<p class="hint">The helper is running but hasn’t found any devices yet.</p>';
+  return h;}
+document.addEventListener('input',function(e){var t=e.target;if(t&&t.classList&&t.classList.contains('hbri')){var s=t.parentNode.querySelector('span');if(s)s.textContent=t.value+'%';t.style.setProperty('--v',t.value+'%');}});
+document.addEventListener('change',function(e){var t=e.target;if(t&&t.classList&&t.classList.contains('hbri')){var id=t.getAttribute('data-i'),v=+t.value;t.blur();hSet(id,{bri:v});}});
 function act(a,t){
   var id=t.getAttribute('data-i')||'', T=today(), c, p, r, before=JSON.stringify(S);
   if(a!=='tog'&&a!=='who')msg='';
   if(a!=='delp'&&a!=='tempty'&&a!=='shclr')armed='';
   var hadDD=!!dd;if(a!=='dd'&&a!=='ctog'&&a!=='call')dd='';
   if(a==='tab'&&id==='show'){ssOpen();return;}
-  if(a==='tab'){tab=id;edit=false;hist=false;trash=false;remEdit='';TAE={id:'',w:'',res:null,q:''};pick='';WQR=null;TGR=null;toNow=(id==='cal');if(id==='tasks'||id==='chores')tasksLoad();}
+  if(a==='tab'){tab=id;edit=false;hist=false;trash=false;remEdit='';TAE={id:'',w:'',res:null,q:''};pick='';WQR=null;TGR=null;toNow=(id==='cal');if(id==='tasks'||id==='chores')tasksLoad();if(id==='home')homeLoad();}
+  else if(a==='hon'){var hd=((HS&&HS.devices)||[]).filter(function(x){return x.id===id;})[0];if(!hd)return;var hp=HPEND[id],cur=hp&&hp.on!=null?hp.on:hd.on;hSet(id,{on:!cur});return;}
   else if(a==='sleep'){var s=document.createElement('div');s.className='slp';s.textContent='Tap to wake';s.onclick=function(){document.body.removeChild(s);};document.body.appendChild(s);return;}
   else if(a==='wk'){var n=parseInt(t.getAttribute('data-n'),10);if(!n){wkStart=iso(new Date());toNow=true;}
     else if(calView==='m'){var fm=new Date(firstOfMonth(wkStart)+'T12:00:00');fm.setMonth(fm.getMonth()+n);wkStart=iso(fm);}
@@ -1402,6 +1478,7 @@ S=load();render();clock();wx();pull(true);gcal();tasksLoad();photosLoad();
 setInterval(clock,1000);setInterval(idleCheck,15000);setInterval(ssClock,15000);setInterval(pTick,250);setInterval(gcal,600000);setInterval(function(){pull(false);},20000);
 document.addEventListener('visibilitychange',function(){if(!document.hidden){pull(false);gcal();tasksLoad();wx();}});
 setInterval(function(){if(!document.hidden)tasksLoad();},60000);
+setInterval(function(){if(HLOC)hubTick();else if(tab==='home'&&!document.hidden)homeLoad();if(!HLOC&&Date.now()-HPROBE>60000)hProbe();},3000);hProbe();
 setInterval(function(){if(tab==='cal'&&!busyUI())rr();},300000);
 setInterval(function(){if(tab==='traffic'&&!document.hidden&&!document.getElementById('ss'))trAll();},60000);
 </script>
