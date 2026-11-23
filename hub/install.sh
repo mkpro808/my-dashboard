@@ -18,6 +18,17 @@ while true; do
 done
 RUN
 chmod 700 "$PREFIX/bin/ohana-hub"
+cat > "$PREFIX/bin/ohana-login" <<'LOGIN'
+#!/data/data/com.termux/files/usr/bin/bash
+# Saves the Kasa (TP-Link) login the hub uses. Special characters are kept exactly.
+printf "Kasa email: "; read -r U
+printf "Kasa password (hidden as you type): "; stty -echo; read -r P; stty echo; echo
+umask 077
+{ printf "export KASA_USERNAME=%q\n" "$U"; printf "export KASA_PASSWORD=%q\n" "$P"; } > "$HOME/.ohana-hub.env"
+unset U P
+echo "Saved. Now start the helper again with:  ohana-hub"
+LOGIN
+chmod 700 "$PREFIX/bin/ohana-login"
 mkdir -p "$HOME/.termux/boot"
 cat > "$HOME/.termux/boot/ohana-hub" <<'BOOT'
 #!/data/data/com.termux/files/usr/bin/sh
