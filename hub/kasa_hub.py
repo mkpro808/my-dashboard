@@ -10,6 +10,7 @@ normally set in ~/.ohana-hub.env. Nothing is sent anywhere except to the
 devices themselves.
 """
 import asyncio
+import json
 import os
 import sys
 import time
@@ -29,6 +30,24 @@ ITEMS = {}          # id -> (thing to switch, host of the device it lives on)
 UNSUPPORTED = []
 SKIPPED = set()      # hosts already reported as skipped (log once)
 STATE = {"devices": [], "ts": 0}
+TIMERS = {}         # id -> time (seconds) to switch it off
+TFILE = os.path.expanduser("~/.ohana-timers.json")
+
+
+def load_timers():
+    try:
+        with open(TFILE) as f:
+            TIMERS.update({k: float(v) for k, v in json.load(f).items()})
+    except Exception:
+        pass
+
+
+def save_timers():
+    try:
+        with open(TFILE, "w") as f:
+            json.dump(TIMERS, f)
+    except Exception as e:
+        log("couldn't save timers:", e)
 
 
 def log(*a):
@@ -89,6 +108,8 @@ def describe(d, host, parent=None):
     if parent is not None:
         it["kind"] = "plug"
         it["group"] = parent.alias or parent.model
+    if it["id"] in TIMERS:
+        it["offAt"] = int(TIMERS[it["id"]] * 1000)
     lt = light_of(d)
     if lt is not None:
         try:
@@ -220,6 +241,35 @@ async def loop():
         await asyncio.sleep(REFRESH)
 
 
+async def timer_loop():
+    while True:
+        await asyncio.sleep(5)
+        now = time.time()
+        for tid, at in list(TIMERS.items()):
+            if now < at:
+                continue
+            hit = ITEMS.get(tid)
+            if not hit:
+                if now - at > 300:          # device gone for 5 minutes: give up
+                    TIMERS.pop(tid, None)
+                    save_timers()
+                continue
+            thing, host = hit
+            try:
+                async with LOCKS[host]:
+                    await asyncio.wait_for(thing.turn_off(), 10)
+                    await asyncio.wait_for(DEVS[host].update(), 10)
+                TIMERS.pop(tid, None)
+                save_timers()
+                log("timer: turned off", thing.alias)
+                rebuild()
+            except Exception as e:
+                log("timer: couldn't turn off", getattr(thing, "alias", tid), "-", type(e).__name__)
+                if now - at > 300:
+                    TIMERS.pop(tid, None)
+                    save_timers()
+
+
 @web.middleware
 async def guard(req, handler):
     if req.method == "OPTIONS":
@@ -263,11 +313,20 @@ async def set_(req):
                 lt = light_of(thing)
                 if lt is not None:
                     await asyncio.wait_for(lt.set_brightness(max(1, min(100, int(b["bri"])))), 10)
+            if b.get("timer") is not None:
+                mins = max(0, min(720, int(b["timer"])))
+                if mins:
+                    TIMERS[str(b["id"])] = time.time() + mins * 60
+                else:
+                    TIMERS.pop(str(b["id"]), None)
+                save_timers()
             if b.get("on") is not None:
                 await asyncio.wait_for(thing.turn_on() if b["on"] else thing.turn_off(), 10)
+                if not b["on"] and TIMERS.pop(str(b["id"]), None) is not None:
+                    save_timers()
             await asyncio.wait_for(DEVS[host].update(), 10)
             BAD.discard(host)
-            log("set", thing.alias, {k: b[k] for k in ("on", "bri") if b.get(k) is not None})
+            log("set", thing.alias, {k: b[k] for k in ("on", "bri", "timer") if b.get(k) is not None})
         except Exception as e:
             BAD.add(host)
             log("couldn't switch", getattr(thing, "alias", host), "-", type(e).__name__, str(e)[:120])
@@ -279,6 +338,7 @@ async def set_(req):
 
 async def main():
     user, _ = login()
+    load_timers()
     log("ʻOhana hub starting", "(with Kasa login)" if user else "(no Kasa login set)")
     await discover()
     for x in STATE["devices"]:
@@ -298,6 +358,7 @@ async def main():
     await runner.setup()
     await web.TCPSite(runner, "127.0.0.1", PORT).start()
     log("ready on http://127.0.0.1:%d  (leave this running)" % PORT)
+    asyncio.ensure_future(timer_loop())
     await loop()
 
 

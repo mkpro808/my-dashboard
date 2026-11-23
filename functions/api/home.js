@@ -37,9 +37,10 @@ export async function onRequestPost({ env, request }) {
       if (!out.id) continue;
       if (typeof c.on === "boolean") out.on = c.on;
       if (c.bri != null) out.bri = Math.max(1, Math.min(100, Math.round(+c.bri) || 1));
-      if (out.on == null && out.bri == null) continue;
+      if (c.timer != null) out.timer = Math.max(0, Math.min(720, Math.round(+c.timer) || 0));
+      if (out.on == null && out.bri == null && out.timer == null) continue;
       q.n = (q.n || 0) + 1; out.n = q.n; added++;
-      q.list = q.list.filter((x) => x.id !== out.id || (out.on == null) !== (x.on == null)).concat(out);
+      q.list = q.list.filter((x) => x.id !== out.id || (out.on == null) !== (x.on == null) || (out.timer == null) !== (x.timer == null)).concat(out);
     }
     if (!added) return json({ error: "Nothing to change" }, 400);
     q.list = q.list.slice(-60);

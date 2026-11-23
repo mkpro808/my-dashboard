@@ -298,6 +298,7 @@ nav{overflow-y:auto}@media (max-height:820px) and (min-width:701px){.nb{min-heig
 .hsens .hbtn{cursor:default;box-sizing:border-box}.hval{font-size:30px;font-weight:800;letter-spacing:-.02em;margin-left:auto;color:var(--ink)}.hopen{border-color:#e07a5f}.hopen .hval{color:#e07a5f}.hlow{color:#d97706!important}.hrtmp{display:inline-flex;align-items:center;gap:3px;font-size:16px;font-weight:700;color:var(--ink);background:var(--card);border-radius:12px;padding:3px 10px 3px 6px;white-space:nowrap}.hrtmp svg{width:18px;height:18px;color:var(--rc)}#app .hs-m .hval{font-size:24px}#app .hs-s .hval{font-size:19px}@media (max-width:700px){.hval{font-size:24px}.hrtmp{font-size:14px}}
 @media (max-width:700px){#app .hgrid.hs-m,#app .hgrid.hs-s{grid-template-columns:1fr 1fr}.hrhd{flex-wrap:wrap;row-gap:6px}.hrnm{flex-shrink:0;max-width:100%}}
 #app .shopg{display:block;columns:3 300px;column-gap:12px}#app .shsec{break-inside:avoid;-webkit-column-break-inside:avoid;margin:0 0 12px;display:block}#app .shopst,#app .shfor,#app .usuals{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}#app .shopst::-webkit-scrollbar,#app .shfor::-webkit-scrollbar,#app .usuals::-webkit-scrollbar{display:none}#app .shopst{gap:8px;margin-bottom:10px}#app .shopst .wb{flex:none;min-height:40px;padding:4px 14px;font-size:16px;margin:0}#app .usuals{margin:0 0 8px;gap:6px}#app .usuals .ub,#app .shfor .nf{flex:none;min-height:34px;padding:3px 12px;font-size:14px;margin:0}#app .shfor{margin-top:6px}.batog b{font-size:12px;background:rgba(0,0,0,.08);border-radius:9px;padding:0 6px;margin-left:2px}.batog.on{border-color:var(--acc)}#app .shopit{min-height:44px;padding-top:4px;padding-bottom:4px}#app .shopit .cn{font-size:17px}#app .shopit .chk{width:26px;height:26px}#app .smv{min-height:28px;padding:2px 9px;font-size:12px;border-radius:14px;gap:5px;margin-right:4px}#app .shopit .x{min-height:30px;min-width:30px;width:30px;height:30px;padding:0;font-size:14px;opacity:.6}#app .shsec{padding:6px 8px}#app .shh{margin:2px 4px 4px}
+.htr{display:flex;align-items:center;gap:6px;padding:0 16px 10px;margin-top:-4px}.htb,.htx{display:inline-flex;align-items:center;gap:5px;min-height:30px;padding:2px 10px;margin:0;font-size:13px;border-radius:15px;color:var(--mute)}.htb.on{border-color:var(--acc);color:var(--ink)}.htb:disabled{opacity:.4}.htl{display:inline-flex;align-items:center;gap:5px;font-size:14px;white-space:nowrap;font-weight:700;color:#6d5bd0;flex:1}.htp{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:0 16px 12px}.htp .sub{font-size:13px;width:100%}.htp button{min-height:34px;padding:2px 12px;margin:0;font-size:14px;border-radius:17px}#app .hs-m .htr,#app .hs-m .htp{padding-left:12px;padding-right:12px}#app .hs-s .htr,#app .hs-s .htp{padding-left:10px;padding-right:10px}#app .hs-s .htb,#app .hs-s .htx{font-size:12px;min-height:26px;padding:1px 8px}
 </style>
 </head>
 <body>
@@ -1284,6 +1285,7 @@ function openMo(e,d){mo=e?{id:e.id,title:e.title,date:e.date,time:e.time||'',end
 var HUBU='http://127.0.0.1:8738', HS=null, HNOW=0, HLOC=false, HFAIL=0, HPEND={}, HDONE=0, HSIG='', HPUSH=0, HBUSY=false, HPROBE=0;
 var HICON={bulb:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 1 3.8 10.6c-.7.6-1.1 1.4-1.1 2.3V16H9.3v-.1c0-.9-.4-1.7-1.1-2.3A6 6 0 0 1 12 3z"/></svg>',
   plug:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4"/></svg>',
+  moon:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
   therm:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4a2 2 0 0 1 4 0v10.5a4 4 0 1 1-4 0z"/><path d="M12 10v7"/></svg>',
   door:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17M4 21h16M14 12h.01"/></svg>',
   switch:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="3"/><path d="M12 7v5"/></svg>'};
@@ -1302,7 +1304,7 @@ function hubTick(){
     hClear();hRedraw();
     return homeAPI(b).then(function(j){if(push){HSIG=sig;HPUSH=Date.now();}
       var todo=(j.cmds||[]).filter(function(c){return c.n>HDONE;}).sort(function(a,b){return a.n-b.n;});
-      return todo.reduce(function(pr,c){return pr.then(function(){HDONE=Math.max(HDONE,c.n);var o={id:c.id};if(c.on!=null)o.on=c.on;if(c.bri!=null)o.bri=c.bri;
+      return todo.reduce(function(pr,c){return pr.then(function(){HDONE=Math.max(HDONE,c.n);var o={id:c.id};if(c.on!=null)o.on=c.on;if(c.bri!=null)o.bri=c.bri;if(c.timer!=null)o.timer=c.timer;
         return hubF('/set',o).then(function(s2){HS=s2;HNOW=Date.now();}).catch(function(){});});},Promise.resolve()).then(function(){if(todo.length)hRedraw();});});
   }).catch(function(){if(++HFAIL>=3){HLOC=false;hRedraw();}}).then(function(){HBUSY=false;});}
 function homeLoad(){
@@ -1347,6 +1349,12 @@ function vHomeEdit(D){var R=hRooms(),h='<div class="rw"><div class="rt">Card siz
     R.map(function(r){return '<option value="'+esc(r.id)+'"'+(cur===r.id?' selected':'')+'>'+esc(r.name)+'</option>';}).join('')+'</select></div>';});
   h+='<p class="hint" style="margin:8px 0 0">Room names change as you type. Rooms are shared with everyone’s dashboard.</p></div>';
   return h;}
+var HTMR='';
+function hTimer(id,m){var d=((HS&&HS.devices)||[]).filter(function(x){return x.id===id;})[0],nm=d?d.name:'It';HTMR='';
+  var done=function(){toast(m?nm+' turns off in '+m+' min.':'Timer canceled for '+nm+'.',4000);};
+  if(HLOC){hubF('/set',{id:id,timer:m}).then(function(s){HS=s;HNOW=Date.now();HSIG='';done();hRedraw();}).catch(function(){toast('That device didn’t respond.',5000);hRedraw();});return;}
+  homeAPI({cmd:{id:id,timer:m}}).then(function(j){if(j&&j.ok){done();setTimeout(homeLoad,1500);}else toast('Couldn’t send that. Try again.',5000);}).catch(function(){toast('Couldn’t send that. Try again.',5000);});rr();}
+function hLeft(d){if(!d.offAt)return '';var ms=d.offAt-Date.now();if(ms<=0)return 'Turning off…';var m=Math.ceil(ms/60000);return 'Off in '+(m>=60?Math.floor(m/60)+' hr'+(m%60?' '+m%60+' min':''):m+' min');}
 function hAgo(ms){var s=Math.round(ms/1000);return s<90?'just now':s<5400?Math.round(s/60)+' min ago':Math.round(s/3600)+' hr ago';}
 function hTemp(d){if(d.temp==null)return null;var f=d.unit==='C'?d.temp*9/5+32:d.temp;return Math.round(f*10)/10;}
 function hSensorCard(d){var t=hTemp(d),door=d.open!=null&&t==null,big=t!=null?t+'°':door?(d.open?'Open':'Closed'):'–';
@@ -1356,6 +1364,8 @@ function hIsSw(d){return d.kind!=='sensor';}
 function hCard(d){if(d.kind==='sensor')return hSensorCard(d);var p=HPEND[d.id],on=p&&p.on!=null?p.on:d.on,bri=p&&p.bri!=null?p.bri:d.bri,k=HICON[d.kind]?d.kind:'plug';
   var grp=d.group&&!/^TP-LINK/i.test(d.group)?d.group:'';var sub=!d.ok?'Not responding':(grp?esc(grp):'')+(bri!=null&&on?(grp?' · ':'')+bri+'%':'')||(on?'On':'Off');
   var h='<div class="hcard'+(on?' on':'')+(d.ok?'':' dead')+(p?' pend':'')+'"><button class="hbtn" data-a="hon" data-i="'+esc(d.id)+'" aria-pressed="'+!!on+'"><span class="hic">'+HICON[k]+'</span><span class="hnm"><b>'+esc(d.name)+'</b><span class="sub">'+sub+'</span></span><span class="hsw"></span></button>';
+  var tl=hLeft(d);if(tl||(on&&d.ok))h+='<div class="htr">'+(tl?'<span class="htl">'+HICON.moon+tl+'</span><button class="htx" data-a="htset" data-i="'+esc(d.id)+'" data-m="0">Cancel</button>':'<button class="htb'+(HTMR===d.id?' on':'')+'" data-a="htopen" data-i="'+esc(d.id)+'"'+(on&&d.ok?'':' disabled')+' aria-label="Sleep timer for '+esc(d.name)+'">'+HICON.moon+'Timer</button>')+'</div>';
+  if(HTMR===d.id&&!tl)h+='<div class="htp"><span class="sub">Turn off in</span>'+[15,30,45,60,90].map(function(m){return '<button data-a="htset" data-i="'+esc(d.id)+'" data-m="'+m+'">'+(m<60?m+'m':m===60?'1h':'1½h')+'</button>';}).join('')+'</div>';
   if(bri!=null)h+='<div class="hbr"><input type="range" class="hbri" min="1" max="100" value="'+bri+'" style="--v:'+bri+'%" data-i="'+esc(d.id)+'" aria-label="Brightness for '+esc(d.name)+'"'+(on&&d.ok?'':' disabled')+'><span>'+bri+'%</span></div>';
   return h+'</div>';}
 function vHome(){
@@ -1384,6 +1394,8 @@ function act(a,t){
   if(a==='tab'&&id==='show'){ssOpen();return;}
   if(a==='tab'){tab=id;edit=false;hist=false;trash=false;remEdit='';TAE={id:'',w:'',res:null,q:''};pick='';WQR=null;TGR=null;toNow=(id==='cal');if(id==='tasks'||id==='chores')tasksLoad();if(id==='home')homeLoad();}
   else if(a==='hon'){var hd=((HS&&HS.devices)||[]).filter(function(x){return x.id===id;})[0];if(!hd)return;var hp=HPEND[id],cur=hp&&hp.on!=null?hp.on:hd.on;hSet(id,{on:!cur});return;}
+  else if(a==='htopen'){HTMR=HTMR===id?'':id;rr();return;}
+  else if(a==='htset'){hTimer(id,+t.getAttribute('data-m')||0);return;}
   else if(a==='hall'){var on=t.getAttribute('data-on')==='1',g=hGroups((HS&&HS.devices)||[]).filter(function(x){return x.id===id;})[0];if(g)hSetMany(g.L.filter(function(d){return d.ok&&hOnOf(d)!==on;}),on);return;}
   else if(a==='hradd'){var nm=((document.getElementById('hrn')||{}).value||'').trim().slice(0,40);if(!nm){toast('Type a room name first.');return;}hRooms().push({id:'r'+Date.now().toString(36),name:nm});}
   else if(a==='hrdel'){hRooms();if(armed!=='hrdel'+id){armed='hrdel'+id;toast('Tap ✕ again to delete this room. Its devices move to Other.');return;}armed='';S.hrooms=S.hrooms.filter(function(r){return r.id!==id;});Object.keys(S.hroomOf).forEach(function(k){if(S.hroomOf[k]===id)delete S.hroomOf[k];});}
