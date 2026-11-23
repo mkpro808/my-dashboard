@@ -293,6 +293,7 @@ nav{overflow-y:auto}@media (max-height:820px) and (min-width:701px){.nb{min-heig
 .hstat{font-size:15px;color:var(--mute);margin:2px 2px 6px}.hstat.warn{color:#d97706}
 @media (max-width:700px){.hgrid{grid-template-columns:1fr 1fr;gap:10px}.hbtn{gap:8px;padding:12px;min-height:0}.hic{width:38px;height:38px}.hnm b{font-size:18px}.hnm .sub{font-size:14px}.hbr{padding:0 12px 12px}}
 @media (max-width:700px){nav#nav{justify-content:flex-start;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;scrollbar-width:none}nav#nav::-webkit-scrollbar{display:none}#nav .nb{flex:0 0 18.5vw;scroll-snap-align:start;font-size:11px}#nav .nb .lf{display:inline}#nav .nb .ls{display:none}}
+.nbx{display:none}@media (max-width:700px){#nav .nbx{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex:0 0 46px;position:sticky;right:0;margin:0 0 0 auto;padding:4px 0;min-height:0;border:0;border-radius:0;background:var(--side);color:var(--mute);font-size:10px;box-shadow:-8px 0 10px -6px rgba(0,0,0,.25);cursor:pointer}nav#nav.open{display:grid;grid-template-columns:repeat(5,1fr);overflow:visible;row-gap:2px}nav#nav.open .nb{flex:none}nav#nav.open .nb[data-a="sleep"]{display:none}nav#nav.open .nbx{position:static;box-shadow:none;margin:0;flex:none;min-height:48px}}
 </style>
 </head>
 <body>
@@ -312,7 +313,7 @@ function calName(c){return String(c).replace(/(^|[^A-Za-z\u02bb])Ohana\b/g,'$1ʻ
 var CALCOL={jericho:'#3b82f6',kahoku:'#a78bfa',ohana:'#7e22ce'};
 var DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], H0=7, H1=22, PX=50, DEFTITLE='Sombrio ʻOhana';
 var dd='', gLabels=[], calHide=(function(){try{return JSON.parse(localStorage.getItem('calHide')||'{}')||{};}catch(e){return {};}})(), TK=null, tkSel='', api=/^https?:$/.test(location.protocol), ver=0, busy=false, dirty=false, failed=false, pushT=null, GE=[], gErr=[], gN=-1, toastT=null;
-var tab='cal', edit=false, hist=false, trash=false, HF={p:'',r:'week'}, armed='', pick='', msg='', S, mo=null, wkStart=iso(new Date()), toNow=true;
+var NAVX=false, tab='cal', edit=false, hist=false, trash=false, HF={p:'',r:'week'}, armed='', pick='', msg='', S, mo=null, wkStart=iso(new Date()), toNow=true;
 function p2(n){return n<10?'0'+n:''+n;}
 function iso(d){return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
 function addDays(s,n){var d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return iso(d);}
@@ -1260,7 +1261,8 @@ function render(){
   var h='',a='';
   TABS.forEach(function(t){h+='<button class="nb'+(t[0]===tab?' on':'')+'" data-a="tab" data-i="'+t[0]+'"><b>'+ico(t[0]==='home'?'hub':t[0])+'</b>'+(t[0]==='pomo'?'<span id="pnav">'+(P.running?mmss(pLeft()):t[1])+'</span>':(SHORT[t[0]]?'<span class="lf">'+t[1]+'</span><span class="ls">'+SHORT[t[0]]+'</span>':t[1]))+'</button>';});
   h+='<button class="nb" data-a="sleep" style="margin-top:auto"><b>'+ico('sleep')+'</b>Sleep</button>';
-  document.getElementById('nav').innerHTML=h;
+  h+='<button class="nbx" data-a="navx" aria-label="'+(NAVX?'Show fewer':'Show all tabs')+'" aria-expanded="'+NAVX+'"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="'+(NAVX?'M6 9l6 6 6-6':'M6 15l6-6 6 6')+'"/></svg><span>'+(NAVX?'Less':'All')+'</span></button>';
+  var nvEl=document.getElementById('nav');nvEl.innerHTML=h;nvEl.classList.toggle('open',NAVX);
   // The script font has no ʻokina, so draw one (a small filled 6 shape); the real ʻokina stays for screen readers and copying.
   var tt=S.title||DEFTITLE,te=document.getElementById('ttl'),th=esc(tt).replace(/\u02bb/g,'<span class="okr">\u02bb</span><svg class="okv" viewBox="0 0 10 16" aria-hidden="true"><circle cx="5.2" cy="11.6" r="3.4"/><path d="M2.1 10.6C1.7 6.3 3.6 2.7 7.9.7l.8 1.3C6 3.9 4.8 6.6 5.1 9.6z"/></svg>');if(te.innerHTML!==th)te.innerHTML=th;
   document.getElementById('app').innerHTML=tab==='cal'?vCal():tab==='wx'?vWeather():tab==='traffic'?vTraffic():tab==='home'?vHome():tab==='tasks'?vTasks():tab==='rem'?vRem():tab==='pomo'?vPomo():vChores();
@@ -1363,6 +1365,8 @@ function act(a,t){
   if(a!=='tog'&&a!=='who')msg='';
   if(a!=='delp'&&a!=='tempty'&&a!=='shclr'&&a!=='hrdel')armed='';
   var hadDD=!!dd;if(a!=='dd'&&a!=='ctog'&&a!=='call')dd='';
+  if(a==='navx'){NAVX=!NAVX;render();return;}
+  if(a==='tab'&&NAVX){NAVX=false;if(id==='show')render();}
   if(a==='tab'&&id==='show'){ssOpen();return;}
   if(a==='tab'){tab=id;edit=false;hist=false;trash=false;remEdit='';TAE={id:'',w:'',res:null,q:''};pick='';WQR=null;TGR=null;toNow=(id==='cal');if(id==='tasks'||id==='chores')tasksLoad();if(id==='home')homeLoad();}
   else if(a==='hon'){var hd=((HS&&HS.devices)||[]).filter(function(x){return x.id===id;})[0];if(!hd)return;var hp=HPEND[id],cur=hp&&hp.on!=null?hp.on:hd.on;hSet(id,{on:!cur});return;}
