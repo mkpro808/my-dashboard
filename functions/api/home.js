@@ -29,16 +29,22 @@ export async function onRequestPost({ env, request }) {
   let qChanged = false;
   q.list = q.list.filter((c) => now - c.t < MAXAGE);
 
-  if (b.cmd) {
-    const c = b.cmd, out = { id: String(c.id || "").slice(0, 120), t: now };
-    if (!out.id) return json({ error: "Missing device" }, 400);
-    if (typeof c.on === "boolean") out.on = c.on;
-    if (c.bri != null) out.bri = Math.max(1, Math.min(100, Math.round(+c.bri) || 1));
-    if (out.on == null && out.bri == null) return json({ error: "Nothing to change" }, 400);
-    q.n = (q.n || 0) + 1; out.n = q.n;
-    q.list = q.list.filter((x) => x.id !== out.id || (out.on == null) !== (x.on == null)).concat(out).slice(-30);
+  if (b.cmd || Array.isArray(b.cmds)) {
+    const list = (b.cmds || [b.cmd]).slice(0, 40);
+    let added = 0;
+    for (const c of list) {
+      const out = { id: String((c && c.id) || "").slice(0, 120), t: now };
+      if (!out.id) continue;
+      if (typeof c.on === "boolean") out.on = c.on;
+      if (c.bri != null) out.bri = Math.max(1, Math.min(100, Math.round(+c.bri) || 1));
+      if (out.on == null && out.bri == null) continue;
+      q.n = (q.n || 0) + 1; out.n = q.n; added++;
+      q.list = q.list.filter((x) => x.id !== out.id || (out.on == null) !== (x.on == null)).concat(out);
+    }
+    if (!added) return json({ error: "Nothing to change" }, 400);
+    q.list = q.list.slice(-60);
     await kvSet(env.DB, QK, JSON.stringify(q));
-    return json({ ok: true, n: out.n });
+    return json({ ok: true, n: q.n });
   }
 
   if (b.state) {
