@@ -58,8 +58,8 @@ def light_of(d):
     if m is None:
         return None
     try:
-        if hasattr(m, "has_feature") and not m.has_feature("brightness"):
-            return None
+        if hasattr(m, "has_feature"):
+            return m if m.has_feature("brightness") else None
     except Exception:
         pass
     try:
