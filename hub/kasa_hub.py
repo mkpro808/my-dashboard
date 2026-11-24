@@ -18,6 +18,7 @@ import time
 from aiohttp import web
 from kasa import Discover, Module
 
+VERSION = "2026.11.23-1946"
 ORIGIN = "https://my-dashboard-azp.pages.dev"
 PORT = 8738
 REFRESH = 20        # seconds between status checks
@@ -29,7 +30,7 @@ BAD = set()         # hosts that failed their last check
 ITEMS = {}          # id -> (thing to switch, host of the device it lives on)
 UNSUPPORTED = []
 SKIPPED = set()      # hosts already reported as skipped (log once)
-STATE = {"devices": [], "ts": 0}
+STATE = {"devices": [], "ts": 0, "ver": VERSION}
 TIMERS = {}         # id -> time (seconds) to switch it off
 TFILE = os.path.expanduser("~/.ohana-timers.json")
 
@@ -355,7 +356,7 @@ async def set_(req):
 async def main():
     user, _ = login()
     load_timers()
-    log("ʻOhana hub starting", "(with Kasa login)" if user else "(no Kasa login set)")
+    log("ʻOhana hub v" + VERSION + " starting", "(with Kasa login)" if user else "(no Kasa login set)")
     await discover()
     for x in STATE["devices"]:
         if x["kind"] == "sensor":

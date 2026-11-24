@@ -51,7 +51,7 @@ export async function onRequestPost({ env, request }) {
   if (b.state) {
     const s = b.state;
     if (!Array.isArray(s.devices)) return json({ error: "Bad state" }, 400);
-    const text = JSON.stringify({ devices: s.devices.slice(0, 80), unsupported: s.unsupported || 0, seen: now });
+    const text = JSON.stringify({ devices: s.devices.slice(0, 80), unsupported: s.unsupported || 0, ver: String(s.ver || "").slice(0, 30), seen: now });
     if (text.length > 60000) return json({ error: "Too large" }, 413);
     await kvSet(env.DB, SK, text);
   }
