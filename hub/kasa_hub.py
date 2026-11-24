@@ -18,7 +18,7 @@ import time
 from aiohttp import web
 from kasa import Discover, Module
 
-VERSION = "2026.11.23-1946"
+VERSION = "2026.11.23-1958"
 ORIGIN = "https://my-dashboard-azp.pages.dev"
 PORT = 8738
 REFRESH = 20        # seconds between status checks
@@ -113,6 +113,8 @@ def describe(d, host, parent=None):
         it["offAt"] = int(TIMERS[it["id"]] * 1000)
     b = feat(d, "brightness")       # works for bulbs and dimmer plugs/switches (e.g. KP405)
     if b is None:
+        b = raw_bri(d)
+    if b is None:
         lt = light_of(d)
         if lt is not None:
             try:
@@ -127,6 +129,23 @@ def describe(d, host, parent=None):
         except Exception:
             pass
     return it
+
+
+def raw_bri(d):
+    """Older Kasa dimmers (KP405, HS220) report brightness in their system info."""
+    try:
+        si = d.sys_info
+        if isinstance(si, dict) and "brightness" in si:
+            return int(si["brightness"])
+    except Exception:
+        pass
+    return None
+
+
+async def set_raw_bri(d, v):
+    if hasattr(d, "set_brightness"):
+        return await d.set_brightness(v)
+    return await d._query_helper("smartlife.iot.dimmer", "set_brightness", {"brightness": v})
 
 
 def feat(d, name):
@@ -330,6 +349,8 @@ async def set_(req):
                     lt = light_of(thing)
                     if lt is not None:
                         await asyncio.wait_for(lt.set_brightness(v), 10)
+                    elif raw_bri(thing) is not None:
+                        await asyncio.wait_for(set_raw_bri(thing, v), 10)
             if b.get("timer") is not None:
                 mins = max(0, min(720, int(b["timer"])))
                 if mins:
