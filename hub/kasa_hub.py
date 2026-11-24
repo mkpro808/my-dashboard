@@ -110,10 +110,17 @@ def describe(d, host, parent=None):
         it["group"] = parent.alias or parent.model
     if it["id"] in TIMERS:
         it["offAt"] = int(TIMERS[it["id"]] * 1000)
-    lt = light_of(d)
-    if lt is not None:
+    b = feat(d, "brightness")       # works for bulbs and dimmer plugs/switches (e.g. KP405)
+    if b is None:
+        lt = light_of(d)
+        if lt is not None:
+            try:
+                b = lt.brightness
+            except Exception:
+                b = None
+    if b is not None:
         try:
-            it["bri"] = int(lt.brightness)
+            it["bri"] = int(b)
             if it["kind"] == "plug":
                 it["kind"] = "switch"
         except Exception:
@@ -310,9 +317,18 @@ async def set_(req):
     async with LOCKS[host]:
         try:
             if b.get("bri") is not None:
-                lt = light_of(thing)
-                if lt is not None:
-                    await asyncio.wait_for(lt.set_brightness(max(1, min(100, int(b["bri"])))), 10)
+                v = max(1, min(100, int(b["bri"])))
+                f = None
+                try:
+                    f = thing.features.get("brightness")
+                except Exception:
+                    pass
+                if f is not None:
+                    await asyncio.wait_for(f.set_value(v), 10)
+                else:
+                    lt = light_of(thing)
+                    if lt is not None:
+                        await asyncio.wait_for(lt.set_brightness(v), 10)
             if b.get("timer") is not None:
                 mins = max(0, min(720, int(b["timer"])))
                 if mins:
